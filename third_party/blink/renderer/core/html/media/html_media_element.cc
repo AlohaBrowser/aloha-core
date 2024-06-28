@@ -24,6 +24,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/html/media/html_media_element.h"
 
 #include <algorithm>
@@ -117,6 +119,12 @@
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 #include "ui/accessibility/accessibility_features.h"
 #include "ui/display/screen_info.h"
+
+// ALOHA https://app.clickup.com/t/2qfa6r7
+#include "aloha/src/native/find_video_url.h"
+#include "base/uuid.h"
+// ALOHA https://app.clickup.com/t/2uat2t4
+#include "third_party/blink/renderer/core/html/html_frame_owner_element.h"
 
 #ifndef LOG_MEDIA_EVENTS
 // Default to not logging events because so many are generated they can
@@ -1505,6 +1513,49 @@ bool HTMLMediaElement::HandleInvokeInternal(HTMLElement& invoker,
   }
 }
 
+// ALOHA https://app.clickup.com/t/2f2eyt8, https://app.clickup.com/t/2hxwa9w, https://app.clickup.com/t/2uat2t4, https://app.clickup.com/t/861m7r8nk
+media::mojom::blink::MediaPlayerIdPtr HTMLMediaElement::GetOrCreateMediaPlayerId() {
+  AtomicString aloha_id_str("aloha_id");
+  if (aloha_player_id_.is_null()) {
+    const auto gen_uid = [] { return base::Uuid::GenerateRandomV4().AsLowercaseString(); };
+    if (!hasAttribute(aloha_id_str)) {
+      setAttribute(aloha_id_str, gen_uid().c_str());
+      DCHECK(hasAttribute(aloha_id_str));
+    }
+
+    Vector<String> ids;
+    for (Frame* frame = GetDocument().GetFrame();
+        frame != nullptr;
+        frame = frame->Tree().Parent()) {
+      Element* element = DynamicTo<HTMLFrameOwnerElement>(frame->Owner());
+      if (element != nullptr) {
+        if (!element->hasAttribute(aloha_id_str)) {
+          element->setAttribute(aloha_id_str, gen_uid().c_str());
+          DCHECK(element->hasAttribute(aloha_id_str));
+        }
+        ids.push_back(element->getAttribute(aloha_id_str));
+      }
+    }
+    std::reverse(ids.begin(), ids.end());
+    aloha_player_id_ = media::mojom::blink::MediaPlayerId::New(getAttribute(aloha_id_str), std::move(ids));
+  }
+  DCHECK(hasAttribute(aloha_id_str));
+  DCHECK(getAttribute(aloha_id_str) == aloha_player_id_->html_id);
+  DCHECK(!aloha_player_id_.is_null());
+  return aloha_player_id_.Clone();
+}
+
+// ALOHA https://app.clickup.com/t/2qfa6r7
+blink::KURL HTMLMediaElement::GetSourceUrl() const {
+  auto source_media_url = aloha::GetMediaSourceURL(*this);
+  if (source_media_url.IsEmpty()) {
+    if (const auto* player = GetWebMediaPlayer()) {
+      source_media_url = KURL(player->GetLoadedUrl());
+    }
+  }
+  return source_media_url;
+}
+
 void HTMLMediaElement::StartPlayerLoad() {
   DCHECK(!web_media_player_);
 
@@ -1587,7 +1638,7 @@ void HTMLMediaElement::StartPlayerLoad() {
 
   GetMediaPlayerHostRemote().OnMediaPlayerAdded(
       std::move(media_player_remote), AddMediaPlayerObserverAndPassReceiver(),
-      web_media_player_->GetDelegateId());
+      web_media_player_->GetDelegateId(), GetOrCreateMediaPlayerId()); // ALOHA https://app.clickup.com/t/2f2eyt8
 
   if (GetLayoutObject())
     GetLayoutObject()->SetShouldDoFullPaintInvalidation();
@@ -2992,8 +3043,8 @@ void HTMLMediaElement::SetLoop(bool b) {
 }
 
 bool HTMLMediaElement::ShouldShowControls() const {
-  // If the document is not active, then we should not show controls.
-  if (!GetDocument().IsActive()) {
+  // ALOHA https://app.clickup.com/t/2k0734w
+  if (media_controls_is_hidden_) {
     return false;
   }
 
@@ -4718,13 +4769,27 @@ void HTMLMediaElement::PausePlayback(PauseReason pause_reason) {
 }
 
 void HTMLMediaElement::DidPlayerStartPlaying() {
-  for (auto& observer : media_player_observer_remote_set_->Value())
-    observer->OnMediaPlaying();
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  const auto& observers = media_player_observer_remote_set_->Value();
+  if (!observers.empty()) {
+    auto media_url = GetSourceUrl();
+    const auto& document_url = GetDocument().Url();
+    auto duration_s = GetWebMediaPlayer()->Duration();
+    for (const auto& observer : observers)
+      observer->OnMediaPlaying(media_url, document_url, duration_s);
+  }
 }
 
 void HTMLMediaElement::DidPlayerPaused(bool stream_ended) {
-  for (auto& observer : media_player_observer_remote_set_->Value())
-    observer->OnMediaPaused(stream_ended);
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  const auto& observers = media_player_observer_remote_set_->Value();
+  if (!observers.empty()) {
+    auto media_url = GetSourceUrl();
+    const auto& document_url = GetDocument().Url();
+    auto duration_s = GetWebMediaPlayer()->Duration();
+    for (const auto& observer : observers)
+      observer->OnMediaPaused(stream_ended, media_url, document_url, duration_s);
+  }
 }
 
 void HTMLMediaElement::DidPlayerMutedStatusChange(bool muted) {
@@ -4784,6 +4849,22 @@ void HTMLMediaElement::OnRemotePlaybackDisabled(bool disabled) {
     return;
   is_remote_playback_disabled_ = disabled;
   OnRemotePlaybackMetadataChange();
+}
+
+// ALOHA https://app.clickup.com/t/2rqdtxz
+void HTMLMediaElement::OnMediaError(media::PipelineStatus pipeline_status) {
+  const auto& observers = media_player_observer_remote_set_->Value();
+  if (!observers.empty()) {
+    WTF::String pipeline_status_as_string(PipelineStatusToString(pipeline_status));
+    auto media_url = GetSourceUrl();
+    const auto& document_url = GetDocument().Url();
+    auto current_time_s = GetWebMediaPlayer()->CurrentTime();
+    auto duration_s = GetWebMediaPlayer()->Duration();
+    for (const auto& observer : observers) {
+      observer->OnMediaError(pipeline_status_as_string, media_url, document_url,
+          current_time_s, duration_s);
+    }
+  }
 }
 
 media::mojom::blink::MediaPlayerHost&

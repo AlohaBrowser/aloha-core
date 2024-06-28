@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_PUBLIC_WEB_MODULES_MEDIASTREAM_WEB_MEDIA_PLAYER_MS_H_
 #define THIRD_PARTY_BLINK_PUBLIC_WEB_MODULES_MEDIASTREAM_WEB_MEDIA_PLAYER_MS_H_
 
@@ -206,6 +208,9 @@ class BLINK_MODULES_EXPORT WebMediaPlayerMS
   void RegisterFrameSinkHierarchy() override;
   void UnregisterFrameSinkHierarchy() override;
 
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  GURL GetLoadedUrl() const override { return {}; }
+  
  private:
   friend class WebMediaPlayerMSTest;
 

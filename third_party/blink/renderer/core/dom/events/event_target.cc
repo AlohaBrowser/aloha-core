@@ -29,6 +29,10 @@
  *
  */
 
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
 #include "third_party/blink/renderer/core/dom/events/event_target.h"
 
 #include <memory>
@@ -883,7 +887,10 @@ bool EventTarget::dispatchEventForBindings(Event* event,
   if (!GetExecutionContext())
     return false;
 
-  event->SetTrusted(false);
+  auto world = GetExecutionContext()->GetCurrentWorld();
+  // content::IsolatedWorldIDs::ISOLATED_WORLD_ID_ADBLOCK == 1
+  bool make_trusted = world && (world->GetWorldId() == 1);
+  event->SetTrusted(make_trusted);
 
   // Return whether the event was cancelled or not to JS not that it
   // might have actually been default handled; so check only against

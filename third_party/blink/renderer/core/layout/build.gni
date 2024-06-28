@@ -15,6 +15,8 @@
 # -O2 optimization. If there is common inlined implementations, put this in
 # foo-inl.h and include that in both foo.cc and foo-hot.cc.
 
+# Modified by Aloha Mobile Ltd.
+
 blink_core_hot_sources_layout = [
   "layout_block_flow_hot.cc",
   "layout_box_hot.cc",
@@ -643,6 +645,12 @@ blink_core_sources_layout = [
   "traced_layout_object.cc",
   "traced_layout_object.h",
   "unpositioned_float.h",
+
+  # ALOHA https://app.clickup.com/t/2f2ey18
+  "//aloha/src/native/find_video_url.h",
+  "//aloha/src/native/find_video_url.cc",
+  "//aloha/src/native/fullscreen_video_element.h",
+  "//aloha/src/native/fullscreen_video_element.cc",
 ]
 
 if (is_mac) {

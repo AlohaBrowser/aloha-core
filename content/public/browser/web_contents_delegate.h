@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_PUBLIC_BROWSER_WEB_CONTENTS_DELEGATE_H_
 #define CONTENT_PUBLIC_BROWSER_WEB_CONTENTS_DELEGATE_H_
 
@@ -42,6 +44,11 @@
 #endif
 
 class GURL;
+
+// ALOHA https://app.clickup.com/t/861m4jwng
+namespace aloha {
+struct BromiumClientBridge;
+}
 
 namespace base {
 class FilePath;
@@ -784,6 +791,9 @@ class CONTENT_EXPORT WebContentsDelegate {
   // system media controls.
   virtual bool ShouldUseInstancedSystemMediaControls() const;
 #endif  // !BUILDFLAG(IS_ANDROID)
+
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  virtual aloha::BromiumClientBridge* BromiumBridge(WebContents* web_contents) const;
 
  protected:
   virtual ~WebContentsDelegate();

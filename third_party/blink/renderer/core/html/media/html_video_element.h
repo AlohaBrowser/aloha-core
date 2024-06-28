@@ -163,7 +163,7 @@ class CORE_EXPORT HTMLVideoElement final
 
   VideoWakeLock* wake_lock_for_tests() const { return wake_lock_.Get(); }
 
- protected:
+protected:
   // EventTarget overrides.
   void AddedEventListener(const AtomicString& event_type,
                           RegisteredEventListener&) override;

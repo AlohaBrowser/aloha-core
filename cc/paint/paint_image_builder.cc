@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "cc/paint/paint_image_builder.h"
 
 namespace cc {
@@ -47,7 +49,10 @@ PaintImage PaintImageBuilder::TakePaintImage() {
   if (paint_image_.sk_image_) {
     DCHECK(!paint_image_.paint_record_);
     DCHECK(!paint_image_.paint_image_generator_);
-    DCHECK(!paint_image_.sk_image_->isLazyGenerated());
+
+    //// ALOHA https://app.clickup.com/t/862kg54q2
+    //DCHECK(!paint_image_.sk_image_->isLazyGenerated());
+    
     DCHECK(!paint_image_.paint_worklet_input_);
     // TODO(khushalsagar): Assert that we don't have an animated image type
     // here. The only case where this is possible is DragImage. There are 2 use

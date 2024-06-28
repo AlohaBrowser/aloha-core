@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview.test;
 
 import android.content.Context;
@@ -95,7 +97,7 @@ public class OnDiskFileTest extends AwParameterizedTest {
         webViewCookiePath.delete();
 
         // Set a cookie and flush it to disk. This should guarantee the cookie file is created.
-        final AwCookieManager cookieManager = new AwCookieManager();
+        final AwCookieManager cookieManager = AwCookieManager.getPublicCookieManager();
         final String url = "http://www.example.com";
         cookieManager.setCookie(url, "key=value");
         cookieManager.flushCookieStore();

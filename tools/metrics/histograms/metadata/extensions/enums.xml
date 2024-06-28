@@ -2,6 +2,10 @@
 Copyright 2023 The Chromium Authors
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
+
+This source code is a part of eyeo Chromium SDK.
+Use of this source code is governed by the GPLv3 that can be found in the
+components/adblock/LICENSE file.
 -->
 
 <!--
@@ -174,7 +178,7 @@ Called by update_extension_histograms.py.-->
   <int value="19" label="APP_WINDOW_ON_MAXIMIZED"/>
   <int value="20" label="APP_WINDOW_ON_MINIMIZED"/>
   <int value="21" label="APP_WINDOW_ON_RESTORED"/>
-  <int value="22" label="DELETED_AUDIO_MODEM_ON_RECEIVED"/>
+  <int value="22" label="EYEO_EVENT"/>
   <int value="23" label="DELETED_AUDIO_MODEM_ON_TRANSMIT_FAIL"/>
   <int value="24" label="DELETED_AUDIO_ON_DEVICE_CHANGED"/>
   <int value="25" label="AUDIO_ON_DEVICES_CHANGED"/>
@@ -3095,6 +3099,8 @@ Called by update_extension_permission.py.-->
   <int value="255" label="kEnterpriseKioskInput"/>
   <int value="256" label="kOdfsConfigPrivate"/>
   <int value="257" label="kChromeOSManagementAudio"/>
+  <int value="999" label="kAdblockPrivate"/>
+  <int value="1000" label="kEyeoFilteringPrivate"/>
 </enum>
 
 <enum name="ExtensionPolicyReinstallReason">

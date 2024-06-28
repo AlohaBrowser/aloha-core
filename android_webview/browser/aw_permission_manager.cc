@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/aw_permission_manager.h"
 
 #include <memory>
@@ -463,7 +465,8 @@ PermissionStatus AwPermissionManager::GetPermissionStatus(
     return result_cache_->GetResult(permission, requesting_origin,
                                     embedding_origin);
   } else if (permission == PermissionType::MIDI ||
-             permission == PermissionType::SENSORS) {
+             permission == PermissionType::SENSORS ||
+             permission == PermissionType::CLIPBOARD_SANITIZED_WRITE) { // ALOHA https://app.clickup.com/t/2t8g01g
     return PermissionStatus::GRANTED;
   }
 

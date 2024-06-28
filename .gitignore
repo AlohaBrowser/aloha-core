@@ -310,3 +310,5 @@ vs-chromium-project.txt
 
 # ignore rust build files
 third_party/rust/target/
+# Aloha: folders in 'third_party/android_support_test_runner/*'
+.gradle/

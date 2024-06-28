@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef ANDROID_WEBVIEW_BROWSER_AW_WEB_CONTENTS_DELEGATE_H_
 #define ANDROID_WEBVIEW_BROWSER_AW_WEB_CONTENTS_DELEGATE_H_
 
@@ -82,6 +84,9 @@ class AwWebContentsDelegate
       content::WebContents& web_contents) override;
   content::NavigationController::UserAgentOverrideOption
   ShouldOverrideUserAgentForPrerender2() override;
+
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  aloha::BromiumClientBridge* BromiumBridge(content::WebContents* web_contents) const override;
 
   scoped_refptr<content::FileSelectListener> TakeFileSelectListener();
 

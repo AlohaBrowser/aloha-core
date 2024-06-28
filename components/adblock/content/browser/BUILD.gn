@@ -1,0 +1,160 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+import("//components/adblock/features.gni")
+
+config("adblock_content_common_config") {
+  defines = []
+
+  if (eyeo_intercept_debug_url) {
+    print("WARNING! Enabled intercepting eyeo debug url \"adblock.test.data\"")
+    defines += [ "EYEO_INTERCEPT_DEBUG_URL=1" ]
+  }
+}
+
+source_set("browser_impl") {
+  visibility = [
+    ":*",
+    "//components/adblock/content:*",
+  ]
+  sources = [
+    "adblock_context_data.cc",
+    "adblock_context_data.h",
+    "adblock_filter_match.h",
+    "adblock_internals_page_handler.cc",
+    "adblock_internals_page_handler.h",
+    "adblock_internals_ui.cc",
+    "adblock_internals_ui.h",
+    "adblock_url_loader_factory.cc",
+    "adblock_url_loader_factory.h",
+    "adblock_web_ui_controller_factory.cc",
+    "adblock_web_ui_controller_factory.h",
+    "adblock_webcontents_observer.cc",
+    "adblock_webcontents_observer.h",
+    "content_security_policy_injector.h",
+    "content_security_policy_injector_impl.cc",
+    "content_security_policy_injector_impl.h",
+    "element_hider.h",
+    "element_hider_impl.cc",
+    "element_hider_impl.h",
+    "eyeo_document_info.cc",
+    "eyeo_document_info.h",
+    "factories/adblock_telemetry_service_factory.cc",
+    "factories/adblock_telemetry_service_factory.h",
+    "factories/content_security_policy_injector_factory.cc",
+    "factories/content_security_policy_injector_factory.h",
+    "factories/element_hider_factory.cc",
+    "factories/element_hider_factory.h",
+    "factories/resource_classification_runner_factory.cc",
+    "factories/resource_classification_runner_factory.h",
+    "factories/session_stats_factory.cc",
+    "factories/session_stats_factory.h",
+    "factories/sitekey_storage_factory.cc",
+    "factories/sitekey_storage_factory.h",
+    "factories/subscription_persistent_metadata_factory.cc",
+    "factories/subscription_persistent_metadata_factory.h",
+    "factories/subscription_service_factory.cc",
+    "factories/subscription_service_factory.h",
+    "frame_hierarchy_builder.cc",
+    "frame_hierarchy_builder.h",
+    "frame_opener_info.cc",
+    "frame_opener_info.h",
+    "resource_classification_runner.h",
+    "resource_classification_runner_impl.cc",
+    "resource_classification_runner_impl.h",
+    "session_stats_impl.cc",
+    "session_stats_impl.h",
+  ]
+
+  if (eyeo_intercept_debug_url) {
+    sources += [
+      "adblock_url_loader_factory_for_test.cc",
+      "adblock_url_loader_factory_for_test.h",
+    ]
+  }
+
+  deps = [
+    "//base",
+    "//components/adblock/content/browser/mojom:adblock_internals",
+    "//components/adblock/content/resources/adblock_internals:resources",
+    "//components/adblock/core/converter:converter",
+    "//components/adblock/core/resources:adblock_resources",
+    "//components/keyed_service/content:content",
+    "//components/language/core/browser:browser",
+    "//components/language/core/common:common",
+    "//components/user_prefs:user_prefs",
+    "//ui/webui:webui",
+    "//url:url",
+  ]
+
+  public_deps = [
+    "//components/adblock/core",
+    "//content/public/browser",
+    "//third_party/blink/public/common:headers",
+  ]
+
+  all_dependent_configs = [ ":adblock_content_common_config" ]
+}
+
+source_set("test_support") {
+  testonly = true
+  sources = [
+    "test/mock_adblock_content_security_policy_injector.cc",
+    "test/mock_adblock_content_security_policy_injector.h",
+    "test/mock_element_hider.cc",
+    "test/mock_element_hider.h",
+    "test/mock_frame_hierarchy_builder.cc",
+    "test/mock_frame_hierarchy_builder.h",
+    "test/mock_resource_classification_runner.cc",
+    "test/mock_resource_classification_runner.h",
+  ]
+
+  public_deps = [
+    ":browser_impl",
+    "//testing/gmock",
+    "//testing/gtest",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "test/adblock_url_loader_factory_test.cc",
+    "test/adblock_webcontents_observer_test.cc",
+    "test/content_security_policy_injector_impl_test.cc",
+    "test/element_hider_impl_test.cc",
+    "test/frame_hierarchy_builder_test.cc",
+    "test/resource_classification_runner_impl_test.cc",
+    "test/session_stats_impl_test.cc",
+    "test/subscription_service_factory_test.cc",
+  ]
+
+  deps = [
+    ":test_support",
+    "//base/test:test_support",
+    "//components/adblock/core:test_support",
+    "//components/adblock/core:test_support",
+    "//components/adblock/core/classifier:test_support",
+    "//components/adblock/core/resources:adblock_resources",
+    "//components/adblock/core/subscription:test_support",
+    "//components/prefs:test_support",
+    "//components/sync_preferences:test_support",
+    "//content/test:test_support",
+    "//net:test_support",
+    "//services/network:test_support",
+    "//ui/base:test_support",
+  ]
+}

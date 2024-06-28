@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "net/url_request/url_request_http_job.h"
 
 #include <algorithm>
@@ -375,6 +377,9 @@ void URLRequestHttpJob::Start() {
           IsSameSiteIgnoringWebSocketProtocol(request_initiator_site().value(),
                                               request()->url()));
 
+  // ALOHA https://app.clickup.com/t/2f29z75
+  request_info_.send_dnt_header = request()->get_send_dnt_header();
+  
   UMA_HISTOGRAM_BOOLEAN("Net.HttpJob.CanIncludeCookies",
                         ShouldAddCookieHeader());
 
@@ -695,6 +700,11 @@ void URLRequestHttpJob::AddExtraHeaders() {
           HttpRequestHeaders::kAcceptLanguage,
           accept_language);
     }
+  }
+
+  // ALOHA https://app.clickup.com/t/2f29z75
+  if(request_info_.send_dnt_header) {
+    request_info_.extra_headers.SetHeaderIfMissing("DNT", "1");
   }
 }
 

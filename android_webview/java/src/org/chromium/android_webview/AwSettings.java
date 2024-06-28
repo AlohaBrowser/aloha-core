@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview;
 
 import android.annotation.SuppressLint;
@@ -196,6 +198,9 @@ public class AwSettings {
     private boolean mBuiltInZoomControls;
     private boolean mDisplayZoomControls = true;
     private final AwMediaIntegrityApiStatusConfig mIntegrityApiStatusConfig;
+
+    // ALOHA https://app.clickup.com/t/2f2ezk8
+    private boolean mUserAgentIsMobile = true;
 
     // Cache default user agent string obtained through JNI, since it will not change during the
     // process lifetime. This saves a JNI call when creating new AwSettings objects after the first
@@ -2001,6 +2006,23 @@ public class AwSettings {
         synchronized (mAwSettingsLock) {
             return mIntegrityApiStatusConfig.getStatusForUri(uri);
         }
+    }
+
+    // ALOHA https://app.clickup.com/t/2f2ezk8
+    public void setUserAgentIsMobile(boolean isMobile) {
+        synchronized (mAwSettingsLock) {
+            if (mUserAgentIsMobile != isMobile) {
+                mUserAgentIsMobile = isMobile;
+                mEventHandler.updateWebkitPreferencesLocked();
+            }
+        }
+    }
+
+    // ALOHA https://app.clickup.com/t/2f2ezk8
+    @CalledByNative
+    private boolean isMobileUserAgentLocked() {
+        assert Thread.holdsLock(mAwSettingsLock);
+        return mUserAgentIsMobile;
     }
 
     @NativeMethods

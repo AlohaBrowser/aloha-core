@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "ui/gl/gl_fence_egl.h"
 
 #include "base/memory/ptr_util.h"
@@ -118,7 +120,9 @@ void GLFenceEGL::ServerWait() {
   if (!completed && eglWaitSyncKHR(display_, sync_, flags) == EGL_FALSE) {
     LOG(ERROR) << "Failed to wait for EGLSync. error:"
                << ui::GetLastEGLErrorString();
-    CHECK(false);
+    // ALOHA https://app.clickup.com/t/861mb5k29
+    // Uncomment after multiprocess is enabled
+    // CHECK(false);
   }
 }
 

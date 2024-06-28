@@ -1,0 +1,50 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+declare_args() {
+  # eyeo Chromium SDK telemetry client id, provided on per-partner basis by eyeo. Used to
+  # attribute usage reports to specific browsers.
+  eyeo_telemetry_client_id = ""
+
+  # eyeo Chromium SDK telemetry server address, by default evaluated to
+  # "https://${eyeo_telemetry_client_id}.telemetry.eyeo.com/".
+  # Override only for testing.
+  eyeo_telemetry_server_url = ""
+
+  # eyeo Chromium SDK telemetry authentication token, provided on per-partner basis by eyeo.
+  eyeo_telemetry_activeping_auth_token = ""
+
+  # eyeo Chromium SDK application name to be used in telemetry and
+  # filter list download requests. If not set the value returned by
+  # version_info::GetProductName() will be used instead.
+  eyeo_application_name = ""
+
+  # eyeo Chromium SDK application version to be used in telemetry and
+  # filter list download requests. If not set the value returned by
+  # version_info::GetVersionNumber() will be used instead.
+  eyeo_application_version = ""
+
+  # If true then requests to "adblock.test.data" domain will be intercepted
+  # in order to allow installing/removing/listing filter lists via navigating to
+  # special URLs. This is used for internal automated testing (see DPD-1407).
+  eyeo_intercept_debug_url = false
+
+  # If true then eyeo filtering is disabled by default (applies to 1st run scenario).
+  eyeo_disable_filtering_by_default = false
+
+  # If true then acceptable ads is disabled by default (applies to 1st run scenario).
+  eyeo_disable_aa_by_default = false
+}

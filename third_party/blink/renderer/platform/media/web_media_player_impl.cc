@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/platform/media/web_media_player_impl.h"
 
 #include <algorithm>
@@ -1891,6 +1893,11 @@ void WebMediaPlayerImpl::OnError(media::PipelineStatus status) {
     playback_events_recorder_->OnError(status);
   if (watch_time_reporter_)
     watch_time_reporter_->OnError(status);
+
+  // ALOHA https://app.clickup.com/t/2rqdtxz
+  if (client_ != nullptr) {
+    client_->OnMediaError(status);
+  }
 
   if (ready_state_ == WebMediaPlayer::kReadyStateHaveNothing) {
     // Any error that occurs before reaching ReadyStateHaveMetadata should

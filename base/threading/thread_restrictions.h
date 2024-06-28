@@ -1,6 +1,10 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #ifndef BASE_THREADING_THREAD_RESTRICTIONS_H_
 #define BASE_THREADING_THREAD_RESTRICTIONS_H_
@@ -164,6 +168,9 @@ class JsSandboxIsolate;
 class ScopedAllowInitGLBindings;
 class VizCompositorThreadRunnerWebView;
 }  // namespace android_webview
+namespace adblock {
+class SubscriptionServiceFactory;
+}  // namespace adblock
 namespace ash {
 class BrowserDataBackMigrator;
 class LoginEventRecorder;
@@ -654,6 +661,8 @@ class BASE_EXPORT [[maybe_unused, nodiscard]] ScopedAllowBlocking {
   friend class base::win::OSInfo;
   friend class content::WebContentsImpl;  // http://crbug.com/1262162
 #endif
+
+  friend class adblock::SubscriptionServiceFactory;
 
   // Sorted by function name (with namespace), ignoring the return type.
   friend bool ::EnsureBrowserStateDirectoriesCreated(const base::FilePath&,

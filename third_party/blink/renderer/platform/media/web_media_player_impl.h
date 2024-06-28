@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_MEDIA_WEB_MEDIA_PLAYER_IMPL_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_MEDIA_WEB_MEDIA_PLAYER_IMPL_H_
 
@@ -321,6 +323,9 @@ class PLATFORM_EXPORT WebMediaPlayerImpl
   bool IsBackgroundMediaSuspendEnabled() const {
     return is_background_suspend_enabled_;
   }
+
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  GURL GetLoadedUrl() const override { return demuxer_manager_->LoadedUrl(); }
 
   // Distinct states that |delegate_| can be in. (Public for testing.)
   enum class DelegateState {

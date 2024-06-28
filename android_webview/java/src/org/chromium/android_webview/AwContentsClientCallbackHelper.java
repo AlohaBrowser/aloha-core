@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview;
 
 import android.graphics.Picture;
@@ -35,21 +37,35 @@ public class AwContentsClientCallbackHelper {
 
     private static class DownloadInfo {
         final String mUrl;
+        final String mOriginalUrl; // ALOHA https://app.clickup.com/t/861me45jv
         final String mUserAgent;
         final String mContentDisposition;
         final String mMimeType;
+
+        // ALOHA https://app.clickup.com/t/mz8wrn
+        final String mSuggestedFilename;
+        final String mPostResponseFilename;
+
         final long mContentLength;
 
-        DownloadInfo(
-                String url,
-                String userAgent,
-                String contentDisposition,
-                String mimeType,
-                long contentLength) {
+        DownloadInfo(String url,
+                     String originalUrl, // ALOHA https://app.clickup.com/t/861me45jv
+                     String userAgent,
+                     String contentDisposition,
+                     String mimeType,
+                     String suggestedFilename, // ALOHA https://app.clickup.com/t/mz8wrn
+                     String postResponseFilename, // ALOHA https://app.clickup.com/t/mz8wrn
+                     long contentLength) {
             mUrl = url;
+            mOriginalUrl = originalUrl; // ALOHA https://app.clickup.com/t/861me45jv
             mUserAgent = userAgent;
             mContentDisposition = contentDisposition;
             mMimeType = mimeType;
+
+            // ALOHA https://app.clickup.com/t/mz8wrn
+            mSuggestedFilename = suggestedFilename;
+            mPostResponseFilename = postResponseFilename;
+
             mContentLength = contentLength;
         }
     }
@@ -124,6 +140,17 @@ public class AwContentsClientCallbackHelper {
         }
     }
 
+    // ALOHA https://app.clickup.com/t/2f2f3we
+    private static class OnPageLoadedInfo {
+        final String url;
+        final boolean isError;
+
+        OnPageLoadedInfo(String url, boolean isError) {
+            this.url = url;
+            this.isError = isError;
+        }
+    }
+
     private static final int MSG_ON_LOAD_RESOURCE = 1;
     private static final int MSG_ON_PAGE_STARTED = 2;
     private static final int MSG_ON_DOWNLOAD_START = 3;
@@ -139,6 +166,7 @@ public class AwContentsClientCallbackHelper {
     private static final int MSG_DO_UPDATE_VISITED_HISTORY = 13;
     private static final int MSG_ON_FORM_RESUBMISSION = 14;
     private static final int MSG_ON_SAFE_BROWSING_HIT = 15;
+    private static final int MSG_ON_PAGE_LOADED = 16; // ALOHA https://app.clickup.com/t/2f2f3we
 
     // Minimum period allowed between consecutive onNewPicture calls, to rate-limit the callbacks.
     private static final long ON_NEW_PICTURE_MIN_PERIOD_MILLIS = 500;
@@ -180,14 +208,21 @@ public class AwContentsClientCallbackHelper {
                     }
                 case MSG_ON_DOWNLOAD_START:
                     {
-                        DownloadInfo info = (DownloadInfo) msg.obj;
-                        mContentsClient.onDownloadStart(
-                                info.mUrl,
-                                info.mUserAgent,
-                                info.mContentDisposition,
-                                info.mMimeType,
-                                info.mContentLength);
-                        break;
+                       DownloadInfo info = (DownloadInfo) msg.obj;
+	                    // ALOHA https://app.clickup.com/t/mz8wrn and https://app.clickup.com/t/2u59j0h
+	                    if (info.mPostResponseFilename.isEmpty()) {
+	                        mContentsClient.onDownloadStart(info.mUrl, info.mUserAgent,
+	                                info.mContentDisposition, info.mMimeType,
+	                                info.mContentLength);
+	                    } else {
+	                        // ALOHA https://app.clickup.com/t/mz8wrn and https://app.clickup.com/t/2u59j0h
+	                        mContentsClient.onDownloadToCacheFinished(info.mUrl,
+	                                info.mOriginalUrl, // ALOHA https://app.clickup.com/t/861me45jv
+	                                info.mUserAgent,
+	                                info.mContentDisposition, info.mMimeType,
+	                                info.mSuggestedFilename, info.mPostResponseFilename);
+	                    }
+                    break;
                     }
                 case MSG_ON_RECEIVED_LOGIN_REQUEST:
                     {
@@ -274,6 +309,12 @@ public class AwContentsClientCallbackHelper {
                         mContentsClient.onFormResubmission(info.mDontResend, info.mResend);
                         break;
                     }
+                // ALOHA https://app.clickup.com/t/2f2f3we
+                case MSG_ON_PAGE_LOADED: {
+                    final OnPageLoadedInfo info = (OnPageLoadedInfo) msg.obj;
+                    mContentsClient.onPageLoaded(info.url, info.isError);
+                    break;
+                }
                 default:
                     throw new IllegalStateException(
                             "AwContentsClientCallbackHelper: unhandled message " + msg.what);
@@ -303,14 +344,19 @@ public class AwContentsClientCallbackHelper {
         mHandler.sendMessage(mHandler.obtainMessage(MSG_ON_PAGE_STARTED, url));
     }
 
-    public void postOnDownloadStart(
-            String url,
-            String userAgent,
-            String contentDisposition,
+    public void postOnDownloadStart(String url,
+            String originalUrl, // ALOHA https://app.clickup.com/t/861me45jv
+            String userAgent, String contentDisposition,
             String mimeType,
+            String suggestedFilename, // ALOHA https://app.clickup.com/t/mz8wrn
+            String postResponseFilename, // ALOHA https://app.clickup.com/t/mz8wrn
             long contentLength) {
-        DownloadInfo info =
-                new DownloadInfo(url, userAgent, contentDisposition, mimeType, contentLength);
+        DownloadInfo info = new DownloadInfo(url,
+                originalUrl, // ALOHA https://app.clickup.com/t/861me45jv
+                userAgent, contentDisposition, mimeType,
+                suggestedFilename,  // ALOHA https://app.clickup.com/t/mz8wrn
+                postResponseFilename, // ALOHA https://app.clickup.com/t/mz8wrn
+                contentLength);
         mHandler.sendMessage(mHandler.obtainMessage(MSG_ON_DOWNLOAD_START, info));
     }
 
@@ -387,6 +433,12 @@ public class AwContentsClientCallbackHelper {
     public void postOnFormResubmission(Message dontResend, Message resend) {
         OnFormResubmissionInfo info = new OnFormResubmissionInfo(dontResend, resend);
         mHandler.sendMessage(mHandler.obtainMessage(MSG_ON_FORM_RESUBMISSION, info));
+    }
+
+    // ALOHA https://app.clickup.com/t/2f2f3we
+    public void postOnPageLoaded(String url, boolean isError) {
+        OnPageLoadedInfo info = new OnPageLoadedInfo(url, isError);
+        mHandler.sendMessage(mHandler.obtainMessage(MSG_ON_PAGE_LOADED, info));
     }
 
     void removeCallbacksAndMessages() {

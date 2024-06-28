@@ -23,6 +23,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/modules/storage/storage_namespace.h"
 
 #include <memory>
@@ -46,15 +48,18 @@ namespace blink {
 
 const char StorageNamespace::kSupplementName[] = "SessionStorageNamespace";
 
-StorageNamespace::StorageNamespace(StorageController* controller)
-    : Supplement(nullptr), controller_(controller) {}
+StorageNamespace::StorageNamespace(StorageController* controller, bool private_mode)
+    : Supplement(nullptr), controller_(controller),
+    private_mode_(private_mode) {} // ALOHA https://app.clickup.com/t/2dmrud4
 StorageNamespace::StorageNamespace(Page& page,
                                    StorageController* controller,
                                    const String& namespace_id)
     : Supplement(nullptr),
       controller_(controller),
       namespace_id_(namespace_id),
-      task_runner_(page.GetAgentGroupScheduler().DefaultTaskRunner()) {}
+      task_runner_(page.GetAgentGroupScheduler().DefaultTaskRunner()),
+      private_mode_(false) // ALOHA https://app.clickup.com/t/2dmrud4
+      {}
 
 // static
 void StorageNamespace::ProvideSessionStorageNamespaceTo(
@@ -115,6 +120,7 @@ scoped_refptr<CachedStorageArea> StorageNamespace::GetCachedArea(
   result = base::MakeRefCounted<CachedStorageArea>(
       IsSessionStorage() ? CachedStorageArea::AreaType::kSessionStorage
                          : CachedStorageArea::AreaType::kLocalStorage,
+      private_mode_, // ALOHA https://app.clickup.com/t/2dmrud4
       storage_key, local_dom_window, this,
       /*is_session_storage_for_prerendering=*/false, std::move(storage_area));
   cached_areas_.insert(std::make_unique<const BlinkStorageKey>(storage_key),
@@ -129,6 +135,7 @@ scoped_refptr<CachedStorageArea> StorageNamespace::CreateCachedAreaForPrerender(
   return base::MakeRefCounted<CachedStorageArea>(
       IsSessionStorage() ? CachedStorageArea::AreaType::kSessionStorage
                          : CachedStorageArea::AreaType::kLocalStorage,
+      private_mode_, // ALOHA https://app.clickup.com/t/2dmrud4
       IsSessionStorage() ? local_dom_window->GetSessionStorageKey()
                          : local_dom_window->GetStorageKey(),
       local_dom_window, this,
@@ -246,6 +253,13 @@ void StorageNamespace::ResetStorageAreaAndNamespaceConnections() {
   for (const auto& area : cached_areas_)
     area.value->ResetConnection();
   namespace_.reset();
+}
+
+// ALOHA https://app.clickup.com/t/2hcppgv
+void StorageNamespace::ClearAllAreas() {
+  for (const auto& cached_area : cached_areas_.Values()) {
+    cached_area->ClearAll();
+  }
 }
 
 void StorageNamespace::EnsureConnected() {

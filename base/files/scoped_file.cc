@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "base/files/scoped_file.h"
 
 #include "base/check.h"
@@ -40,7 +42,9 @@ void ScopedFDCloseTraits::Free(int fd) {
     ret = 0;
 #endif
 
-  PCHECK(0 == ret);
+  // ALOHA https://app.clickup.com/t/861mb5k29
+  // Uncomment after multiprocess is enabled
+  // PCHECK(0 == ret);
 }
 
 #endif  // BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)

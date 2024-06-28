@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "net/url_request/url_request_job_factory.h"
 
 #include "base/containers/contains.h"
@@ -13,6 +15,9 @@
 #include "net/url_request/url_request_interceptor.h"
 #include "url/gurl.h"
 #include "url/url_constants.h"
+
+// ALOHA https://app.clickup.com/t/2e5wpe6
+#include "aloha/src/native/aloha_consts.h"
 
 namespace net {
 
@@ -66,6 +71,10 @@ URLRequestJobFactory::URLRequestJobFactory() {
   SetProtocolHandler(url::kWssScheme, std::make_unique<HttpProtocolHandler>(
                                           /*is_for_websockets=*/true));
 #endif  // BUILDFLAG(ENABLE_WEBSOCKETS)
+// ALOHA https://app.clickup.com/t/2e5wpe6
+  SetProtocolHandler(aloha::kAlohaScheme, std::make_unique<HttpProtocolHandler>(
+                                          /*is_for_websockets=*/false));
+
 }
 
 URLRequestJobFactory::~URLRequestJobFactory() {

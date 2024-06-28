@@ -5,11 +5,11 @@
 package com.android.webview.chromium;
 
 class WebViewChromiumFactoryProviderForS extends WebViewChromiumFactoryProvider {
-    public static WebViewChromiumFactoryProvider create(android.webkit.WebViewDelegate delegate) {
+    public static WebViewChromiumFactoryProvider create(com.android.webview.chromium.WebViewDelegate delegate) {
         return new WebViewChromiumFactoryProviderForS(delegate);
     }
 
-    protected WebViewChromiumFactoryProviderForS(android.webkit.WebViewDelegate delegate) {
+    protected WebViewChromiumFactoryProviderForS(com.android.webview.chromium.WebViewDelegate delegate) {
         super(delegate);
     }
 }

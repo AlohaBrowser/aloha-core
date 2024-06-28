@@ -1,6 +1,9 @@
 # Copyright 2015 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
 
 import("//android_webview/system_webview_apk_tmpl.gni")
 import("//android_webview/test/shared.gni")
@@ -273,6 +276,8 @@ base_webview_instrumentation_test_apk("webview_instrumentation_test_apk") {
   apk_under_test = ":webview_instrumentation_apk"
 
   deps = [
+    "//components/adblock/android:adblock_controller_java",
+    "//components/adblock/android:adblock_java_tests_base",
     "//components/android_autofill/browser:java",
     "//components/android_autofill/browser/test_support:java",
     "//components/autofill/android:autofill_java",
@@ -412,6 +417,25 @@ base_webview_instrumentation_test_apk("webview_instrumentation_test_apk") {
     "../javatests/src/org/chromium/android_webview/test/WebViewFindApisTestRule.java",
     "../javatests/src/org/chromium/android_webview/test/WebViewModalDialogOverrideTest.java",
     "../javatests/src/org/chromium/android_webview/test/XRWOriginTrialTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/AdblockControllerTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/DefaultSettingsTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/FilteringConfigurationTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesCircumventionTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesCspTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesElemhideEmuInvTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesElemhideEmuTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesElemhideTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesExceptionTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesFilterTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesHeaderFilterTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesHelper.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesInlineCssTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesRemoveTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesRewriteTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesSiteKeyTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesSnippetsTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesWebsocketTest.java",
+    "../javatests/src/org/chromium/android_webview/test/adblock/TestPagesWildcardDomainTest.java",
     "../javatests/src/org/chromium/android_webview/test/common/services/ServiceConnectionDelayRecorderTest.java",
     "../javatests/src/org/chromium/android_webview/test/common/variations/VariationsUtilsTest.java",
     "../javatests/src/org/chromium/android_webview/test/component_updater/EmbeddedComponentLoaderTest.java",

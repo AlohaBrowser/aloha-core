@@ -292,6 +292,8 @@ vars = {
   'download_libaom_testdata': False,
 
   'android_git': 'https://android.googlesource.com',
+  'eyeo_distpartners_gitlab': 'https://gitlab.com/eyeo/distpartners',
+  'eyeo_snippets_gitlab': 'https://gitlab.com/eyeo/anti-cv/snippets.git',
   'aomedia_git': 'https://aomedia.googlesource.com',
   'boringssl_git': 'https://boringssl.googlesource.com',
   'chrome_git': 'https://chrome-internal.googlesource.com',
@@ -498,6 +500,11 @@ vars = {
   # the commit queue can handle CLs rolling beto-core
   # and whatever else without interference from each other.
   'betocore_revision': '4d202dab960a0b6a6e4757ab4393945aca5a09db',
+
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling feed
+  # and whatever else without interference from each other.
+  'eyeo_snippets_revision': 'v1.2.0',
 
   # If you change this, also update the libc++ revision in
   # //buildtools/deps_revisions.gni.
@@ -829,6 +836,10 @@ deps = {
     'condition': 'checkout_android and checkout_src_internal',
   },
 
+  'src/components/adblock/core/resources/snippets': {
+    'url': Var('eyeo_snippets_gitlab') + '@' + Var('eyeo_snippets_revision'),
+  },
+
   'src/docs/website': {
     'url': Var('chromium_git') + '/website.git' + '@' + '12d09e14812d8390213801bb31d08858a3378fcb',
   },
@@ -933,6 +944,7 @@ deps = {
       ],
       'dep_type': 'cipd',
   },
+
 
   'src/third_party/accessibility_test_framework': {
       'packages': [

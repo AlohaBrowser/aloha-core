@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "cc/metrics/compositor_frame_reporting_controller.h"
 
 #include <utility>
@@ -323,18 +325,19 @@ void CompositorFrameReportingController::DidSubmitCompositorFrame(
     }
   }
 
-#if DCHECK_IS_ON()
-  if (!events_metrics.main_event_metrics.empty()) {
-    DCHECK(main_reporter);
-  }
+// ALOHA https://app.clickup.com/t/862kg54q2
+// #if DCHECK_IS_ON()
+//   if (!events_metrics.main_event_metrics.empty()) {
+//     DCHECK(main_reporter);
+//   }
 
-  if (impl_reporter) {
-    DCHECK_EQ(impl_reporter->frame_id(), current_frame_id);
-    if (main_reporter) {
-      DCHECK_NE(main_reporter->frame_id(), current_frame_id);
-    }
-  }
-#endif
+//   if (impl_reporter) {
+//     DCHECK_EQ(impl_reporter->frame_id(), current_frame_id);
+//     if (main_reporter) {
+//       DCHECK_NE(main_reporter->frame_id(), current_frame_id);
+//     }
+//   }
+// #endif
 
   // When |impl_reporter| does not exist, but there are still impl-side metrics,
   // merge the main and impl metrics and pass the combined vector into

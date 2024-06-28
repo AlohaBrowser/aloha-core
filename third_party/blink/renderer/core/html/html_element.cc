@@ -23,6 +23,10 @@
  *
  */
 
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
 #include "third_party/blink/renderer/core/html/html_element.h"
 
 #include "base/containers/enum_set.h"
@@ -2469,7 +2473,13 @@ void HTMLElement::setSpellcheck(bool enable) {
 }
 
 void HTMLElement::click() {
-  DispatchSimulatedClick(nullptr, SimulatedClickCreationScope::kFromScript);
+  auto world = GetExecutionContext() ? GetExecutionContext()->GetCurrentWorld()
+                                     : nullptr;
+  // content::IsolatedWorldIDs::ISOLATED_WORLD_ID_ADBLOCK == 1
+  bool make_trusted = world && (world->GetWorldId() == 1);
+  DispatchSimulatedClick(nullptr,
+      make_trusted ? SimulatedClickCreationScope::kFromUserAgent
+                   : SimulatedClickCreationScope::kFromScript);
   if (IsA<HTMLInputElement>(this)) {
     UseCounter::Count(GetDocument(),
                       WebFeature::kHTMLInputElementSimulatedClick);

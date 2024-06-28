@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/network_service/net_helpers.h"
 
 #include "android_webview/browser/aw_contents_io_thread_client.h"
@@ -9,6 +11,9 @@
 #include "base/check_op.h"
 #include "net/base/load_flags.h"
 #include "url/gurl.h"
+
+// ALOHA https://app.clickup.com/t/2u59j0h
+#include "aloha/src/native/aloha_consts.h"
 
 namespace android_webview {
 
@@ -95,7 +100,12 @@ int GetHttpCacheSize() {
   // This currently returns a constant value, but we may consider deciding cache
   // size dynamically, since Android provides better support on newer versions
   // (http://crbug.com/893318).
-  return 20 * 1024 * 1024;  // 20M
+
+  // ALOHA https://app.clickup.com/t/2u59j0h
+  // This const equals 0 in chrome and limit set in net/disk_cache/simple/simple_backend_impl.cc:292.
+  // Max file size in cache realy equals ~40.9Mb in chrome.
+  // Cache size 150Mb here is really ~19.7Mb per file.
+  return aloha::kHttpCacheMaxSizeBytes;
 }
 
 }  // namespace android_webview

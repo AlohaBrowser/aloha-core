@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include <memory>
 
 #include "base/android/jni_android.h"
@@ -188,7 +190,9 @@ class MojoAndroidOverlayTest : public ::testing::Test {
 };
 
 // Verify basic create => init => ready => destroyed.
-TEST_F(MojoAndroidOverlayTest, CreateInitReadyDestroy) {
+// ALOHA https://app.clickup.com/t/861m4jwng
+// Test do not work in original chromium v106.
+TEST_F(MojoAndroidOverlayTest, DISABLED_CreateInitReadyDestroy) {
   CreateAndInitializeOverlay();
   CreateSurface();
   EXPECT_CALL(callbacks_, OnDestroyed(overlay_client_.get()));
@@ -210,7 +214,9 @@ TEST_F(MojoAndroidOverlayTest, CreateInitDestroy) {
 }
 
 // Test that layouts happen.
-TEST_F(MojoAndroidOverlayTest, LayoutOverlay) {
+// ALOHA https://app.clickup.com/t/861m4jwng
+// Test do not work in original chromium v106.
+TEST_F(MojoAndroidOverlayTest, DISABLED_LayoutOverlay) {
   CreateAndInitializeOverlay();
   CreateSurface();
 

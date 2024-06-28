@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/web_contents/web_contents_impl.h"
 
 #include <stddef.h>
@@ -10452,6 +10454,20 @@ void WebContentsImpl::ActivatePreviewPage() {
 
 VisibleTimeRequestTrigger& WebContentsImpl::GetVisibleTimeRequestTrigger() {
   return visible_time_request_trigger_;
+}
+
+// ALOHA https://app.clickup.com/t/2dmrud4
+void WebContentsImpl::SetPrivateMode(bool enabled) {
+  primary_frame_tree_.SetPrivateMode(enabled);
+}
+
+// ALOHA https://app.clickup.com/t/86epcdndk
+void WebContentsImpl::SetAdblockEnabled(bool enabled) {
+  is_adblock_enabled_ = enabled;
+}
+// ALOHA https://app.clickup.com/t/86epcdndk
+bool WebContentsImpl::IsAdblockEnabled() {
+  return is_adblock_enabled_;
 }
 
 std::unique_ptr<PrerenderHandle> WebContentsImpl::StartPrerendering(

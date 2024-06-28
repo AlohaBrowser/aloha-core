@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "components/metrics/persistent_histograms.h"
 
 #include "base/files/file_enumerator.h"
@@ -161,7 +163,10 @@ void InstantiatePersistentHistogramsImpl(const base::FilePath& metrics_dir,
   // created, the file will just be deleted below.
   base::FilePath upload_dir = metrics_dir.AppendASCII(kBrowserMetricsName);
   // TODO(crbug.com/1183166): Only create the dir in kMappedFile mode.
-  base::CreateDirectory(upload_dir);
+  // ALOHA https://app.clickup.com/t/86781qh7c
+  if (mode == kMappedFile) {
+    base::CreateDirectory(upload_dir);
+  }
 
   InitResult result;
 
@@ -218,7 +223,8 @@ BASE_FEATURE(
     // move the initialization earlier to chrome/app/chrome_main_delegate.cc.
     base::FEATURE_DISABLED_BY_DEFAULT
 #else
-    base::FEATURE_ENABLED_BY_DEFAULT
+    // ALOHA https://app.clickup.com/t/86781qh7c
+    base::FEATURE_DISABLED_BY_DEFAULT
 #endif  // BUILDFLAG(IS_FUCHSIA)
 );
 
@@ -267,14 +273,18 @@ void PersistentHistogramsCleanup(const base::FilePath& metrics_dir) {
   base::FilePath spare_file = GetSpareFilePath(metrics_dir);
 
   // Schedule the creation of a "spare" file for use on the next run.
-  base::ThreadPool::PostDelayedTask(
-      FROM_HERE,
-      {base::MayBlock(), base::TaskPriority::LOWEST,
-       base::TaskShutdownBehavior::SKIP_ON_SHUTDOWN},
-      base::BindOnce(
-          base::IgnoreResult(&base::GlobalHistogramAllocator::CreateSpareFile),
-          std::move(spare_file), kAllocSize),
-      base::Seconds(kSpareFileCreateDelaySeconds));
+
+  // ALOHA https://app.clickup.com/t/86781qh7c
+  if(base::FeatureList::IsEnabled(kPersistentHistogramsFeature)) {
+    base::ThreadPool::PostDelayedTask(
+        FROM_HERE,
+        {base::MayBlock(), base::TaskPriority::LOWEST,
+        base::TaskShutdownBehavior::SKIP_ON_SHUTDOWN},
+        base::BindOnce(
+            base::IgnoreResult(&base::GlobalHistogramAllocator::CreateSpareFile),
+            std::move(spare_file), kAllocSize),
+        base::Seconds(kSpareFileCreateDelaySeconds));
+  }
 
 #if BUILDFLAG(IS_WIN)
   // Post a best effort task that will delete files. Unlike SKIP_ON_SHUTDOWN,

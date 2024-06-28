@@ -1,0 +1,187 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+source_set("subscription") {
+  sources = [
+    "conversion_executors.h",
+    "domain_splitter.cc",
+    "domain_splitter.h",
+    "filtering_configuration_maintainer.h",
+    "filtering_configuration_maintainer_impl.cc",
+    "filtering_configuration_maintainer_impl.h",
+    "installed_subscription.cc",
+    "installed_subscription.h",
+    "installed_subscription_impl.cc",
+    "installed_subscription_impl.h",
+    "ongoing_subscription_request.h",
+    "ongoing_subscription_request_impl.cc",
+    "ongoing_subscription_request_impl.h",
+    "pattern_matcher.cc",
+    "pattern_matcher.h",
+    "preloaded_subscription_provider.h",
+    "preloaded_subscription_provider_impl.cc",
+    "preloaded_subscription_provider_impl.h",
+    "regex_matcher.cc",
+    "regex_matcher.h",
+    "subscription.cc",
+    "subscription.h",
+    "subscription_collection.h",
+    "subscription_collection_impl.cc",
+    "subscription_collection_impl.h",
+    "subscription_config.cc",
+    "subscription_config.h",
+    "subscription_downloader.h",
+    "subscription_downloader_impl.cc",
+    "subscription_downloader_impl.h",
+    "subscription_persistent_metadata.h",
+    "subscription_persistent_metadata_impl.cc",
+    "subscription_persistent_metadata_impl.h",
+    "subscription_persistent_storage.h",
+    "subscription_persistent_storage_impl.cc",
+    "subscription_persistent_storage_impl.h",
+    "subscription_service.h",
+    "subscription_service_impl.cc",
+    "subscription_service_impl.h",
+    "subscription_updater.h",
+    "subscription_updater_impl.cc",
+    "subscription_updater_impl.h",
+    "subscription_validator.h",
+    "subscription_validator_impl.cc",
+    "subscription_validator_impl.h",
+    "url_keyword_extractor.cc",
+    "url_keyword_extractor.h",
+  ]
+
+  deps = [
+    "//components/adblock/core/common:utils",
+    "//components/adblock/core/converter",
+    "//components/adblock/core/resources:adblock_resources",
+    "//net",
+  ]
+
+  public_deps = [
+    "//base",
+    "//components/adblock/core:schema",
+    "//components/adblock/core/common",
+    "//components/adblock/core/common",
+    "//components/adblock/core/configuration",
+    "//components/keyed_service/core",
+    "//components/prefs",
+    "//services/network/public/cpp",
+    "//third_party/abseil-cpp:absl",
+    "//third_party/re2",
+    "//url:url",
+  ]
+}
+
+source_set("test_support") {
+  testonly = true
+  sources = [
+    "test/load_gzipped_test_file.cc",
+    "test/load_gzipped_test_file.h",
+    "test/mock_conversion_executors.cc",
+    "test/mock_conversion_executors.h",
+    "test/mock_filtering_configuration_maintainer.cc",
+    "test/mock_filtering_configuration_maintainer.h",
+    "test/mock_installed_subscription.cc",
+    "test/mock_installed_subscription.h",
+    "test/mock_subscription.cc",
+    "test/mock_subscription.h",
+    "test/mock_subscription_collection.cc",
+    "test/mock_subscription_collection.h",
+    "test/mock_subscription_downloader.cc",
+    "test/mock_subscription_downloader.h",
+    "test/mock_subscription_persistent_metadata.cc",
+    "test/mock_subscription_persistent_metadata.h",
+    "test/mock_subscription_service.cc",
+    "test/mock_subscription_service.h",
+    "test/mock_subscription_updater.cc",
+    "test/mock_subscription_updater.h",
+  ]
+
+  public_deps = [
+    ":subscription",
+    "//components/adblock/core/configuration:test_support",
+    "//testing/gmock",
+    "//testing/gtest",
+  ]
+
+  deps = [ "//third_party/zlib/google:compression_utils" ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "test/filtering_configuration_maintainer_impl_test.cc",
+    "test/installed_subscription_impl_csp_test.cc",
+    "test/installed_subscription_impl_elemhide_test.cc",
+    "test/installed_subscription_impl_header_test.cc",
+    "test/installed_subscription_impl_list_converter_test.cc",
+    "test/installed_subscription_impl_metadata_test.cc",
+    "test/installed_subscription_impl_rewrite_test.cc",
+    "test/installed_subscription_impl_snippets_test.cc",
+    "test/installed_subscription_impl_test_base.cc",
+    "test/installed_subscription_impl_test_base.h",
+    "test/installed_subscription_impl_url_test.cc",
+    "test/ongoing_subscription_request_impl_test.cc",
+    "test/pattern_matcher_test.cc",
+    "test/preloaded_subscription_provider_impl_test.cc",
+    "test/subscription_collection_impl_test.cc",
+    "test/subscription_downloader_impl_test.cc",
+    "test/subscription_persistent_metadata_impl_test.cc",
+    "test/subscription_persistent_storage_impl_test.cc",
+    "test/subscription_service_impl_test.cc",
+    "test/subscription_updater_impl_test.cc",
+    "test/subscription_validator_impl_test.cc",
+    "test/url_keyword_extractor_test.cc",
+  ]
+
+  deps = [
+    ":test_support",
+    "//components/adblock/core",
+    "//components/adblock/core/configuration:test_support",
+    "//components/adblock/core/converter",
+    "//components/adblock/core/resources:adblock_resources",
+    "//components/prefs:test_support",
+    "//components/sync_preferences:test_support",
+    "//net:test_support",
+    "//services/network:test_support",
+    "//testing/gtest",
+  ]
+}
+
+source_set("perf_tests") {
+  testonly = true
+  sources = [
+    "test/pattern_matcher_perftest.cc",
+    "test/regex_matcher_perftest.cc",
+  ]
+
+  deps = [
+    ":subscription",
+    ":test_support",
+    "//base",
+    "//components/adblock/core",
+    "//testing/gtest",
+    "//testing/perf",
+  ]
+
+  data = [
+    "//components/test/data/adblock/40_regex_patterns.txt.gz",
+    "//components/test/data/adblock/5000_patterns.txt.gz",
+    "//components/test/data/adblock/5000_urls.txt.gz",
+  ]
+}

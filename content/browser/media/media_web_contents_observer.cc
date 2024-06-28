@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/media/media_web_contents_observer.h"
 
 #include <memory>
@@ -28,6 +30,9 @@
 #include "third_party/blink/public/common/mediastream/media_devices.h"
 #include "third_party/blink/public/platform/web_fullscreen_video_status.h"
 #include "ui/gfx/geometry/size.h"
+
+// ALOHA https://app.clickup.com/t/2f2eyt8
+#include "aloha/src/native/bromium_client_bridge.h"
 
 namespace content {
 
@@ -56,6 +61,9 @@ class MediaWebContentsObserver::PlayerInfo {
 
   PlayerInfo(const PlayerInfo&) = delete;
   PlayerInfo& operator=(const PlayerInfo&) = delete;
+
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  bool has_audio() const { return has_audio_; }
 
   void set_has_audio(bool has_audio) { has_audio_ = has_audio; }
 
@@ -206,6 +214,8 @@ void MediaWebContentsObserver::RenderFrameDeleted(
     // HasActiveEffectivelyFullscreenVideo() should return false if `player_id`
     // was the only fullscreen media.
     web_contents_impl()->MediaDestroyed(player_id);
+    
+    NotifyAlohaOfDestroy(player_id); // ALOHA https://app.clickup.com/t/86enxgcx1
   }
 
   session_controllers_manager_->RenderFrameDeleted(render_frame_host);
@@ -219,6 +229,24 @@ void MediaWebContentsObserver::RenderFrameDeleted(
   // Cancel any pending callbacks for players from this frame.
   use_after_free_checker_.check();
   per_frame_factory_.erase(render_frame_host);
+}
+
+// ALOHA https://app.clickup.com/t/86enxgcx1
+void MediaWebContentsObserver::NotifyAlohaOfDestroy(const MediaPlayerId& player_id)
+{
+  auto attr_it = media_player_attributes_.find(player_id);
+    if (attr_it != media_player_attributes_.end()) {
+      auto* client_bridge =
+          aloha::BromiumClientBridge::FromWebContents(web_contents_impl());
+      if (client_bridge != nullptr) {
+        client_bridge->OnMediaDestroy(
+            player_id.aloha_player_id,
+            // ALOHA https://app.clickup.com/t/861mawmth
+            player_id.frame_routing_id.child_id, player_id.frame_routing_id.frame_routing_id, player_id.delegate_id,
+            attr_it->second.first, attr_it->second.second);
+      }
+      media_player_attributes_.erase(player_id);
+    }
 }
 
 void MediaWebContentsObserver::MaybeUpdateAudibleState() {
@@ -315,10 +343,11 @@ void MediaWebContentsObserver::MediaPlayerHostImpl::OnMediaPlayerAdded(
     mojo::PendingAssociatedRemote<media::mojom::MediaPlayer> media_player,
     mojo::PendingAssociatedReceiver<media::mojom::MediaPlayerObserver>
         media_player_observer,
-    int32_t player_id) {
+    int32_t player_id,
+    media::mojom::MediaPlayerIdPtr aloha_player_id) { // ALOHA https://app.clickup.com/t/2f2eyt8
   media_web_contents_observer_->OnMediaPlayerAdded(
       std::move(media_player), std::move(media_player_observer),
-      MediaPlayerId(frame_routing_id_, player_id));
+      MediaPlayerId(frame_routing_id_, player_id, *aloha_player_id));
 }
 
 // MediaWebContentsObserver::MediaPlayerObserverHostImpl
@@ -381,9 +410,10 @@ void MediaWebContentsObserver::MediaPlayerObserverHostImpl::
 
 void MediaWebContentsObserver::MediaPlayerObserverHostImpl::
     OnMediaEffectivelyFullscreenChanged(
-        blink::WebFullscreenVideoStatus status) {
+        blink::WebFullscreenVideoStatus status,
+        const GURL& url, bool media_controls_is_hidden) { // ALOHA https://app.clickup.com/t/2hxwa9w
   media_web_contents_observer_->OnMediaEffectivelyFullscreenChanged(
-      media_player_id_, status);
+      media_player_id_, status, url, media_controls_is_hidden);
 }
 
 void MediaWebContentsObserver::MediaPlayerObserverHostImpl::OnMediaSizeChanged(
@@ -441,7 +471,8 @@ void MediaWebContentsObserver::MediaPlayerObserverHostImpl::
       media_player_id_, std::move(remote_playback_metadata));
 }
 
-void MediaWebContentsObserver::MediaPlayerObserverHostImpl::OnMediaPlaying() {
+void MediaWebContentsObserver::MediaPlayerObserverHostImpl::OnMediaPlaying(
+  const GURL& media_url, const GURL& document_url, double duration_s) { // ALOHA https://app.clickup.com/t/2qfa6r7
   PlayerInfo* player_info = GetPlayerInfo();
   if (!player_info)
     return;
@@ -459,10 +490,27 @@ void MediaWebContentsObserver::MediaPlayerObserverHostImpl::OnMediaPlaying() {
 
   media_web_contents_observer_->OnMediaPlaying();
   NotifyAudioStreamMonitorIfNeeded();
+
+  // ALOHA https://app.clickup.com/t/861mb7fyw
+  media_web_contents_observer_->media_player_attributes_[media_player_id_] =
+    std::make_pair(media_url.possibly_invalid_spec(), document_url.possibly_invalid_spec());
+
+  // ALOHA https://app.clickup.com/t/2f2eyt8
+  auto* client_bridge =
+    aloha::BromiumClientBridge::FromWebContents(media_web_contents_observer_->web_contents_impl());
+  if (client_bridge != nullptr) {
+    bool is_audio_only = player_info->has_audio() && !player_info->has_video();
+    client_bridge->OnMediaPlay(
+        media_player_id_.aloha_player_id,
+        media_player_id_.frame_routing_id.child_id, media_player_id_.frame_routing_id.frame_routing_id, media_player_id_.delegate_id,
+        media_url.possibly_invalid_spec(),
+        document_url.possibly_invalid_spec(), duration_s, is_audio_only);
+  }
 }
 
 void MediaWebContentsObserver::MediaPlayerObserverHostImpl::OnMediaPaused(
-    bool stream_ended) {
+    bool stream_ended,
+    const GURL& media_url, const GURL& document_url, double duration_s) { // ALOHA https://app.clickup.com/t/2qfa6r7
   PlayerInfo* player_info = GetPlayerInfo();
   if (!player_info || !player_info->is_playing())
     return;
@@ -473,6 +521,33 @@ void MediaWebContentsObserver::MediaPlayerObserverHostImpl::OnMediaPaused(
       media_player_id_, stream_ended);
 
   NotifyAudioStreamMonitorIfNeeded();
+
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  auto* client_bridge =
+    aloha::BromiumClientBridge::FromWebContents(media_web_contents_observer_->web_contents_impl());
+  if (client_bridge != nullptr) {
+    bool is_audio_only = player_info->has_audio() && !player_info->has_video();
+    client_bridge->OnMediaPause(
+        media_player_id_.aloha_player_id,
+        media_player_id_.frame_routing_id.child_id, media_player_id_.frame_routing_id.frame_routing_id, media_player_id_.delegate_id,
+        media_url.possibly_invalid_spec(),
+        document_url.possibly_invalid_spec(), duration_s, is_audio_only);
+  }
+}
+
+// ALOHA https://app.clickup.com/t/2rqdtxz
+void MediaWebContentsObserver::MediaPlayerObserverHostImpl::OnMediaError(
+    const std::string& pipeline_status, const GURL& media_url, const GURL& document_url,
+    double current_time_s, double duration_s) {
+  auto* client_bridge =
+    aloha::BromiumClientBridge::FromWebContents(media_web_contents_observer_->web_contents_impl());
+  if (client_bridge != nullptr) {
+    client_bridge->OnMediaError(
+        media_player_id_.aloha_player_id,
+        media_player_id_.frame_routing_id.child_id, media_player_id_.frame_routing_id.frame_routing_id, media_player_id_.delegate_id,
+        pipeline_status, media_url.possibly_invalid_spec(),
+        document_url.possibly_invalid_spec(), current_time_s, duration_s);
+  }
 }
 
 void MediaWebContentsObserver::MediaPlayerObserverHostImpl::
@@ -528,7 +603,8 @@ void MediaWebContentsObserver::OnMediaMetadataChanged(
 
 void MediaWebContentsObserver::OnMediaEffectivelyFullscreenChanged(
     const MediaPlayerId& player_id,
-    blink::WebFullscreenVideoStatus fullscreen_status) {
+    blink::WebFullscreenVideoStatus fullscreen_status,
+    const GURL& url, bool media_controls_is_hidden) { // ALOHA https://app.clickup.com/t/2hxwa9w     
   switch (fullscreen_status) {
     case blink::WebFullscreenVideoStatus::kFullscreenAndPictureInPictureEnabled:
       fullscreen_player_ = player_id;
@@ -552,6 +628,17 @@ void MediaWebContentsObserver::OnMediaEffectivelyFullscreenChanged(
       (fullscreen_status !=
        blink::WebFullscreenVideoStatus::kNotEffectivelyFullscreen);
   web_contents_impl()->MediaEffectivelyFullscreenChanged(is_fullscreen);
+
+  // ALOHA https://app.clickup.com/t/2hxwa9w
+  auto* client_bridge =
+    aloha::BromiumClientBridge::FromWebContents(web_contents_impl());
+  if (client_bridge != nullptr) {
+    client_bridge->OnVideoFullscreenChanged(
+        is_fullscreen, player_id.aloha_player_id,
+        player_id.frame_routing_id.child_id, player_id.frame_routing_id.frame_routing_id, player_id.delegate_id,
+        url.possibly_invalid_spec(),
+        media_controls_is_hidden);
+  }
 }
 
 void MediaWebContentsObserver::OnMediaPlaying() {
@@ -659,7 +746,8 @@ void MediaWebContentsObserver::OnMediaPlayerAdded(
             *observer->fullscreen_player_ == player_id) {
           observer->fullscreen_player_.reset();
         }
-        observer->web_contents_impl()->MediaDestroyed(player_id);
+        
+        observer->NotifyAlohaOfDestroy(player_id); // ALOHA https://app.clickup.com/t/86enxgcx1
       },
       base::Unretained(this), player_id));
 
