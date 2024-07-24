@@ -1,0 +1,117 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+import("//components/adblock/features.gni")
+
+config("eyeo_filtering_config") {
+  defines = []
+
+  if (eyeo_disable_filtering_by_default) {
+    defines += [ "EYEO_DISABLE_FILTERING_BY_DEFAULT=true" ]
+  } else {
+    defines += [ "EYEO_DISABLE_FILTERING_BY_DEFAULT=false" ]
+  }
+
+  if (eyeo_disable_aa_by_default) {
+    defines += [ "EYEO_DISABLE_AA_BY_DEFAULT=true" ]
+  } else {
+    defines += [ "EYEO_DISABLE_AA_BY_DEFAULT=false" ]
+  }
+}
+
+source_set("common") {
+  configs += [ ":eyeo_filtering_config" ]
+
+  sources = [
+    "adblock_constants.cc",
+    "adblock_constants.h",
+    "adblock_prefs.cc",
+    "adblock_prefs.h",
+    "content_type.cc",
+    "content_type.h",
+    "flatbuffer_data.cc",
+    "flatbuffer_data.h",
+    "header_filter_data.h",
+    "keyword_extractor_utils.cc",
+    "keyword_extractor_utils.h",
+    "regex_filter_pattern.cc",
+    "regex_filter_pattern.h",
+    "sitekey.h",
+    "web_ui_constants.cc",
+    "web_ui_constants.h",
+  ]
+
+  deps = [ "//components/prefs" ]
+
+  public_deps = [
+    "//base",
+    "//components/adblock/core:schema",
+    "//components/adblock/core:schema_hash",
+    "//third_party/abseil-cpp:absl",
+    "//url",
+  ]
+}
+
+config("eyeo_application_config") {
+  defines = []
+
+  if (eyeo_application_name != "") {
+    defines += [ "EYEO_APPLICATION_NAME=\"$eyeo_application_name\"" ]
+  }
+
+  if (eyeo_application_version != "") {
+    defines += [ "EYEO_APPLICATION_VERSION=\"$eyeo_application_version\"" ]
+  }
+}
+
+source_set("utils") {
+  configs += [ ":eyeo_application_config" ]
+
+  sources = [
+    "adblock_utils.cc",
+    "adblock_utils.h",
+  ]
+
+  deps = [
+    "//components/version_info",
+    "//net",
+    "//third_party/icu/",
+    "//third_party/re2",
+    "//ui/base",
+    "//url",
+  ]
+
+  public_deps = [
+    ":common",
+    "//base",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "test/adblock_utils_test.cc",
+    "test/flatbuffer_data_test.cc",
+  ]
+
+  deps = [
+    ":common",
+    ":utils",
+    "//base/test:test_support",
+    "//components/adblock/core/subscription:subscription",
+    "//testing/gtest",
+  ]
+}

@@ -1,0 +1,67 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+source_set("converter") {
+  sources = [
+    "flatbuffer_converter.cc",
+    "flatbuffer_converter.h",
+  ]
+
+  deps = [
+    "//components/adblock/core/converter/parser",
+    "//components/adblock/core/converter/serializer",
+  ]
+
+  public_deps = [
+    "//base",
+    "//components/adblock/core/common",
+    "//third_party/abseil-cpp:absl",
+    "//third_party/flatbuffers",
+    "//url",
+  ]
+
+  assert_no_deps = [
+    "//components/keyed_service/core",
+    "//net",
+    "//services/network/public/cpp",
+  ]
+}
+
+executable("adblock_flatbuffer_converter") {
+  sources = [ "converter_main.cc" ]
+
+  deps = [
+    ":converter",
+    "//third_party/zlib/google:compression_utils",
+  ]
+}
+
+source_set("perf_tests") {
+  testonly = true
+  sources = [ "test/flatbuffer_converter_perftest.cc" ]
+
+  deps = [
+    ":converter",
+    "//testing/gtest",
+    "//testing/perf:perf",
+    "//third_party/zlib/google:compression_utils",
+  ]
+
+  data = [
+    "//components/test/data/adblock/easylist.txt.gz",
+    "//components/test/data/adblock/exceptionrules.txt.gz",
+  ]
+}

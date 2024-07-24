@@ -20,6 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_PAGE_CHROME_CLIENT_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_PAGE_CHROME_CLIENT_H_
 
@@ -61,6 +63,9 @@
 
 // To avoid conflicts with the CreateWindow macro from the Windows SDK...
 #undef CreateWindow
+
+// ALOHA https://app.clickup.com/t/2hxwa9w
+#include "aloha/src/native/fullscreen_video_element.h"
 
 namespace cc {
 class AnimationHost;
@@ -446,7 +451,9 @@ class CORE_EXPORT ChromeClient : public GarbageCollected<ChromeClient> {
 
   virtual void EnterFullscreen(LocalFrame&,
                                const FullscreenOptions*,
-                               FullscreenRequestType) {}
+                               FullscreenRequestType,
+                               std::optional<aloha::FullscreenVideoElement> video_element, // ALOHA https://app.clickup.com/t/2hxwa9w
+                               const std::string& pending_elem_class) {}  // ALOHA https://app.clickup.com/t/861m7a4e2
   virtual void ExitFullscreen(LocalFrame&) {}
   virtual void FullscreenElementChanged(Element* old_element,
                                         Element* new_element,

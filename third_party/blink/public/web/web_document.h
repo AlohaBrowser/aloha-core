@@ -28,6 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
 #ifndef THIRD_PARTY_BLINK_PUBLIC_WEB_WEB_DOCUMENT_H_
 #define THIRD_PARTY_BLINK_PUBLIC_WEB_WEB_DOCUMENT_H_
 
@@ -136,6 +140,14 @@ class BLINK_EXPORT WebDocument : public WebNode {
 
   // Inserts the given CSS source code as a style sheet in the document.
   WebStyleSheetKey InsertStyleSheet(
+      const WebString& source_code,
+      const WebStyleSheetKey* = nullptr,
+      WebCssOrigin = WebCssOrigin::kAuthor,
+      BackForwardCacheAware = BackForwardCacheAware::kAllow);
+
+  // Inserts the given CSS source code as a style sheet in the document and
+  // validates it have only expected rules.
+  WebStyleSheetKey InsertAbpElemhideStylesheet(
       const WebString& source_code,
       const WebStyleSheetKey* = nullptr,
       WebCssOrigin = WebCssOrigin::kAuthor,

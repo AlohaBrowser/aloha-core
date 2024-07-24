@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "gin/v8_initializer.h"
 
 #include <stddef.h>
@@ -88,12 +90,24 @@ void GetMappedFileData(base::MemoryMappedFile* mapped_file,
 #if defined(V8_USE_EXTERNAL_STARTUP_DATA)
 
 #if BUILDFLAG(IS_ANDROID)
+
+/*+++ ALOHA +++*/
+// Maybe it needs to be renamed in make_aar.py?
+#ifdef __ARM_ARCH
 const char kV8ContextSnapshotFileName64[] = "v8_context_snapshot_64.bin";
 const char kV8ContextSnapshotFileName32[] = "v8_context_snapshot_32.bin";
-const char kSnapshotFileName64[] = "snapshot_blob_64.bin";
-const char kSnapshotFileName32[] = "snapshot_blob_32.bin";
+const char kSnapshotFileName64[] = "snapshot_blob_64-arm64-v8a.bin";
+const char kSnapshotFileName32[] = "snapshot_blob_32-armeabi-v7a.bin";
+#else
+const char kV8ContextSnapshotFileName64[] = "v8_context_snapshot_64.bin";
+const char kV8ContextSnapshotFileName32[] = "v8_context_snapshot_32.bin";
+const char kSnapshotFileName64[] = "snapshot_blob_64-x86_64.bin";
+const char kSnapshotFileName32[] = "snapshot_blob_32-x86.bin";
+#endif
+/*--- ALOHA ---*/
 
-#if defined(__LP64__)
+// ALOHA: support x86_64 build
+#if __LP64__ || __x86_64__
 #define kV8ContextSnapshotFileName kV8ContextSnapshotFileName64
 #define kSnapshotFileName kSnapshotFileName64
 #else

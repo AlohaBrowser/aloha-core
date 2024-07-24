@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 module blink.mojom;
 
 import "third_party/blink/public/mojom/dom_storage/session_storage_namespace.mojom";
@@ -58,4 +60,8 @@ interface DomStorageClient {
   // due to a backend crash and recovery) and they should be re-established by
   // the client.
   ResetStorageAreaAndNamespaceConnections();
+
+  // ALOHA https://app.clickup.com/t/2hcppgv
+  ClearSessionStorage();
+  ClearLocalStorage(bool for_private_mode);
 };

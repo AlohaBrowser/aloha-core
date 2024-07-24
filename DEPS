@@ -181,6 +181,7 @@ vars = {
   # flag is set True.
   'checkout_wpr_archives': False,
 
+
   # By default, do not check out WebKit for iOS, as it is not needed unless
   # running against ToT WebKit rather than system WebKit. This can be overridden
   # e.g. with custom_vars.
@@ -290,6 +291,7 @@ vars = {
   'download_libaom_testdata': False,
 
   'android_git': 'https://android.googlesource.com',
+  'eyeo_gitlab': 'https://gitlab.com/eyeo',
   'aomedia_git': 'https://aomedia.googlesource.com',
   'boringssl_git': 'https://boringssl.googlesource.com',
   'chrome_git': 'https://chrome-internal.googlesource.com',
@@ -500,6 +502,11 @@ vars = {
   # the commit queue can handle CLs rolling beto-core
   # and whatever else without interference from each other.
   'betocore_revision': '8bd72cfb219344308ee857bcbe65a27fe91acfe8',
+
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling feed
+  # and whatever else without interference from each other.
+  'eyeo_snippets_revision': 'v1.2.0',
 
   # If you change this, also update the libc++ revision in
   # //buildtools/deps_revisions.gni.
@@ -1008,6 +1015,14 @@ deps = {
     'condition': 'checkout_android and checkout_src_internal',
   },
 
+  'src/components/adblock/core/resources/snippets': {
+    'url': Var('eyeo_gitlab') + '/anti-cv/snippets.git' + '@' + Var('eyeo_snippets_revision'),
+  },
+
+  'src/chrome/browser/resources/adblock_ml/mlaf': {
+    'url': Var('eyeo_gitlab') + '/mlaf.git' + '@' + '0.4.0',
+  },
+
   'src/docs/website': {
     'url': Var('chromium_git') + '/website.git' + '@' + 'b623150ede7e61bf949bd203b400f28012298274',
   },
@@ -1120,6 +1135,7 @@ deps = {
   'src/third_party/accessibility_test_framework/src': {
       'url': Var('chromium_git') + '/external/github.com/google/Accessibility-Test-Framework-for-Android.git' + '@' + '4a764c690353ea136c82f1a696a70bf38d1ef5fe',
   },
+
 
   'src/third_party/android_protobuf/src': {
       'url': Var('android_git') + '/platform/external/protobuf.git' + '@' + '7fca48d8ce97f7ba3ab8eea5c472f1ad3711762f',

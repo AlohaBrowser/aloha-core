@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_CONTENT_SETTINGS_CLIENT_H_
 #define THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_CONTENT_SETTINGS_CLIENT_H_
 
@@ -92,6 +94,9 @@ class WebContentSettingsClient {
   // Controls whether the ViewTransition callback needs to be larger than
   // default.
   virtual bool IncreaseViewTransitionCallbackTimeout() const { return false; }
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  virtual bool IsPrivateMode() { return false; }
 
   virtual ~WebContentSettingsClient() = default;
 };

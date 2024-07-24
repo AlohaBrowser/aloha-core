@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
 #ifndef NET_URL_REQUEST_REDIRECT_INFO_H_
 #define NET_URL_REQUEST_REDIRECT_INFO_H_
 
@@ -82,6 +86,10 @@ struct NET_EXPORT RedirectInfo {
 
   // True if this is a redirect from Signed Exchange to its fallback URL.
   bool is_signed_exchange_fallback_redirect = false;
+
+  // True if this is redirect done by rewrite filter (adblocking). This allows
+  // redirecting ads served over https into empty media through data:// URLs.
+  bool bypass_redirect_checks = false;
 
   // The new referrer policy that should be obeyed if there are
   // subsequent redirects.

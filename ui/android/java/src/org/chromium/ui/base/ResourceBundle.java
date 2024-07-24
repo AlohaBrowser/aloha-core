@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.ui.base;
 
 import android.content.res.AssetFileDescriptor;
@@ -46,6 +48,9 @@ public final class ResourceBundle {
     public static void setAvailablePakLocales(String[] locales) {
         assert sAvailableLocales == null;
         sAvailableLocales = locales;
+        // ALOHA https://app.clickup.com/t/2rbv8qq
+        // Sort need for binarySearch in getLocalePakResourcePath().
+        Arrays.sort(sAvailableLocales);
     }
 
     public static void clearAvailablePakLocalesForTesting() {

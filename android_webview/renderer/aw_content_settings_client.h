@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef ANDROID_WEBVIEW_RENDERER_AW_CONTENT_SETTINGS_CLIENT_H_
 #define ANDROID_WEBVIEW_RENDERER_AW_CONTENT_SETTINGS_CLIENT_H_
 
@@ -29,6 +31,9 @@ class AwContentSettingsClient : public content::RenderFrameObserver,
   bool AllowRunningInsecureContent(bool enabled_per_settings,
                                    const blink::WebURL& url) override;
   bool ShouldAutoupgradeMixedContent() override;
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  bool IsPrivateMode() override;
 };
 
 }  // namespace android_webview

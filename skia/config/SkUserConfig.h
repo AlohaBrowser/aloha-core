@@ -6,6 +6,7 @@
  * found in the LICENSE file.
  */
 
+// Modified by Aloha Mobile Ltd.
 
 #ifndef SKIA_CONFIG_SKUSERCONFIG_H_
 #define SKIA_CONFIG_SKUSERCONFIG_H_
@@ -128,10 +129,7 @@
 
 // ===== Begin Chrome-specific definitions =====
 
-#ifdef DCHECK_ALWAYS_ON
-    #undef SK_RELEASE
-    #define SK_DEBUG
-#endif
+// ALOHA https://app.clickup.com/t/2xc35x9
 
 /*  Define this to provide font subsetter for font subsetting when generating
     PDF documents.

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_PUBLIC_BROWSER_DOWNLOAD_MANAGER_DELEGATE_H_
 #define CONTENT_PUBLIC_BROWSER_DOWNLOAD_MANAGER_DELEGATE_H_
 
@@ -21,6 +23,9 @@
 #include "content/public/browser/save_page_type.h"
 #include "content/public/browser/web_contents.h"
 #include "url/origin.h"
+
+// ALOHA https://app.clickup.com/t/mz8wrn
+#include "components/download/public/common/download_create_info.h"
 
 class GURL;
 
@@ -140,6 +145,8 @@ class CONTENT_EXPORT DownloadManagerDelegate {
   virtual bool InterceptDownloadIfApplicable(
       const GURL& url,
       const std::string& user_agent,
+      const std::string& method, // ALOHA https://app.clickup.com/t/mz8wrn
+      const bool is_disposable_url, // ALOHA https://app.clickup.com/t/861md9r6t
       const std::string& content_disposition,
       const std::string& mime_type,
       const std::string& request_origin,

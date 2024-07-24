@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview;
 
 import android.annotation.SuppressLint;
@@ -204,6 +206,9 @@ public class AwSettings {
     private boolean mBuiltInZoomControls;
     private boolean mDisplayZoomControls = true;
     private final AwMediaIntegrityApiStatusConfig mIntegrityApiStatusConfig;
+
+    // ALOHA https://app.clickup.com/t/2f2ezk8
+    private boolean mUserAgentIsMobile = true;
 
     private @WebauthnMode int mWebauthnMode = WebauthnMode.NONE;
 
@@ -2093,6 +2098,23 @@ public class AwSettings {
         synchronized (mAwSettingsLock) {
             return mIntegrityApiStatusConfig.getStatusForUri(uri);
         }
+    }
+
+    // ALOHA https://app.clickup.com/t/2f2ezk8
+    public void setUserAgentIsMobile(boolean isMobile) {
+        synchronized (mAwSettingsLock) {
+            if (mUserAgentIsMobile != isMobile) {
+                mUserAgentIsMobile = isMobile;
+                mEventHandler.updateWebkitPreferencesLocked();
+            }
+        }
+    }
+
+    // ALOHA https://app.clickup.com/t/2f2ezk8
+    @CalledByNative
+    private boolean isMobileUserAgentLocked() {
+        assert Thread.holdsLock(mAwSettingsLock);
+        return mUserAgentIsMobile;
     }
 
     public void setWebauthnSupport(@WebauthnMode int support) {

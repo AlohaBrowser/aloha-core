@@ -24,10 +24,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_FRAME_LOCAL_DOM_WINDOW_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_FRAME_LOCAL_DOM_WINDOW_H_
 
 #include <memory>
+// ALOHA https://app.clickup.com/t/861m7r8nk
+#include <atomic>
 
 #include "base/task/single_thread_task_runner.h"
 #include "services/metrics/public/cpp/ukm_recorder.h"
@@ -540,6 +544,10 @@ class CORE_EXPORT LocalDOMWindow final : public DOMWindow,
   // Sets the HasStorageAccess member. Note that it can only be granted for a
   // given window, it cannot be taken away.
   void SetHasStorageAccess();
+  // ALOHA https://app.clickup.com/t/861m7r8nk
+  bool IsUncheckedJSAllowed() const;
+  void AllowUncheckedJS();
+  void DenyUncheckedJS();
 
   // https://html.spec.whatwg.org/multipage/browsing-the-web.html#has-been-revealed
   bool HasBeenRevealed() const { return has_been_revealed_; }
@@ -691,6 +699,9 @@ class CORE_EXPORT LocalDOMWindow final : public DOMWindow,
   // Records whether this window has obtained storage access. It cannot be
   // revoked once set to true.
   bool has_storage_access_ = false;
+
+  // ALOHA https://app.clickup.com/t/861m7r8nk
+  static std::atomic<bool> allow_unchecked_js_;
 
   // Tracks whether this window has shown a payment request without a user
   // activation. It cannot be revoked once set to true.

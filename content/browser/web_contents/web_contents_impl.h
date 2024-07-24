@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_BROWSER_WEB_CONTENTS_WEB_CONTENTS_IMPL_H_
 #define CONTENT_BROWSER_WEB_CONTENTS_WEB_CONTENTS_IMPL_H_
 
@@ -607,6 +609,13 @@ class CONTENT_EXPORT WebContentsImpl : public WebContents,
   bool IsInPreviewMode() const override;
   void WillActivatePreviewPage() override;
   void ActivatePreviewPage() override;
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  void SetPrivateMode(bool enabled) override;
+
+  // ALOHA https://app.clickup.com/t/86epcdndk
+  void SetAdblockEnabled(bool enabled) override;
+  bool IsAdblockEnabled() override;
 
   // Implementation of PageNavigator.
   WebContents* OpenURL(const OpenURLParams& params,
@@ -2500,8 +2509,12 @@ class CONTENT_EXPORT WebContentsImpl : public WebContents,
   // Indicates accessibility had an unrecoverable error.
   bool unrecoverable_accessibility_error_ = false;
 
+   // ALOHA
+  bool is_adblock_enabled_ = true;
+
   base::WeakPtrFactory<WebContentsImpl> loading_weak_factory_{this};
   base::WeakPtrFactory<WebContentsImpl> weak_factory_{this};
+  
 };
 
 // Dangerous methods which should never be made part of the public API, so we

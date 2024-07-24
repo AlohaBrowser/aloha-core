@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "components/download/public/common/in_progress_download_manager.h"
 
 #include <optional>
@@ -201,7 +203,7 @@ void OnPathReserved(
 }  // namespace
 
 bool InProgressDownloadManager::Delegate::InterceptDownload(
-    const DownloadCreateInfo& download_create_info) {
+    DownloadCreateInfo& download_create_info) { // ALOHA https://app.clickup.com/t/mz8wrn
   return false;
 }
 

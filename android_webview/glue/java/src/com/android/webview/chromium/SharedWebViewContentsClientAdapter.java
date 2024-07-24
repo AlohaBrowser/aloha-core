@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package com.android.webview.chromium;
 
 import android.content.Context;
@@ -9,7 +11,7 @@ import android.os.Build;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.webkit.WebViewDelegate;
+import com.android.webview.chromium.WebViewDelegate;
 
 import androidx.annotation.Nullable;
 

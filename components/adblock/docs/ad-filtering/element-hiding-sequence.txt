@@ -1,0 +1,32 @@
+# If changed, go to https://sequencediagram.org/ to regenerate diagram
+title eyeo Chromium SDK element hiding flow
+
+participant AdblockWebContentObserver (UI Thread)
+participant ElementHider (UI thread)
+participant ThreadPool
+participant SubscriptionCollection
+participant RenderFrameHost (UI thread)
+
+[ -> AdblockWebContentObserver (UI Thread): DidFinishLoad(RenderFrameHost*)
+AdblockWebContentObserver (UI Thread) -> ElementHider (UI thread): ApplyElementHidingEmulationOnPage()
+ElementHider (UI thread) ->(2) ThreadPool: PrepareElemhideEmulationData()
+ThreadPool -> SubscriptionCollection: HasDocumentAllowingFilter()
+SubscriptionCollection --> ThreadPool:
+ThreadPool -> SubscriptionCollection: HasElemhideAllowingFilter()
+SubscriptionCollection --> ThreadPool:
+opt if document and css injection not allowlisted
+ThreadPool -> SubscriptionCollection: GetElementHideData()
+SubscriptionCollection --> ThreadPool:
+ThreadPool -> SubscriptionCollection: GetElementHideEmulationData()
+SubscriptionCollection --> ThreadPool: Injected script will be generated for extended\nselectors like -abp-has and -abp-contains.\nSometimes the standard CSS isn't powerful enough\nto hide something.
+end
+opt if document not allowlisted
+ThreadPool -> SubscriptionCollection: GenerateSnippetsJson()
+SubscriptionCollection --> ThreadPool: Injected script will be generated based on actions in json.\nSnippets are allowed only for special trusted subscription, they are\ncombating complex anti-circumvention cases.
+end
+ThreadPool -->(2) ElementHider (UI thread): InsertUserCSSAndApplyElemHidingEmuJS()
+ElementHider (UI thread) ->RenderFrameHost (UI thread): InsertAbpElemhideStylesheet()
+RenderFrameHost (UI thread) --> ElementHider (UI thread):
+ElementHider (UI thread) ->RenderFrameHost (UI thread): ExecuteJavaScriptInIsolatedWorld()
+RenderFrameHost (UI thread) --> ElementHider (UI thread): Script will be executed isolated from site and extensions scripts.
+ElementHider (UI thread) ->AdblockWebContentObserver (UI Thread): on_finished.Run()

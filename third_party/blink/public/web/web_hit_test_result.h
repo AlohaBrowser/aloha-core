@@ -23,6 +23,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_PUBLIC_WEB_WEB_HIT_TEST_RESULT_H_
 #define THIRD_PARTY_BLINK_PUBLIC_WEB_WEB_HIT_TEST_RESULT_H_
 
@@ -61,6 +63,14 @@ class BLINK_EXPORT WebHitTestResult {
 
   // If an image is hit, return the image source. Return empty otherwise.
   WebURL AbsoluteImageURL() const;
+
+  // ALOHA https://app.clickup.com/t/2f2ey18
+  // Find video url in html tree near the current element.
+  BLINK_EXPORT WebURL AlohaFindVideoURL() const;
+
+  // ALOHA https://app.clickup.com/t/2v1r9c4
+  // Find image url in html tree near the current element by aloha algorithm.
+  BLINK_EXPORT WebURL AlohaFindImageURL() const;
 
   // If an link is hit, return the link url source. Return empty otherwise.
   WebURL AbsoluteLinkURL() const;

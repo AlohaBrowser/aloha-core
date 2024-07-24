@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "net/disk_cache/simple/simple_backend_impl.h"
 
 #include <algorithm>
@@ -46,6 +48,9 @@
 #include "net/disk_cache/simple/simple_util.h"
 #include "net/disk_cache/simple/simple_version_upgrade.h"
 
+// ALOHA https://app.clickup.com/t/2u59j0h
+#include "aloha/src/native/aloha_consts.h"
+
 using base::FilePath;
 using base::Time;
 
@@ -55,6 +60,8 @@ namespace {
 
 // Maximum fraction of the cache that one entry can consume.
 const int kMaxFileRatio = 8;
+// ALOHA https://app.clickup.com/t/2u59j0h
+static_assert(kMaxFileRatio == aloha::kHttpCacheFileRatio);
 
 // Native code entries can be large. Rather than increasing the overall cache
 // size, allow an individual entry to occupy up to half of the cache.

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_STORAGE_STORAGE_CONTROLLER_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_STORAGE_STORAGE_CONTROLLER_H_
 
@@ -84,13 +86,20 @@ class MODULES_EXPORT StorageController : public mojom::blink::DomStorageClient {
   }
 
  private:
-  void EnsureLocalStorageNamespaceCreated();
+  void EnsureLocalStorageNamespaceCreated(bool private_mode); // ALOHA https://app.clickup.com/t/2dmrud4
 
   // mojom::blink::DomStorageClient:
   void ResetStorageAreaAndNamespaceConnections() override;
+  // ALOHA https://app.clickup.com/t/2hcppgv
+  void ClearSessionStorage() override;
+  void ClearLocalStorage(bool for_private_mode) override;
 
   Persistent<HeapHashMap<String, WeakMember<StorageNamespace>>> namespaces_;
-  Persistent<StorageNamespace> local_storage_namespace_;
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  Persistent<StorageNamespace> public_local_storage_namespace_;
+  Persistent<StorageNamespace> private_local_storage_namespace_;
+
   size_t total_cache_limit_;
 
   mojo::Remote<mojom::blink::DomStorage> dom_storage_remote_;
