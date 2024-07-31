@@ -154,6 +154,17 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
+<histogram name="BrowserDialogs.ExternalProtocol.Scheme"
+    enum="ExternalProtocolScheme" expires_after="2024-09-13">
+  <owner>drubery@chromium.org</owner>
+  <owner>chrome-counter-abuse-alerts@google.com</owner>
+  <summary>
+    Records the scheme of an external protocol request. Only logs schemes listed
+    among the enum ExternalProtocolScheme. This is logged once for each request
+    to open an external protocol.
+  </summary>
+</histogram>
+
 <histogram name="Permissions.Action" enum="PermissionAction"
     expires_after="never">
 <!-- expires-never: Primary metrics for monitoring capability usage and trends. -->
@@ -795,6 +806,18 @@ chromium-metrics-reviews@google.com.
     user explicitly set the permission state or cleared history / site data and
     prior to the accept. The suffix of the histogram indicates which particular
     permission.
+  </summary>
+</histogram>
+
+<histogram name="Permissions.Prompt.Dismissed.InvalidContentSetting"
+    enum="ContentSetting" expires_after="2025-06-01">
+  <owner>andypaicu@chromium.org</owner>
+  <owner>src/components/permissions/PERMISSIONS_OWNERS</owner>
+  <summary>
+    This metric is used to investigate a crash observed when a certain type of
+    permission prompt is dismissed. It's recorded when a permission prompt is
+    dismissed with an invalid content setting (aka one that does not have a
+    corresponding request type) and it records the content setting itself.
   </summary>
 </histogram>
 

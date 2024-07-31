@@ -835,7 +835,6 @@ Uygulamalara vermiş olduğunuz izinler bu hesap için geçerli olabilir. Androi
 <translation id="1607139524282324606">Girişi temizle</translation>
 <translation id="1607499585984539560">Kullanıcı, alanla ilişkili değil</translation>
 <translation id="1608668830839595724">Seçilen öğeler için daha fazla işlem</translation>
-<translation id="1608698493373028805">Bu uzantı yakında desteklenmeyebilir.</translation>
 <translation id="1610272688494140697">Uygulama Ayarları</translation>
 <translation id="161042844686301425">Camgöbeği</translation>
 <translation id="1611432201750675208">Cihazınız kilitlendi</translation>
@@ -1902,6 +1901,7 @@ Cihazınızda Family Link uygulamasını yükleyerek bu hesabın ayarlarını y�
 <translation id="2376056713414548745">Sesli oku</translation>
 <translation id="2377667304966270281">Donanım Hataları</translation>
 <translation id="237828693408258535">Bu sayfa çevrilsin mi?</translation>
+<translation id="2378602615417849384">{NUM_EXTENSIONS,plural, =1{Bu uzantı yakında desteklenmeyebilir}other{Bu uzantılar yakında desteklenmeyebilir}}</translation>
 <translation id="2378982052244864789">Uzantı dizinini seçin.</translation>
 <translation id="2379281330731083556">Sistem iletişim kutusunu kullanarak yazdır... <ph name="SHORTCUT_KEY" /></translation>
 <translation id="2381461748765773292">Bu işlem, mobil ağınızın birkaç dakikalığına kopmasına neden olabilir.</translation>
@@ -2175,7 +2175,7 @@ Cihazınızda Family Link uygulamasını yükleyerek bu hesabın ayarlarını y�
 <translation id="2559889124253841528">Cihaza Kaydet</translation>
 <translation id="2561211427862644160">Tüm yer işaretlerinizi burada görebilirsiniz</translation>
 <translation id="2564520396658920462">JavaScript'i AppleScript üzerinden çalıştırma seçeneği kapalı. Bunu açmak için menü çubuğundan Görünüm &gt; Geliştirici &gt; Apple Events'ten JavaScript'e izin ver'e gidin. Daha fazla bilgi için: https://support.google.com/chrome/?p=applescript</translation>
-<translation id="2564653188463346023">Geliştirilmiş yazım denetimi</translation>
+<translation id="2564653188463346023">Gelişmiş yazım denetimi</translation>
 <translation id="256481480019204378">Google Hesabı kimliği</translation>
 <translation id="256517381556987641">Dosya Senkronizasyonu şu ana kadar <ph name="ITEMS_FOUND" /> dosya buldu ve hâlâ depolama alanını kontrol ediyor. Dosya Senkronizasyonu'nu birkaç dakika sonra tekrar etkinleştirmeyi deneyin.</translation>
 <translation id="2565214867520763227">Ekran okuyucuyu açın</translation>
@@ -4191,6 +4191,7 @@ Yüklü yazılımlar, dosyalar, tarayıcınız ve cihazın işletim sistemi hakk
 <translation id="406213378265872299">Özelleştirilmiş davranışlar</translation>
 <translation id="4062561150282203854"><ph name="DEVICE_TYPE" /> uygulamalarınızı, ayarlarınızı ve daha fazlasını senkronize edin</translation>
 <translation id="4065876735068446555">Kullandığınız ağ (<ph name="NETWORK_ID" />) bir giriş sayfasını ziyaret etmenizi gerektiriyor olabilir.</translation>
+<translation id="4065931125325392744">Bu uzantı yakında desteklenmeyebilir</translation>
 <translation id="4066207411788646768">Ağınızdaki kullanılabilir yazıcıları görmek için lütfen bağlantınızı kontrol edin</translation>
 <translation id="4067839975993712852">Geçerli sekmeyi okundu olarak işaretle</translation>
 <translation id="4068776064906523561">Kayıtlı parmak izleri</translation>
@@ -10188,7 +10189,6 @@ Anahtar dosyanızı güvenli bir yerde saklayın. Uzantınızın yeni sürümler
 <translation id="8636500887554457830">Sitelerin pop-up'lar göndermesine veya yönlendirmeler kullanmasına izin verme</translation>
 <translation id="8636514272606969031">Yan panel sabitlendi</translation>
 <translation id="8637688295594795546">Kullanılabilir sistem güncellemesi mevcut. İndirmeye hazırlanılıyor...</translation>
-<translation id="8638603762333060790">{NUM_EXTENSIONS,plural, =1{Bu uzantı yakında desteklenmeyebilir}other{Bu uzantılar yakında desteklenmeyebilir}}</translation>
 <translation id="8638719155236856752">ChromeOS Ağ Sağlığı</translation>
 <translation id="8639635302972078117">Kullanım ve teşhis verilerini gönder. Bu cihaz şu anda teşhis, cihaz ve uygulama kullanımı verilerini otomatik olarak Google'a gönderiyor. Bu veriler, çocuğunuzun kimliğini tespit etmek için kullanılmaz; sistem ve uygulama kararlılığı ile diğer özellikleri iyileştirmeye yardımcı olur. Bazı birleştirilmiş veriler, Google uygulamalarına ve iş ortaklarına da (ör. Android geliştiricileri) yardımcı olur. Çocuğunuz için ek Web ve Uygulama Etkinliği açıksa bu veriler çocuğunuzun Google Hesabına kaydedilebilir.</translation>
 <translation id="8640575194957831802">En son açıldığı tarih</translation>

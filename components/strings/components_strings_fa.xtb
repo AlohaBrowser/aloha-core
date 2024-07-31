@@ -2032,7 +2032,7 @@
 <translation id="4892518386797173871">عقب</translation>
 <translation id="4895019427244614047">حذف نشانی</translation>
 <translation id="4895877746940133817"><ph name="TYPE_1" />،‏ <ph name="TYPE_2" />،‏ <ph name="TYPE_3" /></translation>
-<translation id="4896809202198625921">المپیک</translation>
+<translation id="4896809202198625921">بازی‌های المپیک</translation>
 <translation id="4898742041545089450">این موضوع لغو انسداد شده است و ممکن است براساس سابقه مرور شما فعال شود</translation>
 <translation id="4900217275619098670">رول نهم</translation>
 <translation id="4901052769830245369">برچسب (نیمه‌براق)</translation>
@@ -2165,7 +2165,7 @@
             <ph name="NEW_LINE" />اگر ویژگی‌های سایت کار نمی‌کند، <ph name="START_LINK" />کوکی‌های شخص ثالث را موقتاً مجاز کنید<ph name="END_LINK" />.</translation>
 <translation id="5145883236150621069">کد خطا در پاسخ خط‌مشی موجود است</translation>
 <translation id="5146995429444047494">اعلان‌های مربوط به <ph name="ORIGIN" /> مسدود شده‌اند</translation>
-<translation id="514704532284964975">‏<ph name="URL" /> می‌خواهد اطلاعات دستگاه‌های NFC را که با تلفن روی آن‌ها ضربه می‌زنید ببیند و تغییر دهد</translation>
+<translation id="514704532284964975">‏<ph name="URL" /> می‌خواهد اطلاعات دستگاه‌های NFC را که با تلفن روی آن‌ها تک‌ضرب می‌زنید ببیند و تغییر دهد</translation>
 <translation id="5147633291963801297">کاهش قیمت را در پانل کناری مشاهده کنید</translation>
 <translation id="5148809049217731050">روبه‌بالا</translation>
 <translation id="5157504274688344097">بازرگانان عمده‌فروش و فروشگاه‌های زنجیره‌ای</translation>
@@ -2707,7 +2707,7 @@
 <translation id="6221311046884916259">‏می‌خواهید این کارت در «حساب Google» شما ذخیره شود؟</translation>
 <translation id="6221892641068781024">نمای ساده‌شده</translation>
 <translation id="6222527803348563979">نوشت‌افزار</translation>
-<translation id="6224281071334553713">سنگ‌های قیمتی و جواهرات</translation>
+<translation id="6224281071334553713">جواهرات و سنگ‌های قیمتی</translation>
 <translation id="6226163402662242066">‏<ph name="MANAGE_CHROME_ACCESSIBILITY_FOCUSED_FRIENDLY_MATCH_TEXT" />؛ برای شخصی کردن ابزارهای دسترس‌پذیری در تنظیمات Chrome، کلید «جهش» و سپس «ورود» را فشار دهید</translation>
 <translation id="6228346913624365233">وسایل نقلیه تجملی</translation>
 <translation id="6229196330202833460">فیلم و جاری‌سازی تلویزیونی</translation>

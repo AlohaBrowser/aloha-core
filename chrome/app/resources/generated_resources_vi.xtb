@@ -838,7 +838,6 @@ Các quyền bạn từng cấp cho ứng dụng có thể áp dụng cho cả t
 <translation id="1607139524282324606">Xóa mục nhập</translation>
 <translation id="1607499585984539560">Người dùng không được liên kết với miền</translation>
 <translation id="1608668830839595724">Thao tác khác cho những mục đã chọn</translation>
-<translation id="1608698493373028805">Có thể tiện ích này sắp không được hỗ trợ nữa</translation>
 <translation id="1610272688494140697">Cài đặt ứng dụng</translation>
 <translation id="161042844686301425">Lục lam</translation>
 <translation id="1611432201750675208">Thiết bị của bạn đã bị khóa</translation>
@@ -1919,6 +1918,7 @@ Bạn có thể quản lý các tùy chọn cài đặt của tài khoản này 
 <translation id="2376056713414548745">Đọc to</translation>
 <translation id="2377667304966270281">Lỗi phần cứng</translation>
 <translation id="237828693408258535">Bạn muốn dịch trang này?</translation>
+<translation id="2378602615417849384">{NUM_EXTENSIONS,plural, =1{Có thể tiện ích này sắp không được hỗ trợ nữa}other{Có thể các tiện ích này sắp không được hỗ trợ nữa}}</translation>
 <translation id="2378982052244864789">Chọn thư mục tiện ích.</translation>
 <translation id="2379281330731083556">In bằng hộp thoại hệ thống... <ph name="SHORTCUT_KEY" /></translation>
 <translation id="2381461748765773292">Thao tác này có thể khiến mạng di động của bạn bị ngắt kết nối trong vài phút</translation>
@@ -2746,7 +2746,7 @@ Bạn có thể quản lý các tùy chọn cài đặt của tài khoản này 
 <translation id="2979639724566107830">Mở trong cửa sổ mới</translation>
 <translation id="2979893796619951531">Loại trừ trang web này</translation>
 <translation id="2981033191524548279">Rất tiếc, đã xảy ra lỗi. Vui lòng gửi ý kiến phản hồi kèm #bruschetta trong phần mô tả. Mã lỗi là <ph name="ERROR" />. Bạn có thể khắc phục lỗi này bằng cách khởi động lại rồi thử lại.</translation>
-<translation id="2981113813906970160">Hiển thị con trỏ chuột lớn</translation>
+<translation id="2981113813906970160">Hiện con trỏ chuột lớn</translation>
 <translation id="2983102365694924129">Dựa vào hoạt động của bạn trên một trang web. Chế độ cài đặt này đang tắt.</translation>
 <translation id="2983373101216420412">Mức pin hộp đựng <ph name="PERCENTAGE" />%.</translation>
 <translation id="2984727013951557074">Tệp này vẫn đang được đồng bộ hoá với Drive.</translation>
@@ -3432,7 +3432,7 @@ Bạn có thể quản lý các tùy chọn cài đặt của tài khoản này 
 <translation id="3515983984924808886">Chạm lại vào khóa bảo mật để xác nhận đặt lại. Thao tác này sẽ xóa toàn bộ thông tin lưu trữ trên khóa bảo mật, bao gồm cả mã PIN của khóa.</translation>
 <translation id="3518866566087677312">Đánh dấu các trang bạn muốn quay lại xem sau</translation>
 <translation id="3519564332031442870">Dịch vụ phụ trợ in</translation>
-<translation id="3519938335881974273">Lưu trang thành...</translation>
+<translation id="3519938335881974273">Lưu trang dưới dạng...</translation>
 <translation id="3520824492621090923">Xác nhận đăng ký thiết bị kiosk và bảng hiệu?</translation>
 <translation id="3521388823983121502">Không thể tiếp tục với <ph name="IDENTITY_PROVIDER_ETLD_PLUS_ONE" /></translation>
 <translation id="3521405806571557477">Xoá dữ liệu đã lưu cho <ph name="SITE_NAME" /></translation>
@@ -3792,7 +3792,7 @@ Bạn có thể quản lý các tùy chọn cài đặt của tài khoản này 
     <ph name="BEGIN_PARAGRAPH2" />Bạn có thể tắt tính năng vị trí của ChromeOS và Android trên thiết bị của mình bất cứ lúc nào bằng cách vào phần Cài đặt &gt; Quyền riêng tư và bảo mật &gt; Chế độ kiểm soát quyền riêng tư &gt; Quyền truy cập thông tin vị trí. Bạn cũng có thể dừng việc sử dụng Wi-Fi, mạng di động và cảm biến cho mục đích ước chừng vị trí trên Android bằng cách tắt chế độ "Cải thiện độ chính xác của vị trí" trong phần "Cài đặt vị trí nâng cao" trên chính trình đơn đó.<ph name="END_PARAGRAPH2" /></translation>
 <translation id="3766687283066842296">Tìm hiểu thêm về Trung tâm điều khiển điện thoại</translation>
 <translation id="3766811143887729231"><ph name="REFRESH_RATE" /> Hz</translation>
-<translation id="3767835232661747729">Hiện tại, bạn chỉ có thể chia sẻ mật khẩu với các thành viên gia đình. <ph name="BEGIN_LINK" />Mời thành viên gia đình<ph name="END_LINK" /> tham gia nhóm của bạn để sử dụng các sản phẩm và thuê bao của bạn trên Google hiệu quả hơn.</translation>
+<translation id="3767835232661747729">Hiện tại, bạn chỉ có thể chia sẻ mật khẩu với các thành viên gia đình. <ph name="BEGIN_LINK" />Mời thành viên gia đình<ph name="END_LINK" /> tham gia nhóm của bạn để sử dụng các sản phẩm và gói thuê bao của bạn trên Google hiệu quả hơn.</translation>
 <translation id="377050016711188788">Kem</translation>
 <translation id="3771290962915251154">Tùy chọn cài đặt này bị tắt do các quyền kiểm soát của cha mẹ đang bật</translation>
 <translation id="3771294271822695279">Tệp video</translation>
@@ -4208,6 +4208,7 @@ Thông tin này có thể bao gồm thông tin về phần mềm đã cài đặ
 <translation id="406213378265872299">Chế độ tùy chỉnh</translation>
 <translation id="4062561150282203854">Đồng bộ hóa ứng dụng, chế độ cài đặt, v.v. trên <ph name="DEVICE_TYPE" /> của bạn</translation>
 <translation id="4065876735068446555">Mạng bạn đang sử dụng (<ph name="NETWORK_ID" />) có thể yêu cầu bạn truy cập vào trang đăng nhập của mạng đó.</translation>
+<translation id="4065931125325392744">Có thể tiện ích này sắp không được hỗ trợ nữa</translation>
 <translation id="4066207411788646768">Vui lòng kiểm tra kết nối của bạn để xem các máy in hiện có trong mạng</translation>
 <translation id="4067839975993712852">Đánh dấu thẻ hiện tại là đã đọc</translation>
 <translation id="4068776064906523561">Vân tay đã lưu</translation>
@@ -5116,7 +5117,7 @@ Nhấn tổ hợp phím Ctrl + Alt + Giảm độ sáng để thu nhỏ.</transl
 <translation id="4779083564647765204">Thu phóng</translation>
 <translation id="4779136857077979611">Cơm nắm Onigiri</translation>
 <translation id="4779766576531456629">Đổi tên mạng di động của eSIM</translation>
-<translation id="4780321648949301421">Lưu trang làm...</translation>
+<translation id="4780321648949301421">Lưu trang dưới dạng...</translation>
 <translation id="4780558987886269159">Để làm việc</translation>
 <translation id="4785719467058219317">Bạn đang sử dụng một khóa bảo mật chưa đăng ký với trang web này</translation>
 <translation id="4785914069240823137">Huỷ cắt</translation>
@@ -5269,7 +5270,7 @@ Nhấn tổ hợp phím Ctrl + Alt + Giảm độ sáng để thu nhỏ.</transl
 <translation id="488862352499217187">Tạo thư mục mới</translation>
 <translation id="4888715715847020167">vào phần cài đặt</translation>
 <translation id="4890292359366636311">Tự động bật chế độ hình trong hình để bạn có thể sử dụng chế độ này ở trên các thẻ và cửa sổ khác.</translation>
-<translation id="4890399733764921729">Không kết nối được do đã bị một nhà cung cấp mạng di động khác khoá lại.</translation>
+<translation id="4890399733764921729">Không kết nối được do một nhà cung cấp dịch vụ di động khác đã khoá mạng.</translation>
 <translation id="4890773143211625964">Hiển thị tùy chọn máy in nâng cao</translation>
 <translation id="4891089016822695758">Diễn đàn beta</translation>
 <translation id="4891795846939730995">Để cấp lại quyền truy cập vào khoá truy cập cho thiết bị này, hãy đăng nhập vào một trang web hoặc ứng dụng bằng khoá truy cập đã lưu</translation>
@@ -6326,7 +6327,7 @@ Các quyền bạn từng cấp cho trang web và ứng dụng có thể áp d�
 <translation id="5702749864074810610">Đã đóng đề xuất</translation>
 <translation id="5703716265115423771">giảm âm lượng</translation>
 <translation id="5704875434923668958">Đồng bộ hóa với</translation>
-<translation id="5705005699929844214">Luôn hiện các tùy chọn hỗ trợ tiếp cận</translation>
+<translation id="5705005699929844214">Luôn hiện các tuỳ chọn hỗ trợ tiếp cận</translation>
 <translation id="5705882733397021510">Quay lại</translation>
 <translation id="5707185214361380026">Không tải được tiện ích từ:</translation>
 <translation id="5708171344853220004">Tên Chính của Microsoft</translation>
@@ -6393,7 +6394,7 @@ Các quyền bạn từng cấp cho trang web và ứng dụng có thể áp d�
 <translation id="5765425701854290211">Rất tiếc, một số tệp đã bị hỏng và cập nhật không thành công. Các tệp đã đồng bộ hóa của bạn được an toàn.</translation>
 <translation id="5765491088802881382">Không có mạng nào</translation>
 <translation id="5767099457279594162">Mật khẩu chưa được chia sẻ</translation>
-<translation id="5770125698810550803">Hiển thị các nút di chuyển</translation>
+<translation id="5770125698810550803">Hiện các nút di chuyển</translation>
 <translation id="5771816112378578655">Đang thiết lập...</translation>
 <translation id="5772114492540073460"><ph name="PARALLELS_NAME" /> cho phép bạn chạy các ứng dụng Windows® trên Chromebook. Để cài đặt, bạn nên có <ph name="MINIMUM_SPACE" /> dung lượng trống.</translation>
 <translation id="5772265531560382923">{NUM_PAGES,plural, =1{Bạn có thể chờ trang phản hồi hoặc thoát khỏi trang.}other{Bạn có thể chờ trang phản hồi hoặc thoát khỏi trang.}}</translation>
@@ -6919,7 +6920,7 @@ Các quyền bạn từng cấp cho trang web và ứng dụng có thể áp d�
 <translation id="6155997322654401708">Tạo khoá truy cập</translation>
 <translation id="6156323911414505561">Hiển thị thanh dấu trang</translation>
 <translation id="6156863943908443225">Bộ nhớ đệm tập lệnh</translation>
-<translation id="6156944117133588106">Hiện các nút thao tác ở chế độ máy tính bảng</translation>
+<translation id="6156944117133588106">Hiện các nút di chuyển ở chế độ máy tính bảng</translation>
 <translation id="615930144153753547">Các trang web có thể hiện hình ảnh</translation>
 <translation id="6160290816917599257">Mã không hợp lệ. Nội dung bạn nhập phải có định dạng <ph name="LPA_0" />$<ph name="LPA_1" />SM-DP+ địa chỉ<ph name="LPA_2" />$<ph name="LPA_3" />mã nhận dạng để so khớp (không bắt buộc)<ph name="LPA_4" /></translation>
 <translation id="6160625263637492097">Cung cấp chứng chỉ để xác thực</translation>
@@ -10208,7 +10209,6 @@ Giữ tệp khóa của bạn ở nơi an toàn. Bạn sẽ cần tệp khóa đ
 <translation id="8636500887554457830">Không cho phép các trang web gửi cửa sổ bật lên hoặc dùng lệnh chuyển hướng</translation>
 <translation id="8636514272606969031">Đã ghim bảng điều khiển bên</translation>
 <translation id="8637688295594795546">Có sẵn bản cập nhật hệ thống. Đang chuẩn bị tải xuống…</translation>
-<translation id="8638603762333060790">{NUM_EXTENSIONS,plural, =1{Tiện ích này sắp không được hỗ trợ nữa}other{Các tiện ích này sắp không được hỗ trợ nữa}}</translation>
 <translation id="8638719155236856752">Tình trạng mạng của ChromeOS</translation>
 <translation id="8639635302972078117">Gửi dữ liệu chẩn đoán và dữ liệu về mức sử dụng. Thiết bị này hiện tự động gửi dữ liệu chẩn đoán, dữ liệu về thiết bị và mức sử dụng ứng dụng cho Google. Những thông tin này sẽ không dùng để nhận dạng con bạn mà giúp tăng độ ổn định của hệ thống và ứng dụng cũng như cải thiện các mặt khác. Một số dữ liệu tổng hợp cũng sẽ hữu ích cho các ứng dụng và đối tác của Google, chẳng hạn như những nhà phát triển Android. Nếu bạn bật tùy chọn cài đặt Hoạt động bổ sung trên web và ứng dụng cho con mình, thì dữ liệu này có thể được lưu vào Tài khoản Google của con.</translation>
 <translation id="8640575194957831802">Mở gần đây nhất</translation>
@@ -10239,7 +10239,7 @@ Giữ tệp khóa của bạn ở nơi an toàn. Bạn sẽ cần tệp khóa đ
 <translation id="8655972064210167941">Đăng nhập không thành công vì không thể xác minh mật khẩu của bạn. Vui lòng liên hệ với quản trị viên của bạn hoặc thử lại.</translation>
 <translation id="8656888282555543604">Bật ghi nhật ký chữ nổi</translation>
 <translation id="8657393004602556571">Bạn có muốn loại bỏ ý kiến phản hồi này không?</translation>
-<translation id="8657542881463614516">Sử dụng cử chỉ vuốt để điều hướng giữa các trang</translation>
+<translation id="8657542881463614516">Sử dụng cử chỉ vuốt để di chuyển giữa các trang</translation>
 <translation id="8659608856364348875">Người liên hệ trong <ph name="FEATURE_NAME" /></translation>
 <translation id="8661290697478713397">Mở Liên kết bằn&amp;g Cửa sổ Ẩn danh</translation>
 <translation id="8662474268934425487">Đăng nhập vào <ph name="SITE_ETLD_PLUS_ONE" /></translation>

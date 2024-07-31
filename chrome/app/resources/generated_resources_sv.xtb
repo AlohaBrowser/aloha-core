@@ -838,7 +838,6 @@ Behörigheter som du redan har gett appar kan gälla för det här kontot. Du ka
 <translation id="1607139524282324606">Rensa post</translation>
 <translation id="1607499585984539560">Användaren saknar koppling till domänen</translation>
 <translation id="1608668830839595724">Fler åtgärder för valda objekt</translation>
-<translation id="1608698493373028805">Det här tillägget stöds snart kanske inte längre</translation>
 <translation id="1610272688494140697">Appinställningar</translation>
 <translation id="161042844686301425">Cyanblå</translation>
 <translation id="1611432201750675208">Enheten är låst</translation>
@@ -1919,6 +1918,7 @@ Du kan hantera inställningarna för det här kontot genom att installera Family
 <translation id="2376056713414548745">Läs högt</translation>
 <translation id="2377667304966270281">Sidfel</translation>
 <translation id="237828693408258535">Vill du översätta den här sidan?</translation>
+<translation id="2378602615417849384">{NUM_EXTENSIONS,plural, =1{Det här tillägget stöds snart kanske inte längre}other{De här tilläggen stöds snart kanske inte längre}}</translation>
 <translation id="2378982052244864789">Välj tilläggets katalog.</translation>
 <translation id="2379281330731083556">Skriv ut via systemets dialogruta ... <ph name="SHORTCUT_KEY" /></translation>
 <translation id="2381461748765773292">Mobilnätverket kan kopplas från i några minuter</translation>
@@ -2110,7 +2110,7 @@ Du kan hantera inställningarna för det här kontot genom att installera Family
 <translation id="2501173422421700905">Certifikatet är avstängt</translation>
 <translation id="2501278716633472235">Föregående</translation>
 <translation id="2501797496290880632">Ange en genväg</translation>
-<translation id="2501920221385095727">Tröga tangenter</translation>
+<translation id="2501920221385095727">Låstangentsläge</translation>
 <translation id="2502441965851148920">Automatiska uppdateringar har aktiverats. Manuella uppdateringar har inaktiverats av administratören.</translation>
 <translation id="2502719318159902502">Fullständig åtkomst</translation>
 <translation id="2504801073028762184">Säkerhetsrekommendationer</translation>
@@ -3890,7 +3890,7 @@ Detta kan omfatta information om installerad mjukvara, filer, webbläsaren och e
 <translation id="3826086052025847742">ChromeOS Flex-loggar</translation>
 <translation id="3826440694796503677">Administratören har inaktiverat möjligheten att lägga till fler Google-konton</translation>
 <translation id="3827774300009121996">&amp;Helskärm</translation>
-<translation id="3828029223314399057">Sök efter bokmärken</translation>
+<translation id="3828029223314399057">Sök bland bokmärken</translation>
 <translation id="3828953470056652895">Jag har läst och godkänner <ph name="BEGIN_LINK1" />Googles användarvillkor<ph name="END_LINK1" />, <ph name="BEGIN_LINK2" />de ytterligare användarvillkoren för Google Chrome och ChromeOS<ph name="END_LINK2" /> samt <ph name="BEGIN_LINK3" />användarvillkoren för Play<ph name="END_LINK3" />.</translation>
 <translation id="3829530269338026191"><ph name="WINDOW_TITLE" /> – Hög minnesanvändning – <ph name="MEMORY_VALUE" /></translation>
 <translation id="3829765597456725595">SMB-filresurs</translation>
@@ -4088,7 +4088,7 @@ Detta kan omfatta information om installerad mjukvara, filer, webbläsaren och e
 <translation id="397703832102027365">Slutför ...</translation>
 <translation id="3977145907578671392">Vissa webbplatsers funktioner kanske inte fungerar i inkognitoläge</translation>
 <translation id="3977886311744775419">Automatiska uppdateringar laddas inte ned med den här nätverkstypen, men du kan söka efter uppdateringar manuellt.</translation>
-<translation id="3978325380690188371">Tröga tangenter är inte tillgängligt när ChromeVox är aktiverat</translation>
+<translation id="3978325380690188371">Låstangentsläget är inte tillgängligt när ChromeVox är aktiverat</translation>
 <translation id="3979395879372752341">Ett nytt tillägg har lagts till (<ph name="EXTENSION_NAME" />)</translation>
 <translation id="3979748722126423326">Aktivera <ph name="NETWORKDEVICE" /></translation>
 <translation id="3981058120448670012">Enheter i närheten kan se <ph name="DEVICE_NAME" /> i <ph name="REMAINING_TIME" /> …</translation>
@@ -4208,6 +4208,7 @@ Detta kan omfatta information om installerad mjukvara, filer, webbläsaren och e
 <translation id="406213378265872299">Anpassade beteenden</translation>
 <translation id="4062561150282203854">Synkronisera appar, inställningar med mera på <ph name="DEVICE_TYPE" /></translation>
 <translation id="4065876735068446555">Nätverket du använder (<ph name="NETWORK_ID" />) kanske kräver att du besöker dess inloggningssida.</translation>
+<translation id="4065931125325392744">Det här tillägget stöds snart kanske inte längre</translation>
 <translation id="4066207411788646768">Kontrollera anslutningen om du vill se vilka skrivare som är tillgängliga i nätverket</translation>
 <translation id="4067839975993712852">Markera den aktuella fliken som läst</translation>
 <translation id="4068776064906523561">Sparade fingeravtryck</translation>
@@ -10206,7 +10207,6 @@ Spara nyckelfilen på ett säkert ställe. Den behövs om du ska skapa nya versi
 <translation id="8636500887554457830">Tillåt inte att webbplatser skickar popup-fönster eller omdirigerar dig</translation>
 <translation id="8636514272606969031">Sidopanelen har fästs</translation>
 <translation id="8637688295594795546">Systemuppdatering tillgänglig. Förbereder nedladdning...</translation>
-<translation id="8638603762333060790">{NUM_EXTENSIONS,plural, =1{Det här tillägget stöds snart kanske inte längre}other{De här tilläggen stöds snart kanske inte längre}}</translation>
 <translation id="8638719155236856752">Nätverksstatus för ChromeOS</translation>
 <translation id="8639635302972078117">Skicka diagnostik- och användningsdata. Den här enheten skickar för närvarande diagnostikdata, enhetsdata och data om appanvändning till Google automatiskt. Denna data används till att förbättra systemets och apparnas stabilitet med mera och inte till att identifiera ditt barn. Viss samlad data används även till att förbättra appar från Google och Googles partner, till exempel Android-utvecklare. Om ytterligare webb- och appaktivitet har aktiverats för ditt barn kan denna data sparas i Google-kontot.</translation>
 <translation id="8640575194957831802">Öppnades senast</translation>
