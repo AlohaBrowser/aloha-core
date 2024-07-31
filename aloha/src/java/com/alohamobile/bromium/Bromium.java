@@ -31,7 +31,7 @@ import com.alohamobile.bromium.BromiumClient.MediaPlayerId;
 
 @JNINamespace("aloha")
 public class Bromium {
-    public static final String version = "126.0.6478.122";
+    public static final String version = "126.0.6478.188";
     public static final String majorVersion = "126";
 
     public static void setJavaCallstackFilename(String filename) {
