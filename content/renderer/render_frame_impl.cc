@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/renderer/render_frame_impl.h"
 
 #include <map>
@@ -6770,6 +6772,9 @@ WebView* RenderFrameImpl::CreateNewWindow(
       << "Session storage namespace must be populated.";
   view_params->hidden = is_background_tab;
   view_params->never_composited = never_composited;
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  view_params->private_mode = GetWebView()->IsPrivateMode();
 
   WebView* web_view = agent_scheduling_group_->CreateWebView(
       std::move(view_params),

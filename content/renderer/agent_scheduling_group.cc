@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/renderer/agent_scheduling_group.h"
 
 #include <map>
@@ -295,6 +297,7 @@ blink::WebView* AgentSchedulingGroup::CreateWebView(
           ? std::make_optional(params->fenced_frame_mode)
           : std::nullopt,
       /*compositing_enabled=*/true, params->never_composited,
+      params->private_mode, // ALOHA https://app.clickup.com/t/2dmrud4
       opener_frame ? opener_frame->View() : nullptr,
       std::move(params->blink_page_broadcast), agent_group_scheduler(),
       params->session_storage_namespace_id, params->base_background_color,

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/modules/storage/storage_controller.h"
 
 #include "base/feature_list.h"
@@ -17,6 +19,9 @@
 #include "third_party/blink/renderer/platform/scheduler/public/thread_scheduler.h"
 #include "third_party/blink/renderer/platform/wtf/std_lib_extras.h"
 #include "third_party/blink/renderer/platform/wtf/text/string_utf8_adaptor.h"
+
+// ALOHA https://app.clickup.com/t/2dmrud4
+#include "third_party/blink/renderer/core/frame/local_dom_window.h"
 
 namespace blink {
 
@@ -94,8 +99,13 @@ StorageNamespace* StorageController::CreateSessionStorageNamespace(
 size_t StorageController::TotalCacheSize() const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   size_t total = 0;
-  if (local_storage_namespace_)
-    total = local_storage_namespace_->TotalCacheSize();
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  if (public_local_storage_namespace_)
+    total += public_local_storage_namespace_->TotalCacheSize();
+  if (private_local_storage_namespace_)
+    total += private_local_storage_namespace_->TotalCacheSize();
+
   for (const auto& pair : *namespaces_)
     total += pair.value->TotalCacheSize();
   return total;
@@ -105,8 +115,13 @@ void StorageController::ClearAreasIfNeeded() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (TotalCacheSize() < total_cache_limit_)
     return;
-  if (local_storage_namespace_)
-    local_storage_namespace_->CleanUpUnusedAreas();
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  if (public_local_storage_namespace_)
+    public_local_storage_namespace_->CleanUpUnusedAreas();
+  if (private_local_storage_namespace_)
+    private_local_storage_namespace_->CleanUpUnusedAreas();
+
   for (auto& pair : *namespaces_)
     pair.value->CleanUpUnusedAreas();
 }
@@ -116,29 +131,51 @@ scoped_refptr<CachedStorageArea> StorageController::GetLocalStorageArea(
     mojo::PendingRemote<mojom::blink::StorageArea> local_storage_area,
     StorageNamespace::StorageContext context) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  EnsureLocalStorageNamespaceCreated();
-  return local_storage_namespace_->GetCachedArea(
-      local_dom_window, std::move(local_storage_area), context);
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  const bool private_mode = [&local_dom_window] () {
+    if (local_dom_window != nullptr) {
+      if (auto* frame = local_dom_window->GetFrame()) {
+        if (auto* settings = frame->GetContentSettingsClient()) {
+          return settings->IsPrivateMode();
+        }
+      }
+    }
+    // Always going to the settings. This branch is left just in case.
+    return false;
+  }();
+  EnsureLocalStorageNamespaceCreated(private_mode);
+  auto & local_namespace = private_mode
+    ? private_local_storage_namespace_
+    : public_local_storage_namespace_;
+  return local_namespace->GetCachedArea(local_dom_window,
+                                        std::move(local_storage_area));
 }
 
 void StorageController::AddLocalStorageInspectorStorageAgent(
     InspectorDOMStorageAgent* agent) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  EnsureLocalStorageNamespaceCreated();
-  local_storage_namespace_->AddInspectorStorageAgent(agent);
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  EnsureLocalStorageNamespaceCreated(false);
+  public_local_storage_namespace_->AddInspectorStorageAgent(agent);
 }
 
 void StorageController::RemoveLocalStorageInspectorStorageAgent(
     InspectorDOMStorageAgent* agent) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  EnsureLocalStorageNamespaceCreated();
-  local_storage_namespace_->RemoveInspectorStorageAgent(agent);
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  EnsureLocalStorageNamespaceCreated(false);
+  public_local_storage_namespace_->RemoveInspectorStorageAgent(agent);
 }
 
-void StorageController::EnsureLocalStorageNamespaceCreated() {
-  if (local_storage_namespace_)
+void StorageController::EnsureLocalStorageNamespaceCreated(bool private_mode) {
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  auto & local_namespace = private_mode
+    ? private_local_storage_namespace_
+    : public_local_storage_namespace_;
+  if (local_namespace)
     return;
-  local_storage_namespace_ = MakeGarbageCollected<StorageNamespace>(this);
+  local_namespace = MakeGarbageCollected<StorageNamespace>(this, private_mode);
 }
 
 void StorageController::ResetStorageAreaAndNamespaceConnections() {
@@ -146,8 +183,29 @@ void StorageController::ResetStorageAreaAndNamespaceConnections() {
     if (ns.value)
       ns.value->ResetStorageAreaAndNamespaceConnections();
   }
-  if (local_storage_namespace_)
-    local_storage_namespace_->ResetStorageAreaAndNamespaceConnections();
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  if (public_local_storage_namespace_)
+    public_local_storage_namespace_->ResetStorageAreaAndNamespaceConnections();
+  if (private_local_storage_namespace_)
+    private_local_storage_namespace_->ResetStorageAreaAndNamespaceConnections();
+}
+
+// ALOHA https://app.clickup.com/t/2hcppgv
+void StorageController::ClearSessionStorage() {
+  for (const auto& session_namespace : namespaces_->Values()) {
+    session_namespace->ClearAllAreas();
+  }
+}
+
+// ALOHA https://app.clickup.com/t/2hcppgv
+void StorageController::ClearLocalStorage(bool for_private_mode) {
+  auto& local_namespace = for_private_mode
+    ? private_local_storage_namespace_
+    : public_local_storage_namespace_;
+  if (local_namespace) {
+    local_namespace->ClearAllAreas();
+  }
 }
 
 }  // namespace blink

@@ -28,6 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_MEDIA_PLAYER_CLIENT_H_
 #define THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_MEDIA_PLAYER_CLIENT_H_
 
@@ -38,6 +40,11 @@
 #include "third_party/blink/public/platform/web_common.h"
 #include "third_party/blink/public/platform/web_media_player.h"
 #include "ui/gfx/color_space.h"
+
+#include "third_party/blink/renderer/platform/wtf/vector.h"
+
+// ALOHA https://app.clickup.com/t/2rqdtxz
+#include "media/base/pipeline_status.h"
 
 namespace cc {
 class Layer;
@@ -224,6 +231,9 @@ class BLINK_PLATFORM_EXPORT WebMediaPlayerClient {
 
   // Notify the client that the RemotePlayback has been disabled/enabled.
   virtual void OnRemotePlaybackDisabled(bool disabled) = 0;
+
+  // ALOHA https://app.clickup.com/t/2rqdtxz
+  virtual void OnMediaError(media::PipelineStatus pipeline_status) = 0;
 
   // Returns the DOMNodeId of the DOM element hosting this media player.
   virtual int GetElementId() = 0;

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.content.browser.webcontents;
 
 import android.annotation.SuppressLint;
@@ -725,6 +727,14 @@ public class WebContentsImpl implements WebContents, RenderFrameHostDelegate, Wi
         WebContentsImplJni.get().evaluateJavaScript(mNativeWebContentsAndroid, script, callback);
     }
 
+    // ALOHA https://app.clickup.com/t/861m7r8nk
+    @Override
+    public void evaluateJavaScriptUnchecked(String script, JavaScriptCallback callback) {
+        ThreadUtils.assertOnUiThread();
+        if (isDestroyed() || script == null) return;
+        WebContentsImplJni.get().evaluateJavaScriptUnchecked(mNativeWebContentsAndroid, script, callback);
+    }
+
     @Override
     public void evaluateJavaScriptForTests(String script, JavaScriptCallback callback) {
         ThreadUtils.assertOnUiThread();
@@ -1362,7 +1372,9 @@ public class WebContentsImpl implements WebContents, RenderFrameHostDelegate, Wi
 
         void evaluateJavaScript(
                 long nativeWebContentsAndroid, String script, JavaScriptCallback callback);
-
+        // ALOHA https://app.clickup.com/t/861m7r8nk
+        void evaluateJavaScriptUnchecked(
+                long nativeWebContentsAndroid, String script, JavaScriptCallback callback);
         void evaluateJavaScriptForTests(
                 long nativeWebContentsAndroid, String script, JavaScriptCallback callback);
 

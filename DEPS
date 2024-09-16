@@ -181,6 +181,7 @@ vars = {
   # flag is set True.
   'checkout_wpr_archives': False,
 
+
   # By default, do not check out WebKit for iOS, as it is not needed unless
   # running against ToT WebKit rather than system WebKit. This can be overridden
   # e.g. with custom_vars.
@@ -293,6 +294,7 @@ vars = {
   'download_libvpx_testdata': False,
 
   'android_git': 'https://android.googlesource.com',
+  'eyeo_gitlab': 'https://gitlab.com/eyeo',
   'aomedia_git': 'https://aomedia.googlesource.com',
   'boringssl_git': 'https://boringssl.googlesource.com',
   'chrome_git': 'https://chrome-internal.googlesource.com',
@@ -503,6 +505,11 @@ vars = {
   # the commit queue can handle CLs rolling beto-core
   # and whatever else without interference from each other.
   'betocore_revision': '08537fdd2b0990270ea0214a61dfd318f293bc15',
+
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling feed
+  # and whatever else without interference from each other.
+  'eyeo_snippets_revision': 'v1.4.0',
 
   # If you change this, also update the libc++ revision in
   # //buildtools/deps_revisions.gni.
@@ -1292,6 +1299,10 @@ deps = {
     'condition': 'checkout_android and checkout_src_internal',
   },
 
+  'src/components/adblock/core/resources/snippets': {
+    'url': Var('eyeo_gitlab') + '/anti-cv/snippets.git' + '@' + Var('eyeo_snippets_revision'),
+  },
+
   'src/docs/website': {
     'url': Var('chromium_git') + '/website.git' + '@' + '82c1d3e5b812b35df1cb6a031f59616dc594d4f7',
   },
@@ -1404,6 +1415,7 @@ deps = {
   'src/third_party/accessibility_test_framework/src': {
       'url': Var('chromium_git') + '/external/github.com/google/Accessibility-Test-Framework-for-Android.git' + '@' + '4a764c690353ea136c82f1a696a70bf38d1ef5fe',
   },
+
 
   'src/third_party/android_protoc': {
       'packages': [

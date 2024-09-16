@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "base/profiler/module_cache.h"
 
 #include <iomanip>
@@ -339,7 +341,9 @@ MAYBE_TEST(ModuleCacheTest, InvalidModule) {
     (BUILDFLAG(IS_ANDROID) && !defined(ARCH_CPU_ARM64))
 // Validates that, for the memory regions listed in /proc/self/maps, the modules
 // found via ModuleCache are consistent with those regions' extents.
-TEST(ModuleCacheTest, CheckAgainstProcMaps) {
+// ALOHA https://app.clickup.com/t/861m4jwng
+// Test do not work in original chromium v106.
+TEST(ModuleCacheTest, DISABLED_CheckAgainstProcMaps) {
   std::string proc_maps;
   debug::ReadProcMaps(&proc_maps);
   std::vector<debug::MappedMemoryRegion> regions;

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/web_contents/web_contents_android.h"
 
 #include <stdint.h>
@@ -596,6 +598,34 @@ void WebContentsAndroid::EvaluateJavaScript(
   j_callback.Reset(env, callback);
 
   web_contents_->GetPrimaryMainFrame()->ExecuteJavaScript(
+      ConvertJavaStringToUTF16(env, script),
+      base::BindOnce(&JavaScriptResultCallback, j_callback));
+}
+
+// ALOHA https://app.clickup.com/t/861m7r8nk
+void WebContentsAndroid::EvaluateJavaScriptUnchecked(
+    JNIEnv* env,
+    const JavaParamRef<jstring>& script,
+    const JavaParamRef<jobject>& callback) {
+  RenderViewHost* rvh = web_contents_->GetRenderViewHost();
+  DCHECK(rvh);
+
+  if (!InitializeRenderFrameForJavaScript())
+    return;
+
+  if (!callback) {
+    // No callback requested.
+    web_contents_->GetPrimaryMainFrame()->ExecuteJavaScriptUnchecked(
+        ConvertJavaStringToUTF16(env, script), base::NullCallback());
+    return;
+  }
+
+  // Secure the Java callback in a scoped object and give ownership of it to the
+  // base::OnceCallback below.
+  ScopedJavaGlobalRef<jobject> j_callback;
+  j_callback.Reset(env, callback);
+
+  web_contents_->GetPrimaryMainFrame()->ExecuteJavaScriptUnchecked(
       ConvertJavaStringToUTF16(env, script),
       base::BindOnce(&JavaScriptResultCallback, j_callback));
 }

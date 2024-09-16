@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef SERVICES_NETWORK_NETWORK_CONTEXT_H_
 #define SERVICES_NETWORK_NETWORK_CONTEXT_H_
 
@@ -86,6 +88,9 @@
 #if BUILDFLAG(IS_CT_SUPPORTED)
 #include "services/network/public/mojom/ct_log_info.mojom-forward.h"
 #endif
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+#include "aloha/src/native/aloha_consts.h"
 
 namespace base {
 class UnguessableToken;
@@ -203,7 +208,8 @@ class COMPONENT_EXPORT(NETWORK_SERVICE) NetworkContext
 
   ResourceScheduler* resource_scheduler() { return resource_scheduler_.get(); }
 
-  CookieManager* cookie_manager() { return cookie_manager_.get(); }
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  CookieManager* cookie_manager() { return cookie_managers_[active_cookie_manager_].get(); }
 
   const base::flat_set<std::string>* cors_exempt_header_list() const {
     return &cors_exempt_header_list_;
@@ -702,14 +708,30 @@ class COMPONENT_EXPORT(NETWORK_SERVICE) NetworkContext
   // To be called back from CookieManager on settings change.
   void OnCookieManagerSettingsChanged();
 
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  void SetActiveCookieManager(int inst_num) override;
+
+  // ALOHA https://app.clickup.com/t/2f29z75
+  void SetSendDNTHeader(bool send) override;
+
+ private:
+ 
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  void GetCookieManagerImpl(
+      int inst_num,
+      mojo::PendingReceiver<mojom::CookieManager> receiver);
+
   URLRequestContextOwner MakeURLRequestContext(
       mojo::PendingRemote<mojom::URLLoaderFactory>
           url_loader_factory_for_cert_net_fetcher,
-      scoped_refptr<SessionCleanupCookieStore>,
+      std::array<scoped_refptr<SessionCleanupCookieStore>,aloha::kCookieManagersCount> // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+          session_cleanup_cookie_stores,
       OnURLRequestContextBuilderConfiguredCallback
           on_url_request_context_builder_configured,
-      net::handles::NetworkHandle bound_network);
-  scoped_refptr<SessionCleanupCookieStore> MakeSessionCleanupCookieStore()
+          net::handles::NetworkHandle bound_network);
+
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  scoped_refptr<SessionCleanupCookieStore> MakeSessionCleanupCookieStore(int inst_num)
       const;
 
   // Invoked when the HTTP cache was cleared. Invokes |callback|.
@@ -855,7 +877,9 @@ class COMPONENT_EXPORT(NETWORK_SERVICE) NetworkContext
 
   FirstPartySetsAccessDelegate first_party_sets_access_delegate_;
 
-  std::unique_ptr<CookieManager> cookie_manager_;
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  std::array<std::unique_ptr<CookieManager>, aloha::kCookieManagersCount> cookie_managers_;
+  int active_cookie_manager_ = 0;
 
   std::unique_ptr<SocketFactory> socket_factory_;
 

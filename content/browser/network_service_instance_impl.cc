@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/network_service_instance_impl.h"
 
 #include <stdint.h>
@@ -987,7 +989,8 @@ void CreateNetworkContextInNetworkService(
   // On Android, if a cookie_manager pending receiver was passed then migration
   // should not be attempted as the cookie file is already being accessed by the
   // browser instance.
-  if (params->cookie_manager) {
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  if (params->cookie_manager_0) {
     if (params->file_paths) {
       // No migration should ever be attempted under this configuration.
       DCHECK(!params->file_paths->unsandboxed_data_path);

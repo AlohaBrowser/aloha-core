@@ -1,6 +1,9 @@
 # Copyright 2013 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
 
 # This is the root build file for GN. GN will start processing by loading this
 # file, and recursively load all dependencies until all dependencies are either
@@ -424,6 +427,7 @@ group("gn_all") {
           "//chrome/browser/android/examples/partner_browser_customizations_provider:partner_browser_customizations_example_apk",
           "//content/shell/android:content_shell_test_apk",
         ]
+
       }
 
       if (enable_chrome_android_internal) {

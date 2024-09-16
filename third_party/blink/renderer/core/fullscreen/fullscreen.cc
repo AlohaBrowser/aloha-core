@@ -27,6 +27,8 @@
  *
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/fullscreen/fullscreen.h"
 
 #include "base/containers/adapters.h"
@@ -55,6 +57,7 @@
 #include "third_party/blink/renderer/core/html/html_dialog_element.h"
 #include "third_party/blink/renderer/core/html/html_iframe_element.h"
 #include "third_party/blink/renderer/core/html_element_type_helpers.h"
+#include "third_party/blink/renderer/core/html/html_span_element.h"
 #include "third_party/blink/renderer/core/input/event_handler.h"
 #include "third_party/blink/renderer/core/inspector/console_message.h"
 #include "third_party/blink/renderer/core/page/chrome_client.h"
@@ -65,6 +68,24 @@
 #include "third_party/blink/renderer/platform/instrumentation/use_counter.h"
 #include "third_party/blink/renderer/platform/runtime_enabled_features.h"
 #include "third_party/blink/renderer/platform/scheduler/public/event_loop.h"
+
+// ALOHA https://app.clickup.com/t/2hxwa9w
+#include "third_party/blink/public/mojom/frame/frame.mojom-blink.h"
+#include "third_party/blink/renderer/core/css/css_style_declaration.h"
+#include "aloha/src/native/find_video_url.h"
+
+// ALOHA https://app.clickup.com/t/86ep6kxjh
+#include "third_party/blink/renderer/core/intersection_observer/intersection_observer_entry.h"
+
+// ALOHA https://app.clickup.com/t/86eppm2e8
+#include "aloha/src/native/fullscreen_state_handler.h"
+#include "aloha/src/native/attribute_style_observer.h"
+
+#include "third_party/blink/renderer/core/dom/mutation_observer.h"
+#include "third_party/blink/renderer/bindings/core/v8/v8_mutation_observer_init.h"
+#include "third_party/blink/renderer/core/dom/mutation_record.h"
+#include "third_party/blink/renderer/core/dom/class_collection.h"
+
 
 namespace blink {
 
@@ -611,12 +632,113 @@ void Fullscreen::RequestFullscreen(Element& pending) {
   RequestFullscreen(pending, options, FullscreenRequestType::kUnprefixed);
 }
 
-ScriptPromise<IDLUndefined> Fullscreen::RequestFullscreen(
-    Element& pending,
-    const FullscreenOptions* options,
-    FullscreenRequestType request_type,
-    ScriptState* script_state,
-    ExceptionState* exception_state) {
+// ALOHA https://app.clickup.com/t/2hxwa9w
+std::optional<aloha::FullscreenVideoElement> Fullscreen::SelectFullscreenVideoElementInfo(
+  Element& pending) {
+  
+  aloha::FullscreenStateHandler::Reset(); // ALOHA https://app.clickup.com/t/86eppm2e8
+
+  if (FullscreenElementReadyCheck(pending, ReportOptions::kDoNotReport) != RequestFullscreenError::kNone) {
+    return {};
+  }
+
+  Vector<aloha::FullscreenVideoElement> elements;
+  aloha::ForeachByVideoElements(
+    pending,
+    [&] (blink::HTMLVideoElement& video_elem) {
+      if (video_elem.style()->getPropertyValue("display") == "none") {
+        return false;
+      }
+      // check video_elem.PotentiallyPlaying() ?
+      if (const auto* media_player = video_elem.GetWebMediaPlayer()) {
+        auto url = aloha::GetMediaSourceURL(video_elem);
+        if (!url.IsEmpty()) {
+          aloha::FullscreenStateHandler::PrepareForFullscreen(&video_elem); // ALOHA https://app.clickup.com/t/86eppm2e8
+          elements.emplace_back(&video_elem,
+            mojom::blink::FullscreenVideoElementInfo::New(
+              std::move(url), media_player->Duration(), video_elem.GetOrCreateMediaPlayerId()));
+          if (&video_elem == &pending) {
+            // Break for-each.
+            return true;
+          }
+        }
+      }
+      return false;
+    });
+  
+  if (elements.size() == 1) {
+    auto& found_element = elements.front();
+    
+    // ALOHA https://app.clickup.com/t/86ep6kxjh
+    auto* intersection_observer = IntersectionObserver::Create(found_element.video->GetDocument(),
+      base::BindRepeating([](const HeapVector<Member<IntersectionObserverEntry>>& entries){
+        for (const auto& entry : entries) {
+            auto* target_element = entry->target();
+            if(target_element)
+            {
+              auto class_name = target_element->GetClassAttribute();
+              if(class_name.Contains("jw-video")) // ALOHA https://app.clickup.com/t/86eppm2e8 only for JWPlayer
+              {
+                continue;
+              }
+              if(!entry->isVisible() && target_element->parentElement() 
+                  && target_element->parentElement()->ContainsFullScreenElement())
+              {
+                target_element->GetDocument().GetFrame()->GetLocalFrameHostRemote().ExitFullscreen();
+                break;
+              }
+            }
+        }
+      })
+      , LocalFrameUkmAggregator::kStyle
+      , IntersectionObserver::Params {.thresholds = {std::numeric_limits<float>::min()},
+                                      .track_visibility = true });
+    intersection_observer->observe(found_element.video);
+
+    if(aloha::FullscreenStateHandler::IsJwPlayer())
+    {   
+      found_element.video->removeAttribute(html_names::kStyleAttr);
+      
+      auto* observer = MutationObserver::Create(
+          MakeGarbageCollected<AttributeStyleObserver>(*found_element.video, 
+          base::BindRepeating([](blink::Element& video_element){ // ALOHA https://app.clickup.com/t/86eppm2e8 callback, when style attribute is changed
+
+            if (video_element.getAttribute(html_names::kStyleAttr) == AtomicString("") ||  video_element.getAttribute(html_names::kStyleAttr) == nullptr) {
+              return;
+            }
+            if(aloha::FullscreenStateHandler::IsJwPlayer()) {    
+              video_element.removeAttribute(html_names::kStyleAttr);
+            }
+      })));
+
+      MutationObserverInit* init = MutationObserverInit::Create();  // ALOHA https://app.clickup.com/t/86eppm2e8 configuring GarbageCollected observer
+      init->setAttributeOldValue(true);
+      init->setAttributes(true);
+      init->setAttributeFilter({html_names::kStyleAttr.ToString()});
+      observer->observe(found_element.video, init, ASSERT_NO_EXCEPTION);
+    }
+
+    DLOG(INFO) << "Found one fullscreen element with url " << found_element.info->url;
+    // Simple case, found one video element.
+    return std::make_optional(std::move(found_element));
+  }
+  if (elements.size() == 0) {
+    DLOG(INFO) << "No fullscreen elements found.";
+  } else {
+    DLOG(INFO) << "Found " << elements.size() << " video elements with urls:";
+    for (const auto& element : elements) {
+      DLOG(INFO) << "  - " << element.info->url;
+    }
+  }
+  // Found several elements, ambiguous case, it is better to use the native media-player.
+  return {};
+}
+
+ScriptPromise<IDLUndefined> Fullscreen::RequestFullscreen(Element& pending,
+                                            const FullscreenOptions* options,
+                                            FullscreenRequestType request_type,
+                                            ScriptState* script_state,
+                                            ExceptionState* exception_state) {
   RequestFullscreenScope scope;
 
   // 1. Let `pendingDoc` be `this`'s node document.
@@ -661,19 +783,22 @@ ScriptPromise<IDLUndefined> Fullscreen::RequestFullscreen(
   // 4. Let `error` be false.
   RequestFullscreenError error = RequestFullscreenError::kNone;
 
+  // ALOHA https://app.clickup.com/t/2hxwa9w
+  auto video_element_info = SelectFullscreenVideoElementInfo(pending);
+
   // 5. If any of the following conditions are false, then set `error` to true:
   // OOPIF: If `RequestFullscreen()` was already called in a descendant frame
   // and passed the conditions enforcement, do not check again here.
   if (for_cross_process_descendant) {
     ContinueRequestFullscreenAfterConditionsEnforcement(
-        &pending, request_type, options, resolver, error);
+        &pending, request_type, options, resolver,  std::move(video_element_info), error);
   } else {
     EnforceRequestFullscreenConditions(
         pending, document,
         WTF::BindOnce(
             &Fullscreen::ContinueRequestFullscreenAfterConditionsEnforcement,
             WrapPersistent(&pending), request_type, WrapPersistent(options),
-            WrapPersistent(resolver)));
+            WrapPersistent(resolver), std::move(video_element_info)));
   }
 
   // 7. Return |promise|, and run the remaining steps in parallel.
@@ -838,7 +963,8 @@ void Fullscreen::ContinueRequestFullscreenAfterConditionsEnforcement(
     FullscreenRequestType request_type,
     const FullscreenOptions* options,
     ScriptPromiseResolver<IDLUndefined>* resolver,
-    RequestFullscreenError error) {
+    std::optional<aloha::FullscreenVideoElement> video_element_info, // ALOHA https://app.clickup.com/t/2hxwa9w
+    RequestFullscreenError error) { 
   CHECK(pending);
   Document& document = pending->GetDocument();
   if (error != RequestFullscreenError::kNone) {
@@ -856,13 +982,13 @@ void Fullscreen::ContinueRequestFullscreenAfterConditionsEnforcement(
     // will only queue a task and return. This is indistinguishable from, e.g.,
     // enqueueing a microtask to continue at step 9.
     ContinueRequestFullscreen(document, *pending, request_type, options,
-                              resolver, error);
+                              resolver, error,  video_element_info ? video_element_info->video : nullptr); // ALOHA https://app.clickup.com/t/2k0734w
     return;
   }
 
   LocalDOMWindow& window = *document.domWindow();
 
-  // 8. If `error` is false: then resize `pendingDoc`’s node navigable’s
+   // 8. If `error` is false: then resize `pendingDoc`’s node navigable’s
   // top-level traversable’s active document’s viewport’s dimensions, optionally
   // taking into account options["navigationUI"].
   // Optionally display a message how the end user can revert this.
@@ -873,7 +999,10 @@ void Fullscreen::ContinueRequestFullscreenAfterConditionsEnforcement(
   From(window).pending_requests_.push_back(MakeGarbageCollected<PendingRequest>(
       pending, request_type, options, resolver));
   LocalFrame& frame = *window.GetFrame();
-  frame.GetChromeClient().EnterFullscreen(frame, options, request_type);
+  frame.GetChromeClient().EnterFullscreen(frame, options, request_type,
+  											std::move(video_element_info),
+                        pending->GetClassAttribute().Utf8()); // ALOHA https://app.clickup.com/t/2hxwa9w
+
 
   // 6. If `error` is false, then consume user activation given `pendingDoc`’s
   // relevant global object.
@@ -890,7 +1019,8 @@ void Fullscreen::ContinueRequestFullscreenAfterConditionsEnforcement(
 }
 
 void Fullscreen::DidResolveEnterFullscreenRequest(Document& document,
-                                                  bool granted) {
+                                                  bool granted,
+                                                  HTMLVideoElement* override_fullscreen_element) { // ALOHA https://app.clickup.com/t/2k0734w
   if (!document.domWindow())
     return;
 
@@ -900,11 +1030,14 @@ void Fullscreen::DidResolveEnterFullscreenRequest(Document& document,
   // enqueue a microtask to continue.
   if (RequestFullscreenScope::RunningRequestFullscreen()) {
     document.GetAgent().event_loop()->EnqueueMicrotask(WTF::BindOnce(
-        [](Document* document, bool granted) {
+        [](Document* document, bool granted,
+           HTMLVideoElement* override_fullscreen_element) { // ALOHA https://app.clickup.com/t/2k0734w
           DCHECK(document);
-          DidResolveEnterFullscreenRequest(*document, granted);
+          DidResolveEnterFullscreenRequest(*document, granted,
+                                           override_fullscreen_element); // ALOHA https://app.clickup.com/t/2k0734w
         },
-        WrapPersistent(&document), granted));
+        WrapPersistent(&document), granted,
+        WrapPersistent(override_fullscreen_element))); // ALOHA https://app.clickup.com/t/2k0734w
     return;
   }
 
@@ -915,17 +1048,19 @@ void Fullscreen::DidResolveEnterFullscreenRequest(Document& document,
               : RequestFullscreenError::kNotGranted;
   for (const Member<PendingRequest>& request : requests) {
     ContinueRequestFullscreen(document, *request->element(), request->type(),
-                              request->options(), request->resolver(), error);
+                              request->options(), request->resolver(),
+                              error,
+                              override_fullscreen_element); // ALOHA https://app.clickup.com/t/2k0734w
   }
 }
 
-void Fullscreen::ContinueRequestFullscreen(
-    Document& document,
-    Element& pending,
-    FullscreenRequestType request_type,
-    const FullscreenOptions* options,
-    ScriptPromiseResolver<IDLUndefined>* resolver,
-    RequestFullscreenError error) {
+void Fullscreen::ContinueRequestFullscreen(Document& document,
+                                           Element& pending,
+                                           FullscreenRequestType request_type,
+                                           const FullscreenOptions* options,
+                                           ScriptPromiseResolver<IDLUndefined>* resolver,
+                                           RequestFullscreenError error,
+                                           HTMLVideoElement* override_fullscreen_element) { // ALOHA https://app.clickup.com/t/2k0734w
   DCHECK(document.IsActive());
   DCHECK(document.GetFrame());
 
@@ -957,10 +1092,18 @@ void Fullscreen::ContinueRequestFullscreen(
     return;
   }
 
+  // ALOHA https://app.clickup.com/t/2k0734w
+  auto& main_fullscreen_element = override_fullscreen_element != nullptr
+    ? *override_fullscreen_element
+    : pending;
+  if (override_fullscreen_element != nullptr) {
+    override_fullscreen_element->SetMediaControlsIsHidden(true);
+  }
+
   // 11. Let |fullscreenElements| be an ordered set initially consisting of
   // |pending|.
   HeapVector<Member<Element>> fullscreen_elements;
-  fullscreen_elements.push_back(pending);
+  fullscreen_elements.push_back(main_fullscreen_element); // ALOHA https://app.clickup.com/t/2k0734w
 
   // 12. While the first element in |fullscreenElements| is in a nested browsing
   // context: append its browsing context container to |fullscreenElements|.
@@ -972,8 +1115,8 @@ void Fullscreen::ContinueRequestFullscreen(
   // practice: a fullscreenchange event handler would need to postMessage a
   // frame in another renderer process, where the message should be queued up
   // and processed after the IPC that dispatches fullscreenchange.
-  for (Frame* frame = pending.GetDocument().GetFrame(); frame;
-       frame = frame->Tree().Parent()) {
+  for (Frame* frame = main_fullscreen_element.GetDocument().GetFrame(); frame; // ALOHA https://app.clickup.com/t/2k0734w
+      frame = frame->Tree().Parent()) {
     Element* element = DynamicTo<HTMLFrameOwnerElement>(frame->Owner());
     if (!element)
       continue;
@@ -1011,8 +1154,8 @@ void Fullscreen::ContinueRequestFullscreen(
 
     // 13.5. Append (fullscreenchange, |element|) to |doc|'s list of pending
     // fullscreen events.
-    EnqueueEvent(event_type_names::kFullscreenchange, *element, doc,
-                 request_type);
+      EnqueueEvent(event_type_names::kFullscreenchange, *element, doc,
+                  request_type);
   }
 
   // 14. Resolve |promise| with undefined.
@@ -1051,11 +1194,14 @@ void Fullscreen::FullyExitFullscreen(Document& document, bool ua_originated) {
 }
 
 // https://fullscreen.spec.whatwg.org/#exit-fullscreen
-ScriptPromise<IDLUndefined> Fullscreen::ExitFullscreen(
-    Document& doc,
-    ScriptState* script_state,
-    ExceptionState* exception_state,
-    bool ua_originated) {
+ScriptPromise<IDLUndefined> Fullscreen::ExitFullscreen(Document& doc,
+                                         ScriptState* script_state,
+                                         ExceptionState* exception_state,
+                                         bool ua_originated) {
+  
+  if(aloha::FullscreenStateHandler::IgnoreExitFullscreen(script_state, exception_state)) // ALOHA https://app.clickup.com/t/86eppm2e8
+      return ScriptPromise<IDLUndefined>();
+  
   // 1. Let |promise| be a new promise.
   // For optimization allocate the ScriptPromiseResolver later.
   ScriptPromiseResolver<IDLUndefined>* resolver = nullptr;

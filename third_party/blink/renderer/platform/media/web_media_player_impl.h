@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_MEDIA_WEB_MEDIA_PLAYER_IMPL_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_MEDIA_WEB_MEDIA_PLAYER_IMPL_H_
 
@@ -335,6 +337,12 @@ class PLATFORM_EXPORT WebMediaPlayerImpl
   bool IsBackgroundMediaSuspendEnabled() const {
     return is_background_suspend_enabled_;
   }
+
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  GURL GetLoadedUrl() const override { return demuxer_manager_->LoadedUrl(); }
+
+  // ALOHA https://app.clickup.com/t/86epnk66e
+  void SetShouldPlayBackground(bool should_play_background) override;
 
   // Distinct states that |delegate_| can be in. (Public for testing.)
   enum class DelegateState {
@@ -1118,6 +1126,9 @@ class PLATFORM_EXPORT WebMediaPlayerImpl
   // Request pipeline to suspend. It should not block other signals after
   // suspended.
   bool pending_oneshot_suspend_ = false;
+
+  // ALOHA https://app.clickup.com/t/86epnk66e
+  bool should_play_background_ = false;
 
   base::CancelableOnceClosure have_enough_after_lazy_load_cb_;
 

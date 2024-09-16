@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifdef UNSAFE_BUFFERS_BUILD
 // TODO(crbug.com/351564777): Remove this and convert code to safer constructs.
 #pragma allow_unsafe_buffers
@@ -27,6 +29,9 @@
 #include "url/gurl.h"
 #include "url/url_util.h"
 
+// ALOHA https://app.clickup.com/t/2e5wpe6
+#include "aloha/src/native/aloha_consts.h"
+
 const char URLPattern::kAllUrlsPattern[] = "<all_urls>";
 
 namespace {
@@ -40,6 +45,7 @@ const char* const kValidSchemes[] = {
     url::kFileSystemScheme,    url::kWsScheme,
     url::kWssScheme,           url::kDataScheme,
     url::kUuidInPackageScheme,
+    aloha::kAlohaScheme, // ALOHA https://app.clickup.com/t/2e5wpe6
 };
 
 const int kValidSchemeMasks[] = {
@@ -54,6 +60,7 @@ const int kValidSchemeMasks[] = {
     URLPattern::SCHEME_WSS,
     URLPattern::SCHEME_DATA,
     URLPattern::SCHEME_UUID_IN_PACKAGE,
+    URLPattern::SCHEME_ALOHA,   // ALOHA https://app.clickup.com/t/2e5wpe6
 };
 
 static_assert(std::size(kValidSchemes) == std::size(kValidSchemeMasks),

@@ -1,6 +1,11 @@
 # Copyright 2019 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
+
+# Modified by Aloha Mobile Ltd.
 
 import("//build/config/android/rules.gni")
 import("//components/spellcheck/spellcheck_build_features.gni")
@@ -22,6 +27,8 @@ java_cpp_enum("browser_enums") {
 
 source_set("browser") {
   sources = [
+    "adblock/adblock_aw_content_browser_client.cc",
+    "adblock/adblock_aw_content_browser_client.h",
     "android_protocol_handler.cc",
     "android_protocol_handler.h",
     "aw_apk_type.h",
@@ -230,6 +237,18 @@ source_set("browser") {
     "tracing/aw_tracing_delegate.h",
     "tracing/background_tracing_field_trial.cc",
     "tracing/background_tracing_field_trial.h",
+
+# ALOHA
+    "//aloha/src/native/aloha_consts.h",
+    "//aloha/src/native/bromium.cc",
+    "//aloha/src/native/bromium.h",
+    "//aloha/src/native/aw_bromium_client_bridge.cc",
+    "//aloha/src/native/aw_bromium_client_bridge.h",
+    
+    #ALOHA https://app.clickup.com/t/86enm8q2x
+    "//crypto/hmac.h",
+    "//aloha/src/native/sign_source.cc",
+    "//aloha/src/native/sign_source.h",
   ]
 
   deps = [
@@ -243,6 +262,10 @@ source_set("browser") {
     "//android_webview/common:mojom",
     "//android_webview/proto:aw_variations_seed_proto",
     "//base",
+    "//components/adblock/android:java_bindings",
+    "//components/adblock/android:jni_headers",
+    "//components/adblock/content:browser",
+    "//components/adblock/core/converter",
     "//components/android_autofill/browser:android",
     "//components/autofill/content/browser",
     "//components/cdm/browser",
@@ -347,6 +370,11 @@ source_set("browser") {
     "//ui/resources",
     "//ui/touch_selection",
     "//url",
+    
+
+    # ALOHA https://app.clickup.com/t/2kwzwub
+    # for use SecurityStateModel.getSecurityLevelForWebContents in aloha-browser-android.
+    "//components/security_state/content/android:android",
   ]
 
   if (enable_printing) {

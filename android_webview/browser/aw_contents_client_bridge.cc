@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/aw_contents_client_bridge.h"
 
 #include <memory>
@@ -391,9 +393,12 @@ bool AwContentsClientBridge::SendBrowseIntent(const std::u16string& url) {
 }
 
 void AwContentsClientBridge::NewDownload(const GURL& url,
+                                         const GURL& original_url, // ALOHA https://app.clickup.com/t/861me45jv
                                          const std::string& user_agent,
                                          const std::string& content_disposition,
                                          const std::string& mime_type,
+                                         const std::string& suggested_filename, // ALOHA https://app.clickup.com/t/mz8wrn
+                                         const std::string& post_response_filename, // ALOHA https://app.clickup.com/t/mz8wrn
                                          int64_t content_length) {
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
   JNIEnv* env = AttachCurrentThread();
@@ -403,16 +408,28 @@ void AwContentsClientBridge::NewDownload(const GURL& url,
 
   ScopedJavaLocalRef<jstring> jstring_url =
       ConvertUTF8ToJavaString(env, url.spec());
+  // ALOHA https://app.clickup.com/t/861me45jv
+  ScopedJavaLocalRef<jstring> jstring_original_url =
+      ConvertUTF8ToJavaString(env, original_url.spec());
   ScopedJavaLocalRef<jstring> jstring_user_agent =
       ConvertUTF8ToJavaString(env, user_agent);
   ScopedJavaLocalRef<jstring> jstring_content_disposition =
       ConvertUTF8ToJavaString(env, content_disposition);
   ScopedJavaLocalRef<jstring> jstring_mime_type =
       ConvertUTF8ToJavaString(env, mime_type);
+  // ALOHA https://app.clickup.com/t/mz8wrn
+  ScopedJavaLocalRef<jstring> j_suggested_filename = ConvertUTF8ToJavaString(env, suggested_filename);
+  ScopedJavaLocalRef<jstring> j_post_response_filename =
+      ConvertUTF8ToJavaString(env, post_response_filename);
 
   Java_AwContentsClientBridge_newDownload(
-      env, obj, jstring_url, jstring_user_agent, jstring_content_disposition,
-      jstring_mime_type, content_length);
+      env, obj, jstring_url,
+      jstring_original_url, // ALOHA https://app.clickup.com/t/861me45jv
+      jstring_user_agent, jstring_content_disposition,
+      jstring_mime_type,
+      j_suggested_filename, // ALOHA https://app.clickup.com/t/mz8wrn
+      j_post_response_filename, // ALOHA https://app.clickup.com/t/mz8wrn
+      content_length);
 }
 
 void AwContentsClientBridge::NewLoginRequest(const std::string& realm,
@@ -586,6 +603,12 @@ void AwContentsClientBridge::CancelJsResult(JNIEnv*,
   }
   std::move(*callback).Run(false, std::u16string());
   pending_js_dialog_callbacks_.Remove(id);
+}
+
+// ALOHA https://app.clickup.com/t/2f2eyt8
+base::android::ScopedJavaLocalRef<jobject>
+  AwContentsClientBridge::get_java_ref(JNIEnv *env) {
+    return java_ref_.get(env);
 }
 
 }  // namespace android_webview

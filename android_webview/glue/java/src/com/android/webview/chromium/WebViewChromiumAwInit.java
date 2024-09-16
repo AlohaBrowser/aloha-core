@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package com.android.webview.chromium;
 
 import android.Manifest;
@@ -546,8 +548,8 @@ public class WebViewChromiumAwInit {
     public CookieManager getDefaultCookieManager() {
         synchronized (mLock) {
             if (mDefaultCookieManager == null) {
-                mDefaultCookieManager =
-                        new CookieManagerAdapter(AwCookieManager.getDefaultCookieManager());
+                // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+                mDefaultCookieManager = new CookieManagerAdapter(AwCookieManager.getPublicCookieManager());
             }
         }
         return mDefaultCookieManager;

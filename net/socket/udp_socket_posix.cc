@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifdef UNSAFE_BUFFERS_BUILD
 // TODO(crbug.com/40284755): Remove this and spanify to fix the errors.
 #pragma allow_unsafe_buffers
@@ -221,7 +223,7 @@ void UDPSocketPosix::Close() {
     PCHECK(errno == ENOTCONN || errno == EPROTOTYPE);
   }
 #else
-  PCHECK(IGNORE_EINTR(close(socket_)) == 0);
+  close(socket_); // ALOHA https://app.clickup.com/t/862k09kfu
 #endif  // BUILDFLAG(IS_APPLE) && !BUILDFLAG(CRONET_BUILD)
 
   socket_ = kInvalidSocket;

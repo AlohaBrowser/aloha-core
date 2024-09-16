@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/modules/storage/storage_namespace.h"
 
 #include <tuple>
@@ -58,7 +60,8 @@ TEST(StorageNamespaceTest, BasicStorageAreas) {
   StorageController controller(std::move(connection), kTestCacheLimit);
 
   StorageNamespace* localStorage =
-      MakeGarbageCollected<StorageNamespace>(&controller);
+      MakeGarbageCollected<StorageNamespace>(&controller,
+          false); // ALOHA https://app.clickup.com/t/861m4jwng
   StorageNamespace* sessionStorage = MakeGarbageCollected<StorageNamespace>(
       *local_dom_window_root->GetFrame()->GetPage(), &controller,
       kSessionStorageNamespace);

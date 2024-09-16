@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_BROWSER_MEDIA_MEDIA_WEB_CONTENTS_OBSERVER_H_
 #define CONTENT_BROWSER_MEDIA_MEDIA_WEB_CONTENTS_OBSERVER_H_
 
@@ -143,7 +145,8 @@ class CONTENT_EXPORT MediaWebContentsObserver
   // be suspended.
   void SuspendAllMediaPlayers();
 
- protected:
+// ALOHA https://app.clickup.com/t/861mawmth
+//  protected:
   MediaSessionControllersManager* session_controllers_manager() {
     return session_controllers_manager_.get();
   }
@@ -152,6 +155,8 @@ class CONTENT_EXPORT MediaWebContentsObserver
   class PlayerInfo;
   using PlayerInfoMap =
       base::flat_map<MediaPlayerId, std::unique_ptr<PlayerInfo>>;
+
+  void NotifyAlohaOfDestroy(const MediaPlayerId& player_id); // ALOHA https://app.clickup.com/t/86enxgcx1
 
   // Helper class providing a per-RenderFrame object implementing the only
   // method of the media::mojom::MediaPlayerHost mojo interface, to provide the
@@ -173,7 +178,8 @@ class CONTENT_EXPORT MediaWebContentsObserver
         mojo::PendingAssociatedRemote<media::mojom::MediaPlayer> media_player,
         mojo::PendingAssociatedReceiver<media::mojom::MediaPlayerObserver>
             media_player_observer,
-        int32_t player_id) override;
+        int32_t player_id,
+        media::mojom::MediaPlayerIdPtr aloha_player_id) override; // ALOHA https://app.clickup.com/t/2f2eyt8
 
    private:
     GlobalRenderFrameHostId frame_routing_id_;
@@ -196,8 +202,14 @@ class CONTENT_EXPORT MediaWebContentsObserver
             media_player_observer);
 
     // media::mojom::MediaPlayerObserver implementation.
-    void OnMediaPlaying() override;
-    void OnMediaPaused(bool stream_ended) override;
+    // ALOHA https://app.clickup.com/t/2qfa6r7
+    void OnMediaPlaying(const GURL& media_url, const GURL& document_url, double duration_s, OnMediaPlayingCallback callback) override;
+    void OnMediaPaused(bool stream_ended,
+                       const GURL& media_url, const GURL& document_url, double duration_s) override; // ALOHA https://app.clickup.com/t/2qfa6r7
+    // ALOHA https://app.clickup.com/t/2rqdtxz
+    void OnMediaError(const std::string& pipeline_status, const GURL& media_url,
+        const GURL& document_url, double current_time_s, double duration_s) override;
+
     void OnMutedStatusChanged(bool muted) override;
     void OnMediaMetadataChanged(
         bool has_audio,
@@ -206,7 +218,8 @@ class CONTENT_EXPORT MediaWebContentsObserver
     void OnMediaPositionStateChanged(
         const media_session::MediaPosition& media_position) override;
     void OnMediaEffectivelyFullscreenChanged(
-        blink::WebFullscreenVideoStatus status) override;
+        blink::WebFullscreenVideoStatus status,
+        const GURL& url, bool media_controls_is_hidden) override; // ALOHA https://app.clickup.com/t/2hxwa9w 
     void OnMediaSizeChanged(const ::gfx::Size& size) override;
     void OnPictureInPictureAvailabilityChanged(bool available) override;
     void OnAudioOutputSinkChanged(const std::string& hashed_device_id) override;
@@ -250,8 +263,11 @@ class CONTENT_EXPORT MediaWebContentsObserver
   using MediaPlayerRemotesMap =
       base::flat_map<MediaPlayerId,
                      mojo::AssociatedRemote<media::mojom::MediaPlayer>>;
-
-  // Communicates with the MediaSessionControllersManager to find or create (if
+  // ALOHA https://app.clickup.com/t/861mb7fyw
+  using MediaPlayerAttibutesMap =
+      base::flat_map<MediaPlayerId,
+                     std::pair<std::string, std::string>>;
+  // Communicates with the MediaSessionControllerManager to find or create (if
   // needed) a MediaSessionController identified by |player_id|, in order to
   // bind its mojo remote for media::mojom::MediaPlayer.
   void OnMediaPlayerAdded(
@@ -271,7 +287,8 @@ class CONTENT_EXPORT MediaWebContentsObserver
 
   void OnMediaEffectivelyFullscreenChanged(
       const MediaPlayerId& player_id,
-      blink::WebFullscreenVideoStatus fullscreen_status);
+      blink::WebFullscreenVideoStatus fullscreen_status,
+      const GURL& url, bool media_controls_is_hidde); // ALOHA https://app.clickup.com/t/2hxwa9w
   void OnMediaPlaying();
   void OnAudioOutputSinkChangedWithRawDeviceId(
       const MediaPlayerId& player_id,
@@ -334,6 +351,9 @@ class CONTENT_EXPORT MediaWebContentsObserver
   // Map of remote endpoints for the media::mojom::MediaPlayer mojo interface,
   // indexed by MediaPlayerId.
   MediaPlayerRemotesMap media_player_remotes_;
+
+  // ALOHA https://app.clickup.com/t/861mb7fyw
+  MediaPlayerAttibutesMap media_player_attributes_;
 };
 
 }  // namespace content

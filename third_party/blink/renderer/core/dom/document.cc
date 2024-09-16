@@ -2044,11 +2044,12 @@ void Document::DidChangeVisibilityState() {
     // tab and update the visibility state.
     return;
   }
-  DispatchEvent(*Event::CreateBubble(event_type_names::kVisibilitychange));
-  // Also send out the deprecated version until it can be removed.
-  DispatchEvent(
-      *Event::CreateBubble(event_type_names::kWebkitvisibilitychange));
-
+  if(!(is_playing_ && should_play_background_)) { // ALOHA https://app.clickup.com/t/86epnk66e  
+    DispatchEvent(*Event::CreateBubble(event_type_names::kVisibilitychange));
+    // Also send out the deprecated version until it can be removed.
+    DispatchEvent(
+        *Event::CreateBubble(event_type_names::kWebkitvisibilitychange));
+  }
   if (IsPageVisible())
     GetDocumentAnimations().MarkAnimationsCompositorPending();
 
@@ -9422,6 +9423,11 @@ void Document::ScheduleSelectionchangeEvent() {
     EnqueueEvent(*Event::Create(event_type_names::kSelectionchange),
                  TaskType::kMiscPlatformAPI);
   }
+}
+
+void Document::UpdatePlayingMedia(bool is_playing, bool should_play_background) {
+  is_playing_ = is_playing;
+  should_play_background_ = should_play_background;
 }
 
 // static

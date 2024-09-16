@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_TESTING_EMPTY_WEB_MEDIA_PLAYER_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_TESTING_EMPTY_WEB_MEDIA_PLAYER_H_
 
@@ -79,6 +81,9 @@ class EmptyWebMediaPlayer : public WebMediaPlayer {
   void UnregisterFrameSinkHierarchy() override {}
   bool PassedTimingAllowOriginCheck() const override { return true; }
 
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  GURL GetLoadedUrl() const override { return {}; }
+  
  private:
   base::WeakPtrFactory<EmptyWebMediaPlayer> weak_ptr_factory_{this};
 };

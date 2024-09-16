@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef ANDROID_WEBVIEW_BROWSER_AW_CONTENTS_CLIENT_BRIDGE_H_
 #define ANDROID_WEBVIEW_BROWSER_AW_CONTENTS_CLIENT_BRIDGE_H_
 
@@ -18,6 +20,9 @@
 #include "content/public/browser/javascript_dialog_manager.h"
 #include "content/public/browser/web_contents.h"
 #include "net/http/http_response_headers.h"
+
+// ALOHA https://app.clickup.com/t/2f2eyt8
+#include "aloha/src/native/aw_bromium_client_bridge.h"
 
 class GURL;
 
@@ -40,8 +45,8 @@ namespace android_webview {
 // indirect refs from the Application (via callbacks) and so can outlive
 // webview, this class notifies it before being destroyed and to nullify
 // any references.
-// Lifetime: WebView
-class AwContentsClientBridge {
+// ALOHA https://app.clickup.com/t/2f2eyt8
+class AwContentsClientBridge : public aloha::AwBromiumClientBridge {
  public:
   // Used to package up information needed by OnReceivedHttpError for transfer
   // between IO and UI threads.
@@ -74,7 +79,8 @@ class AwContentsClientBridge {
 
   AwContentsClientBridge(JNIEnv* env,
                          const base::android::JavaRef<jobject>& obj);
-  ~AwContentsClientBridge();
+  // ALOHA https://app.clickup.com/t/2f2eyt8
+  ~AwContentsClientBridge() override;
 
   // AwContentsClientBridge implementation
   void AllowCertificateError(int cert_error,
@@ -104,9 +110,12 @@ class AwContentsClientBridge {
   bool SendBrowseIntent(const std::u16string& url);
 
   void NewDownload(const GURL& url,
+                   const GURL& original_url, // ALOHA https://app.clickup.com/t/861me45jv
                    const std::string& user_agent,
                    const std::string& content_disposition,
                    const std::string& mime_type,
+                   const std::string& suggested_filename, // ALOHA https://app.clickup.com/t/mz8wrn
+                   const std::string& post_response_filename, // ALOHA https://app.clickup.com/t/mz8wrn
                    int64_t content_length);
 
   // Called when a new login request is detected. See the documentation for
@@ -157,6 +166,10 @@ class AwContentsClientBridge {
                               int action,
                               bool reporting,
                               int request_id);
+
+ // ALOHA https://app.clickup.com/t/2f2eyt8
+ protected:
+  base::android::ScopedJavaLocalRef<jobject> get_java_ref(JNIEnv *env) override;
 
  private:
   JavaObjectWeakGlobalRef java_ref_;

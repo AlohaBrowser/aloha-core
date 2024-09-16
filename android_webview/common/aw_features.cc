@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/common/aw_features.h"
 #include "base/feature_list.h"
 #include "base/metrics/field_trial_params.h"
@@ -92,7 +94,7 @@ BASE_FEATURE(kWebViewMediaIntegrityApiBlinkExtension,
 // MIXED_CONTENT_ALWAYS_ALLOW modes.
 BASE_FEATURE(kWebViewMixedContentAutoupgrades,
              "WebViewMixedContentAutoupgrades",
-             base::FEATURE_DISABLED_BY_DEFAULT);
+             base::FEATURE_ENABLED_BY_DEFAULT);
 
 // This enables WebView audio to be muted using an API.
 BASE_FEATURE(kWebViewMuteAudio,

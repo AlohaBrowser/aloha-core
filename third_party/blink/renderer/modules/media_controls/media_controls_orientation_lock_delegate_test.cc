@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/modules/media_controls/media_controls_orientation_lock_delegate.h"
 
 #include <memory>
@@ -107,7 +109,8 @@ class MockScreenOrientation final
 
 void DidEnterFullscreen(Document* document) {
   DCHECK(document);
-  Fullscreen::DidResolveEnterFullscreenRequest(*document, true /* granted */);
+  Fullscreen::DidResolveEnterFullscreenRequest(*document, true /* granted */,
+    nullptr /* override_fullscreen_element */); // ALOHA https://app.clickup.com/t/861m4jwng);
   PageAnimator::ServiceScriptedAnimations(
       base::TimeTicks::Now(),
       {{document->GetScriptedAnimationController(), false}});
@@ -144,7 +147,8 @@ class MockChromeClientForOrientationLockDelegate final
   // async due to IPC, emulate that by posting tasks:
   void EnterFullscreen(LocalFrame& frame,
                        const FullscreenOptions*,
-                       FullscreenRequestType) override {
+                       FullscreenRequestType,
+                       std::optional<aloha::FullscreenVideoElement>) override { // ALOHA https://app.clickup.com/t/861m4jwng
     frame.GetTaskRunner(TaskType::kInternalNavigationAssociated)
         ->PostTask(FROM_HERE,
                    WTF::BindOnce(DidEnterFullscreen,

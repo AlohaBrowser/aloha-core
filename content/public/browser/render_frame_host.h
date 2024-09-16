@@ -1,6 +1,12 @@
 // Copyright 2013 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
 
 #ifndef CONTENT_PUBLIC_BROWSER_RENDER_FRAME_HOST_H_
 #define CONTENT_PUBLIC_BROWSER_RENDER_FRAME_HOST_H_
@@ -563,6 +569,9 @@ class CONTENT_EXPORT RenderFrameHost : public IPC::Listener,
   virtual void AddMessageToConsole(blink::mojom::ConsoleMessageLevel level,
                                    const std::string& message) = 0;
 
+  // https://gitlab.com/eyeo/adblockplus/chromium/issues/35
+  virtual void InsertAbpElemhideStylesheet(const std::string& stylesheet) = 0;
+
   // Functions to run JavaScript in this frame's context. Pass in a callback to
   // receive a result when it is available. If there is no need to receive the
   // result, pass in a default-constructed callback. If provided, the callback
@@ -590,6 +599,10 @@ class CONTENT_EXPORT RenderFrameHost : public IPC::Listener,
   // be called on chrome:// or devtools:// URLs.
   virtual void ExecuteJavaScript(const std::u16string& javascript,
                                  JavaScriptResultCallback callback) = 0;
+
+  // ALOHA https://app.clickup.com/t/861m7r8nk
+  virtual void ExecuteJavaScriptUnchecked(const std::u16string& javascript,
+                                          JavaScriptResultCallback callback) = 0;
 
   // This runs the JavaScript in an isolated world of the top of this frame's
   // context.

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/aw_permission_manager.h"
 
 #include <memory>
@@ -542,7 +544,7 @@ PermissionStatus AwPermissionManager::GetPermissionStatusInternal(
       return PermissionStatus::ASK;
     case blink::PermissionType::CLIPBOARD_SANITIZED_WRITE:
       // This permission depends on user_gesture, so should always ask.
-      return PermissionStatus::ASK;
+      return PermissionStatus::GRANTED; // ALOHA https://app.clickup.com/t/2t8g01g
 
     case blink::PermissionType::ACCESSIBILITY_EVENTS:
     case blink::PermissionType::AR:

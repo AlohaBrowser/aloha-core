@@ -27,6 +27,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/exported/web_view_impl.h"
 
 #include <algorithm>
@@ -489,6 +492,7 @@ WebView* WebView::Create(
         fenced_frame_mode,
     bool compositing_enabled,
     bool widgets_never_composited,
+    bool private_mode, // ALOHA https://app.clickup.com/t/2dmrud4
     WebView* opener,
     CrossVariantMojoAssociatedReceiver<mojom::PageBroadcastInterfaceBase>
         page_handle,
@@ -502,7 +506,9 @@ WebView* WebView::Create(
       is_hidden ? mojom::blink::PageVisibilityState::kHidden
                 : mojom::blink::PageVisibilityState::kVisible,
       std::move(prerender_param), fenced_frame_mode, compositing_enabled,
-      widgets_never_composited, To<WebViewImpl>(opener), std::move(page_handle),
+      widgets_never_composited,
+      private_mode, // ALOHA https://app.clickup.com/t/2dmrud4
+      To<WebViewImpl>(opener), std::move(page_handle),
       agent_group_scheduler, session_storage_namespace_id,
       std::move(page_base_background_color), browsing_context_group_info,
       color_provider_colors);
@@ -516,6 +522,7 @@ WebViewImpl* WebViewImpl::Create(
         fenced_frame_mode,
     bool compositing_enabled,
     bool widgets_never_composited,
+    bool private_mode, // ALOHA https://app.clickup.com/t/2dmrud4
     WebViewImpl* opener,
     mojo::PendingAssociatedReceiver<mojom::blink::PageBroadcast> page_handle,
     blink::scheduler::WebAgentGroupScheduler& agent_group_scheduler,
@@ -525,7 +532,9 @@ WebViewImpl* WebViewImpl::Create(
     const ColorProviderColorMaps* color_provider_colors) {
   return new WebViewImpl(
       client, visibility, std::move(prerender_param), fenced_frame_mode,
-      compositing_enabled, widgets_never_composited, opener,
+      compositing_enabled, widgets_never_composited, 
+      private_mode, // ALOHA https://app.clickup.com/t/2dmrud4
+      opener,
       std::move(page_handle), agent_group_scheduler,
       session_storage_namespace_id, std::move(page_base_background_color),
       browsing_context_group_info, color_provider_colors);
@@ -586,6 +595,7 @@ WebViewImpl::WebViewImpl(
         fenced_frame_mode,
     bool does_composite,
     bool widgets_never_composited,
+    bool private_mode, // ALOHA https://app.clickup.com/t/2dmrud4
     WebViewImpl* opener,
     mojo::PendingAssociatedReceiver<mojom::blink::PageBroadcast> page_handle,
     blink::scheduler::WebAgentGroupScheduler& agent_group_scheduler,
@@ -608,7 +618,8 @@ WebViewImpl::WebViewImpl(
                 std::move(page_handle),
                 agent_group_scheduler.DefaultTaskRunner()),
       session_storage_namespace_id_(session_storage_namespace_id),
-      web_agent_group_scheduler_(agent_group_scheduler) {
+      web_agent_group_scheduler_(agent_group_scheduler),
+      private_mode_(private_mode) { // ALOHA https://app.clickup.com/t/2dmrud4
   if (receiver_) {
     // Typically, the browser process closes the corresponding peer handle
     // to signal the renderer process to destroy `this`. In certain
@@ -1884,8 +1895,11 @@ void WebViewImpl::ThemeChanged() {
 
 void WebViewImpl::EnterFullscreen(LocalFrame& frame,
                                   const FullscreenOptions* options,
-                                  FullscreenRequestType request_type) {
-  fullscreen_controller_->EnterFullscreen(frame, options, request_type);
+                                  FullscreenRequestType request_type,
+                                  std::optional<aloha::FullscreenVideoElement> video_element, // ALOHA https://app.clickup.com/t/2hxwa9w
+                                  const std::string& pending_elem_class) { // ALOHA https://app.clickup.com/t/861m7a4e2
+  // ALOHA https://app.clickup.com/t/2hxwa9w
+  fullscreen_controller_->EnterFullscreen(frame, options, request_type, std::move(video_element), pending_elem_class);
 }
 
 void WebViewImpl::ExitFullscreen(LocalFrame& frame) {
@@ -3666,6 +3680,10 @@ void WebViewImpl::SetWindowFeatures(const WebWindowFeatures& features) {
 
 void WebViewImpl::SetOpenedByDOM() {
   page_->SetOpenedByDOM();
+}
+
+bool WebViewImpl::IsPrivateMode() const {
+  return private_mode_;
 }
 
 void WebViewImpl::DidCommitLoad(bool is_new_navigation,

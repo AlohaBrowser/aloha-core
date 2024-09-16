@@ -19,6 +19,8 @@
  *
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/layout/hit_test_result.h"
 
 #include "cc/base/region.h"
@@ -59,6 +61,9 @@
 #include "third_party/blink/renderer/core/svg/svg_element.h"
 #include "third_party/blink/renderer/platform/mediastream/media_stream_descriptor.h"
 #include "ui/gfx/geometry/rect_conversions.h"
+
+// ALOHA https://app.clickup.com/t/2f2ey18
+#include "aloha/src/native/find_video_url.h"
 
 namespace blink {
 
@@ -460,6 +465,32 @@ KURL HitTestResult::AbsoluteImageURL(const Node* node) {
 
 KURL HitTestResult::AbsoluteImageURL() const {
   return AbsoluteImageURL(InnerNodeOrImageMapImage());
+}
+
+// ALOHA https://app.clickup.com/t/2v1r9c4
+std::optional<gfx::Point> HitTestResult::GetPointInViewport() const {
+  if (const auto* frame = InnerNodeFrame()) {
+    if (const auto* view = frame->View()) {
+      return view->FrameToViewport(RoundedPointInInnerNodeFrame());
+    }
+  }
+  return std::nullopt;
+}
+
+// ALOHA https://app.clickup.com/t/2f2ey18
+KURL HitTestResult::AlohaFindVideoURL() const {
+  if (const auto point_in_viewport = GetPointInViewport()) {
+    return aloha::FindVideoURL(inner_node_.Get(), *point_in_viewport);
+  }
+  return {};
+}
+
+// ALOHA https://app.clickup.com/t/2v1r9c4
+KURL HitTestResult::AlohaFindImageURL() const {
+  if (const auto point_in_viewport = GetPointInViewport()) {
+    return aloha::FindImageURL(inner_node_.Get(), *point_in_viewport);
+  }
+  return {};
 }
 
 KURL HitTestResult::AbsoluteMediaURL() const {

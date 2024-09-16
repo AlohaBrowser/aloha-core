@@ -1,6 +1,12 @@
 // Copyright 2021 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
 
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_FRAME_LOCAL_FRAME_MOJO_HANDLER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_FRAME_LOCAL_FRAME_MOJO_HANDLER_H_
@@ -110,6 +116,7 @@ class LocalFrameMojoHandler
   void AddMessageToConsole(mojom::blink::ConsoleMessageLevel level,
                            const WTF::String& message,
                            bool discard_duplicates) final;
+  void InsertAbpElemhideStylesheet(const WTF::String& stylesheet) final;
   void SwapInImmediately() final;
   void CheckCompleted() final;
   void StopLoading() final;
@@ -153,6 +160,11 @@ class LocalFrameMojoHandler
       bool wants_result,
       JavaScriptMethodExecuteRequestCallback callback) final;
   void JavaScriptExecuteRequest(
+      const String& javascript,
+      bool wants_result,
+      JavaScriptExecuteRequestCallback callback) final;
+  // ALOHA https://app.clickup.com/t/861m7r8nk
+  void JavaScriptExecuteRequestUnchecked(
       const String& javascript,
       bool wants_result,
       JavaScriptExecuteRequestCallback callback) final;

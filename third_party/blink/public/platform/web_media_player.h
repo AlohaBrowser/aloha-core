@@ -28,6 +28,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_MEDIA_PLAYER_H_
 #define THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_MEDIA_PLAYER_H_
 
@@ -375,6 +378,12 @@ class WebMediaPlayer {
   GetVideoFramePresentationMetadata() {
     return nullptr;
   }
+
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  virtual GURL GetLoadedUrl() const = 0;
+
+  // ALOHA https://app.clickup.com/t/86epnk66e
+  virtual void SetShouldPlayBackground(bool should_play_background) = 0;
 
   // Forces the WebMediaPlayer to update its frame if it is stale. This is used
   // during immersive WebXR sessions with the RequestVideoFrameCallback() API,

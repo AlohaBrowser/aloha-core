@@ -1,6 +1,10 @@
 // Copyright 2013 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "content/shell/browser/shell.h"
 
@@ -20,6 +24,13 @@
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "build/build_config.h"
+#include "components/adblock/content/browser/adblock_webcontents_observer.h"
+#include "components/adblock/content/browser/factories/adblock_telemetry_service_factory.h"
+#include "components/adblock/content/browser/factories/element_hider_factory.h"
+#include "components/adblock/content/browser/factories/resource_classification_runner_factory.h"
+#include "components/adblock/content/browser/factories/session_stats_factory.h"
+#include "components/adblock/content/browser/factories/sitekey_storage_factory.h"
+#include "components/adblock/content/browser/factories/subscription_service_factory.h"
 #include "components/custom_handlers/protocol_handler.h"
 #include "components/custom_handlers/protocol_handler_registry.h"
 #include "components/custom_handlers/simple_protocol_handler_registry_factory.h"
@@ -39,6 +50,7 @@
 #include "content/public/browser/web_contents.h"
 #include "content/public/common/content_switches.h"
 #include "content/shell/app/resource.h"
+#include "content/shell/browser/shell_browser_context.h"
 #include "content/shell/browser/shell_content_browser_client.h"
 #include "content/shell/browser/shell_devtools_frontend.h"
 #include "content/shell/browser/shell_javascript_dialog_manager.h"
@@ -83,6 +95,22 @@ Shell::Shell(std::unique_ptr<WebContents> web_contents,
   }
 
   windows_.push_back(this);
+
+  content::BrowserContext* browser_context =
+      ShellContentBrowserClient::Get()->browser_context();
+  adblock::ResourceClassificationRunnerFactory::GetForBrowserContext(
+      browser_context);
+  adblock::AdblockTelemetryServiceFactory::GetForBrowserContext(
+      browser_context);
+  adblock::SessionStatsFactory::GetForBrowserContext(browser_context);
+  adblock::SitekeyStorageFactory::GetForBrowserContext(browser_context);
+  AdblockWebContentObserver::CreateForWebContents(
+      web_contents_.get(),
+      adblock::SubscriptionServiceFactory::GetForBrowserContext(
+          browser_context),
+      adblock::ElementHiderFactory::GetForBrowserContext(browser_context),
+      adblock::SitekeyStorageFactory::GetForBrowserContext(browser_context),
+      std::make_unique<adblock::FrameHierarchyBuilder>());
 
   if (shell_created_callback_)
     std::move(shell_created_callback_).Run(this);

@@ -1,0 +1,109 @@
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+import("//build/config/android/rules.gni")
+import("//build/config/locales.gni")
+import("//third_party/jni_zero/jni_zero.gni")
+import("//tools/grit/grit_rule.gni")
+
+source_set("java_bindings") {
+  sources = [
+    "adblock_controller_jni.cc",
+    "adblock_subscription_config_jni.cc", # ALOHA https://app.clickup.com/t/86eph6cjh
+    "filtering_configuration_android.cc",
+    "filtering_configuration_android.h",
+    "resource_classification_notifier_android.cc",
+    "resource_classification_notifier_android.h",
+  ]
+  deps = [
+    ":jni_headers",
+    "//base",
+    "//components/keyed_service/content:content",
+    "//components/user_prefs:user_prefs",
+  ]
+
+  public_deps = [
+    "//components/adblock/content:browser",
+    "//components/adblock/core/configuration",
+    "//components/adblock/core/subscription",
+    "//components/prefs",
+  ]
+}
+
+generate_jni("jni_headers") {
+  sources = [
+    "java/src/org/chromium/components/adblock/AdblockController.java",
+    "java/src/org/chromium/components/adblock/AdblockSubscriptionConfig.java", # ALOHA https://app.clickup.com/t/86eph6cjh
+    "java/src/org/chromium/components/adblock/FilteringConfiguration.java",
+    "java/src/org/chromium/components/adblock/ResourceClassificationNotifier.java",
+  ]
+}
+
+android_library("adblock_controller_java") {
+  sources = [
+    "java/src/org/chromium/components/adblock/AdblockController.java",
+    "java/src/org/chromium/components/adblock/AdblockSubscriptionConfig.java", # ALOHA https://app.clickup.com/t/86eph6cjh
+    "java/src/org/chromium/components/adblock/ContentType.java",
+    "java/src/org/chromium/components/adblock/FilteringConfiguration.java",
+    "java/src/org/chromium/components/adblock/ResourceClassificationNotifier.java",
+    "java/src/org/chromium/components/adblock/ResourceFilteringCounters.java",
+  ]
+
+  srcjar_deps = [ ":jni_headers" ]
+  deps = [
+    "//base:base_java",
+    "//content/public/android:content_java",
+    "//third_party/androidx:androidx_annotation_annotation_java",
+    "//third_party/jni_zero:jni_zero_java",
+  ]
+
+  resources_package = "org.chromium.components.adblock.controller"
+}
+
+android_library("adblock_java_tests_base") {
+  testonly = true
+  sources = [
+    "javatests/src/org/chromium/components/adblock/AdblockControllerTestBase.java",
+    "javatests/src/org/chromium/components/adblock/DefaultSettingsTestBase.java",
+    "javatests/src/org/chromium/components/adblock/FilteringConfigurationTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesCircumventionTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesCspTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesElemhideEmuInvTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesElemhideEmuTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesElemhideTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesExceptionTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesFilterTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesHeaderFilterTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesHelperBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesInlineCssTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesRemoveTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesRewriteTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesServiceWorkersTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesSiteKeyTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesSnippetsTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesWebsocketTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestPagesWildcardDomainTestBase.java",
+    "javatests/src/org/chromium/components/adblock/TestResourceFilteringObserver.java",
+    "javatests/src/org/chromium/components/adblock/TestVerificationUtils.java",
+  ]
+  deps = [
+    ":adblock_controller_java",
+    "//base:base_java",
+    "//base:base_java_test_support",
+    "//content/public/android:content_full_java",
+    "//content/public/test/android:content_java_test_support",
+    "//net/android:net_java_test_support",
+    "//third_party/androidx:androidx_test_monitor_java",
+    "//third_party/androidx:androidx_test_runner_java",
+    "//third_party/junit:junit",
+  ]
+}

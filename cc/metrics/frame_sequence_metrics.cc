@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "cc/metrics/frame_sequence_metrics.h"
 
 #include <memory>
@@ -268,7 +270,7 @@ void FrameSequenceMetrics::AdoptTrace(FrameSequenceMetrics* adopt_from) {
   adopt_from->trace_data_.trace_id = 0u;
 }
 
-void FrameSequenceMetrics::ReportMetrics() {
+void FrameSequenceMetrics::ReportMetrics() { 
   // Terminates |trace_data_| for all types of FrameSequenceTracker.
   trace_data_.Terminate(v3_, v4_, GetEffectiveThread());
 

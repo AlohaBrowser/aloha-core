@@ -1,6 +1,12 @@
 // Copyright 2019 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
 
 #ifndef CONTENT_PUBLIC_TEST_FAKE_LOCAL_FRAME_H_
 #define CONTENT_PUBLIC_TEST_FAKE_LOCAL_FRAME_H_
@@ -77,6 +83,7 @@ class FakeLocalFrame : public blink::mojom::LocalFrame {
       RequestVideoFrameAtWithBoundsHintCallback callback) override;
   void PluginActionAt(const gfx::Point& location,
                       blink::mojom::PluginActionType action) override;
+  void InsertAbpElemhideStylesheet(const std::string& stylesheet) override;
   void AdvanceFocusInFrame(blink::mojom::FocusType focus_type,
                            const std::optional<blink::RemoteFrameToken>&
                                source_frame_token) override;
@@ -96,6 +103,11 @@ class FakeLocalFrame : public blink::mojom::LocalFrame {
       bool wants_result,
       JavaScriptMethodExecuteRequestCallback callback) override;
   void JavaScriptExecuteRequest(
+      const std::u16string& javascript,
+      bool wants_result,
+      JavaScriptExecuteRequestCallback callback) override;
+  // ALOHA https://app.clickup.com/t/861m7r8nk
+  void JavaScriptExecuteRequestUnchecked(
       const std::u16string& javascript,
       bool wants_result,
       JavaScriptExecuteRequestCallback callback) override;

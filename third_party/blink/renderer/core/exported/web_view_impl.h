@@ -28,6 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_EXPORTED_WEB_VIEW_IMPL_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_EXPORTED_WEB_VIEW_IMPL_H_
 
@@ -125,6 +127,7 @@ class CORE_EXPORT WebViewImpl final : public WebView,
           fenced_frame_mode,
       bool compositing_enabled,
       bool widgets_never_composited,
+      bool private_mode, // ALOHA https://app.clickup.com/t/2dmrud4
       WebViewImpl* opener,
       mojo::PendingAssociatedReceiver<mojom::blink::PageBroadcast> page_handle,
       scheduler::WebAgentGroupScheduler& agent_group_scheduler,
@@ -161,6 +164,8 @@ class CORE_EXPORT WebViewImpl final : public WebView,
   void SetIsActive(bool value) override;
   void SetWindowFeatures(const WebWindowFeatures&) override;
   void SetOpenedByDOM() override;
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  bool IsPrivateMode() const override;
   WebFrame* MainFrame() override;
   const WebFrame* MainFrame() const override;
   WebLocalFrame* FocusedFrame() override;
@@ -496,7 +501,9 @@ class CORE_EXPORT WebViewImpl final : public WebView,
 
   void EnterFullscreen(LocalFrame&,
                        const FullscreenOptions*,
-                       FullscreenRequestType);
+                       FullscreenRequestType,
+                       std::optional<aloha::FullscreenVideoElement> video_element, // ALOHA https://app.clickup.com/t/2hxwa9w
+                       const std::string& pending_elem_class); // ALOHA https://app.clickup.com/t/861m7a4e2
   void ExitFullscreen(LocalFrame&);
   void FullscreenElementChanged(Element* old_element,
                                 Element* new_element,
@@ -709,6 +716,7 @@ class CORE_EXPORT WebViewImpl final : public WebView,
           fenced_frame_mode,
       bool does_composite,
       bool widgets_never_composite,
+      bool private_mode, // ALOHA https://app.clickup.com/t/2dmrud4
       WebViewImpl* opener,
       mojo::PendingAssociatedReceiver<mojom::blink::PageBroadcast> page_handle,
       scheduler::WebAgentGroupScheduler& agent_group_scheduler,
@@ -1007,6 +1015,9 @@ class CORE_EXPORT WebViewImpl final : public WebView,
 
   // All the registered observers.
   base::ObserverList<WebViewObserver> observers_;
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  const bool private_mode_;
 
   base::WeakPtrFactory<WebViewImpl> weak_ptr_factory_{this};
 };

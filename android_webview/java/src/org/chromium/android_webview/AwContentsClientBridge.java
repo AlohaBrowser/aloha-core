@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview;
 
 import android.content.ActivityNotFoundException;
@@ -39,6 +41,10 @@ import java.util.Map;
 
 import javax.security.auth.x500.X500Principal;
 
+// ALOHA https://app.clickup.com/t/2f2eyt8
+import com.alohamobile.bromium.BromiumClient;
+import com.alohamobile.bromium.BromiumClientBridge;
+
 /**
  * This class handles the JNI communication logic for the the AwContentsClient class.
  * Both the Java and the native peers of AwContentsClientBridge are owned by the
@@ -47,7 +53,8 @@ import javax.security.auth.x500.X500Principal;
  * references.
  */
 @JNINamespace("android_webview")
-public class AwContentsClientBridge {
+// ALOHA https://app.clickup.com/t/2f2eyt8
+public class AwContentsClientBridge extends BromiumClientBridge {
     private static final String TAG = "AwContentsCB";
 
     private AwContentsClient mClient;
@@ -313,17 +320,20 @@ public class AwContentsClientBridge {
     }
 
     @CalledByNative
-    private void newDownload(
-            String url,
-            String userAgent,
-            String contentDisposition,
+    private void newDownload(String url, String originalUrl, String userAgent, String contentDisposition,
             String mimeType,
+            String suggestedFilename, // ALOHA https://app.clickup.com/t/mz8wrn
+            String postResponseFilename, // ALOHA https://app.clickup.com/t/mz8wrn
             long contentLength) {
         try (TraceEvent event = TraceEvent.scoped("WebView.APICallback.ON_DOWNLOAD_START")) {
-            mClient.getCallbackHelper()
-                    .postOnDownloadStart(
-                            url, userAgent, contentDisposition, mimeType, contentLength);
-
+            
+            mClient.getCallbackHelper().postOnDownloadStart(
+                url,
+                originalUrl, // ALOHA https://app.clickup.com/t/861me45jv
+                userAgent, contentDisposition, mimeType,
+                suggestedFilename, // ALOHA https://app.clickup.com/t/mz8wrn
+                postResponseFilename, // ALOHA https://app.clickup.com/t/mz8wrn
+                contentLength);
             // Record UMA for onDownloadStart.
             AwHistogramRecorder.recordCallbackInvocation(
                     AwHistogramRecorder.WebViewCallbackType.ON_DOWNLOAD_START);
@@ -592,6 +602,12 @@ public class AwContentsClientBridge {
         if (mNativeContentsClientBridge == 0) return;
         AwContentsClientBridgeJni.get()
                 .cancelJsResult(mNativeContentsClientBridge, AwContentsClientBridge.this, id);
+    }
+
+    // ALOHA https://app.clickup.com/t/2f2eyt8
+    @Override
+    protected BromiumClient getBromiumClient() {
+        return mClient;
     }
 
     @NativeMethods

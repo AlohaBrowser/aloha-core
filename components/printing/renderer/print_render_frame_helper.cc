@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "components/printing/renderer/print_render_frame_helper.h"
 
 #include <stddef.h>
@@ -667,6 +669,7 @@ class HeaderAndFooterContext {
         /*prerender_param=*/nullptr,
         /*fenced_frame_mode=*/std::nullopt,
         /*compositing_enabled=*/false, /*widgets_never_composited=*/false,
+        /*private_mode*/ false, // ALOHA https://app.clickup.com/t/2dmrud4
         /*opener=*/nullptr, mojo::NullAssociatedReceiver(),
         *source_frame.GetAgentGroupScheduler(),
         /*session_storage_namespace_id=*/std::string(),
@@ -943,6 +946,7 @@ void PrepareFrameAndViewForPrint::CopySelection(
       /*fenced_frame_mode=*/std::nullopt,
       /*compositing_enabled=*/false,
       /*widgets_never_composited=*/false,
+      /*private_mode*/false, // ALOHA https://app.clickup.com/t/2dmrud4
       /*opener=*/nullptr, mojo::NullAssociatedReceiver(),
       *agent_group_scheduler_,
       /*session_storage_namespace_id=*/std::string(),

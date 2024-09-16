@@ -1,6 +1,12 @@
 # Copyright 2015 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
+
+# Modified by Aloha Mobile Ltd.
 
 import("//android_webview/system_webview_apk_tmpl.gni")
 import("//android_webview/system_webview_bundle.gni")
@@ -549,6 +555,10 @@ generate_jni("browser_jni_headers") {
     "java/src/org/chromium/android_webview/safe_browsing/AwSafeBrowsingSafeModeAction.java",
     "java/src/org/chromium/android_webview/supervised_user/AwSupervisedUserUrlClassifier.java",
     "java/src/org/chromium/android_webview/variations/VariationsSeedLoader.java",
+
+# ALOHA
+    "//aloha/src/java/com/alohamobile/bromium/Bromium.java",
+    "//aloha/src/java/com/alohamobile/bromium/BromiumClientBridge.java",
   ]
 }
 
@@ -690,6 +700,13 @@ android_library("browser_java") {
     "java/src/org/chromium/android_webview/variations/FastVariationsSeedSafeModeAction.java",
     "java/src/org/chromium/android_webview/variations/VariationsSeedLoader.java",
     "java/src/org/chromium/android_webview/variations/VariationsSeedSafeModeAction.java",
+
+# ALOHA
+    "//aloha/src/java/com/alohamobile/bromium/Bromium.java",
+    "//aloha/src/java/com/alohamobile/bromium/BromiumClient.java",
+    "//aloha/src/java/com/alohamobile/bromium/BromiumClientBridge.java",
+    # ALOHA https://app.clickup.com/t/2f2f49x
+    "//aloha/src/java/org/chromium83/chrome/browser/cookies/CanonicalCookie.java",
   ]
   deps = [
     ":common_aidl_java",
@@ -704,6 +721,7 @@ android_library("browser_java") {
     "//base/version_info/android:version_constants_java",
     "//build/android:build_java",
     "//cc/mojom:mojom_java",
+    "//components/adblock/android:adblock_controller_java",
     "//components/android_autofill/browser:java",
     "//components/autofill/android:autofill_java",
     "//components/background_task_scheduler:background_task_scheduler_task_ids_java",
@@ -754,6 +772,10 @@ android_library("browser_java") {
     "//third_party/metrics_proto:metrics_proto_java",
     "//ui/android:ui_no_recycler_view_java",
     "//url:gurl_java",
+
+    # ALOHA https://app.clickup.com/t/2kwzwub
+    # for use SecurityStateModel.getSecurityLevelForWebContents in aloha-browser-android.
+    "//components/security_state/content/android:java",
   ]
 
   if (enable_spellcheck) {
@@ -805,15 +827,15 @@ android_library("common_platform_services_java") {
     "//url:gurl_java",
   ]
 
+  # ALOHA https://app.clickup.com/t/2y2yu2a
+  
   # The appropriate .class file will be loaded via a dependency to a library
   # like :platform_service_bridge_upstream_implementation_java below. We only include the
   # .java file because other files in the target depend on it.
-  jar_excluded_patterns = [ "*/PlatformServiceBridgeImpl.class" ]
-}
+  }
 
-# This target compiles the implementation of PlatformServiceBridge for AOSP targets.
-android_library("platform_service_bridge_upstream_implementation_java") {
-  sources = [ "java/src/org/chromium/android_webview/common/PlatformServiceBridgeImpl.java" ]
+# ALOHA https://app.clickup.com/t/2y2yu2a
+java_group("platform_service_bridge_upstream_implementation_java") {
   deps = [ ":common_platform_services_java" ]
 }
 
@@ -988,6 +1010,8 @@ android_assets("locale_pak_assets") {
 
 repack("repack_pack") {
   sources = [
+    "$root_gen_dir/components/adblock/core/resources/adblock_resources.pak",
+    "$root_gen_dir/components/adblock_internals_resources.pak",
     "$root_gen_dir/content/content_resources.pak",
     "$root_gen_dir/content/histograms_resources.pak",
     "$root_gen_dir/net/net_resources.pak",
@@ -1001,6 +1025,8 @@ repack("repack_pack") {
     ":generate_components_resources",
     ":generate_mojo_resources",
     ":generate_webui_resources",
+    "//components/adblock/content/resources/adblock_internals:resources",
+    "//components/adblock/core/resources:adblock_resources",
     "//content:content_resources",
     "//content/browser/resources/histograms:resources",
     "//net:net_resources",
@@ -1253,4 +1279,11 @@ java_strings_grd("strings_grd") {
             process_file_template(
                 android_bundle_locales_as_resources,
                 [ "values-{{source_name_part}}/android_webview_strings.xml" ])
+}
+
+# ALOHA https://app.clickup.com/t/2kbucgv
+standalone_system_webview_apk_tmpl("bromium_webview_apk") {
+  apk_name = "BromiumWebView"
+
+  assert_no_deps = ["//chrome/*", "//weblayer/*"]
 }

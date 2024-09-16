@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
 package org.chromium.android_webview.test;
 
 import static org.chromium.android_webview.test.OnlyRunIn.ProcessMode.EITHER_PROCESS;
@@ -104,7 +105,7 @@ public class CookieManagerStartupTest extends AwParameterizedTest {
             String url = webServer.setResponse(path, CommonResources.ABOUT_HTML, null);
 
             // Verify that we can use AwCookieManager successfully before having started Chromium.
-            AwCookieManager cookieManager = new AwCookieManager();
+            AwCookieManager cookieManager = AwCookieManager.getPublicCookieManager();
             Assert.assertNotNull(cookieManager);
 
             CookieUtils.clearCookies(InstrumentationRegistry.getInstrumentation(), cookieManager);
@@ -140,7 +141,7 @@ public class CookieManagerStartupTest extends AwParameterizedTest {
     @OnlyRunIn(EITHER_PROCESS) // This test doesn't use the renderer process
     @Feature({"AndroidWebView", "Privacy"})
     public void testAllowFileSchemeCookies() {
-        AwCookieManager cookieManager = new AwCookieManager();
+        AwCookieManager cookieManager = AwCookieManager.getPublicCookieManager();
         Assert.assertFalse(cookieManager.allowFileSchemeCookies());
         cookieManager.setAcceptFileSchemeCookies(true);
         Assert.assertTrue(cookieManager.allowFileSchemeCookies());
@@ -153,7 +154,7 @@ public class CookieManagerStartupTest extends AwParameterizedTest {
     @OnlyRunIn(EITHER_PROCESS) // This test doesn't use the renderer process
     @Feature({"AndroidWebView", "Privacy"})
     public void testAllowCookies() {
-        AwCookieManager cookieManager = new AwCookieManager();
+        AwCookieManager cookieManager = AwCookieManager.getPublicCookieManager();
         Assert.assertTrue(cookieManager.acceptCookie());
         cookieManager.setAcceptCookie(false);
         Assert.assertFalse(cookieManager.acceptCookie());

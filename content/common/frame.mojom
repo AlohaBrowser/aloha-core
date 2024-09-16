@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 module content.mojom;
 
 import "cc/mojom/browser_controls_state.mojom";
@@ -168,6 +170,9 @@ struct CreateViewParams {
   // Indicates whether web or OS-level Attribution Reporting is supported. See
   // https://github.com/WICG/attribution-reporting-api/blob/main/app_to_web.md
   network.mojom.AttributionSupport attribution_support;
+  
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  bool private_mode = false;
 };
 
 // A union to distinguish between parameters specific to local main frame

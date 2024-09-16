@@ -1,6 +1,9 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
 
 import("//base/debug/debug.gni")
 import("//build/config/chrome_build.gni")
@@ -178,6 +181,7 @@ test("components_unittests") {
 
   deps = [
     "//base",
+    "//components/adblock:unit_tests",
     "//components/affiliations/core/browser:unit_tests",
     "//components/aggregation_service:unit_tests",
     "//components/apdu:unit_tests",
@@ -865,6 +869,7 @@ test("components_unittests") {
 
 repack("components_tests_pak") {
   sources = [
+    "$root_gen_dir/components/adblock/core/resources/adblock_resources.pak",
     "$root_gen_dir/components/arc/input_overlay_resources.pak",
     "$root_gen_dir/components/autofill/core/browser/autofill_address_rewriter_resources.pak",
     "$root_gen_dir/components/components_resources.pak",
@@ -878,6 +883,7 @@ repack("components_tests_pak") {
     # TODO(b/207518736): Input overlay resources will be changed to proto soon,
     # thus not going to move this resource pak to under ash.
     "//ash/components/arc/input_overlay/resources:resources_grit",
+    "//components/adblock/core/resources:adblock_resources",
     "//components/autofill/core/browser:autofill_address_rewriter_resources",
     "//components/omnibox/resources:omnibox_pedal_synonyms",
     "//components/resources",
@@ -978,6 +984,7 @@ if (use_blink) {
     deps = [
       "//base",
       "//base/test:test_support",
+      "//components/adblock/content/browser:browser_tests",
       "//components/autofill/content/browser",
       "//components/autofill/content/browser:browser_tests",
       "//components/autofill/content/renderer",
@@ -1189,6 +1196,9 @@ if (use_blink) {
 
     deps = [
       "//base",
+      "//components/adblock/core/classifier:perf_tests",
+      "//components/adblock/core/converter:perf_tests",
+      "//components/adblock/core/subscription:perf_tests",
       "//components/attribution_reporting",
       "//components/bookmarks/test",
       "//components/discardable_memory/common",

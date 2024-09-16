@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/public/browser/web_contents_delegate.h"
 
 #include <memory>
@@ -413,6 +415,11 @@ bool WebContentsDelegate::ShouldUseInstancedSystemMediaControls() const {
 bool WebContentsDelegate::MaybeCopyContentAreaAsBitmap(
     base::OnceCallback<void(const SkBitmap&)> callback) {
   return false;
+}
+
+// ALOHA https://app.clickup.com/t/861m4jwng
+aloha::BromiumClientBridge* WebContentsDelegate::BromiumBridge(WebContents* web_contents) const {
+  return nullptr;
 }
 
 }  // namespace content

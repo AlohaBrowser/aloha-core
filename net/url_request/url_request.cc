@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "net/url_request/url_request.h"
 
 #include <utility>
@@ -604,7 +606,8 @@ URLRequest::URLRequest(base::PassKey<URLRequestContext> pass_key,
                        const URLRequestContext* context,
                        NetworkTrafficAnnotationTag traffic_annotation,
                        bool is_for_websockets,
-                       std::optional<net::NetLogSource> net_log_source)
+                       absl::optional<net::NetLogSource> net_log_source,
+                       bool send_dnt_header) // ALOHA https://app.clickup.com/t/2f29z75
     : context_(context),
       net_log_(CreateNetLogWithSource(context->net_log(), net_log_source)),
       url_chain_(1, url),
@@ -614,7 +617,8 @@ URLRequest::URLRequest(base::PassKey<URLRequestContext> pass_key,
       redirect_limit_(kMaxRedirects),
       priority_(priority),
       creation_time_(base::TimeTicks::Now()),
-      traffic_annotation_(traffic_annotation) {
+      traffic_annotation_(traffic_annotation),
+      send_dnt_header_(send_dnt_header) { // ALOHA https://app.clickup.com/t/2f29z75
   // Sanity check out environment.
   DCHECK(base::SingleThreadTaskRunner::HasCurrentDefault());
 

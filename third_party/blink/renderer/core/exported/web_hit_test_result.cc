@@ -69,6 +69,16 @@ WebURL WebHitTestResult::AbsoluteImageURL() const {
   return private_->Result().AbsoluteImageURL();
 }
 
+// ALOHA https://app.clickup.com/t/2f2ey18
+WebURL WebHitTestResult::AlohaFindVideoURL() const {
+  return private_->Result().AlohaFindVideoURL();
+}
+
+// ALOHA https://app.clickup.com/t/2v1r9c4
+WebURL WebHitTestResult::AlohaFindImageURL() const {
+  return private_->Result().AlohaFindImageURL();
+}
+
 WebURL WebHitTestResult::AbsoluteLinkURL() const {
   return private_->Result().AbsoluteLinkURL();
 }

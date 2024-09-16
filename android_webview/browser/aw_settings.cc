@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/aw_settings.h"
 
 #include <memory>
@@ -569,6 +571,12 @@ void AwSettings::PopulateWebPreferencesLocked(JNIEnv* env,
 
   WebPreferences* web_prefs = reinterpret_cast<WebPreferences*>(web_prefs_ptr);
   PopulateFixedWebPreferences(web_prefs);
+
+  // ALOHA https://app.clickup.com/t/2f2ezk8
+  web_prefs->viewport_meta_enabled =
+      Java_AwSettings_isMobileUserAgentLocked(env, obj);
+
+  web_prefs->cookie_enabled = Java_AwSettings_isNavigatorCookieEnabledLocked(env, obj); // ALOHA https://app.clickup.com/t/86eq7zxkr
 
   web_prefs->text_autosizing_enabled =
       Java_AwSettings_getTextAutosizingEnabledLocked(env, obj);

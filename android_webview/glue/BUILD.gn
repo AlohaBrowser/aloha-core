@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# Modified by Aloha Mobile Ltd.
+
 import("//android_webview/system_webview_apk_tmpl.gni")
 import("//android_webview/variables.gni")
 import("//build/config/android/config.gni")
@@ -85,5 +87,12 @@ android_library("glue_java") {
     "java/src/com/android/webview/chromium/WebViewRenderProcessAdapter.java",
     "java/src/com/android/webview/chromium/WebViewRenderProcessClientAdapter.java",
     "java/src/com/android/webview/chromium/WebkitToSharedGlueConverter.java",
+
+    #Aloha
+    "//aloha/src/java/com/android/webview/chromium/WebViewDelegate.java",
+    "//aloha/src/java/com/android/webview/chromium/WebViewDelegateRefl.java",
+    "//aloha/src/java/com/alohamobile/bromium/BromiumResources.java",
+    # https://app.clickup.com/t/2rbv8qq
+    "//aloha/src/java/com/alohamobile/bromium/BromiumInitializer.java",
   ]
 }

@@ -26,6 +26,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_WEBORIGIN_SECURITY_ORIGIN_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_WEBORIGIN_SECURITY_ORIGIN_H_
 
@@ -224,6 +226,8 @@ class PLATFORM_EXPORT SecurityOrigin : public RefCounted<SecurityOrigin> {
   // WARNING: This is an extremely powerful ability. Use with caution!
   void GrantUniversalAccess();
   bool IsGrantedUniversalAccess() const { return universal_access_; }
+  // ALOHA https://app.clickup.com/t/861m7r8nk
+  void RevokeUniversalAccess();
 
   // Whether this origin has ability to access another SecurityOrigin
   // if everything but the agent clusters do not match.

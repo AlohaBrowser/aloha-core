@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/modules/mediacapturefromelement/html_video_element_capturer_source.h"
 
 #include <memory>
@@ -115,6 +117,9 @@ class MockWebMediaPlayer : public WebMediaPlayer {
   base::WeakPtr<WebMediaPlayer> AsWeakPtr() override {
     return weak_factory_.GetWeakPtr();
   }
+
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  GURL GetLoadedUrl() const override { return {}; }
 
   bool is_video_opaque_ = true;
   gfx::Size size_ = gfx::Size(16, 10);

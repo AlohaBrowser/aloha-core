@@ -323,3 +323,5 @@ third_party/rust/target/
 # These files are created by first class GCS deps.
 **/*_hash
 **/*_content_names
+# Aloha: folders in 'third_party/android_support_test_runner/*'
+.gradle/

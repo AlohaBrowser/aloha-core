@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/css/resolver/style_resolver.h"
 
 #include "testing/gtest/include/gtest/gtest.h"
@@ -2346,7 +2348,8 @@ static void EnterFullscreen(Document& document, Element& element) {
   LocalFrame::NotifyUserActivation(
       document.GetFrame(), mojom::UserActivationNotificationType::kTest);
   Fullscreen::RequestFullscreen(element);
-  Fullscreen::DidResolveEnterFullscreenRequest(document, /*granted*/ true);
+  Fullscreen::DidResolveEnterFullscreenRequest(document, /*granted*/ true,
+      /*override_fullscreen_element*/ nullptr); // ALOHA https://app.clickup.com/t/861m4jwng
   EXPECT_EQ(Fullscreen::FullscreenElementFrom(document), element);
 }
 

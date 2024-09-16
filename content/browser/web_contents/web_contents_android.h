@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_BROWSER_WEB_CONTENTS_WEB_CONTENTS_ANDROID_H_
 #define CONTENT_BROWSER_WEB_CONTENTS_WEB_CONTENTS_ANDROID_H_
 
@@ -123,6 +125,12 @@ class CONTENT_EXPORT WebContentsAndroid {
   void EvaluateJavaScript(JNIEnv* env,
                           const base::android::JavaParamRef<jstring>& script,
                           const base::android::JavaParamRef<jobject>& callback);
+
+  // ALOHA https://app.clickup.com/t/861m7r8nk
+  void EvaluateJavaScriptUnchecked(JNIEnv* env,
+                          const base::android::JavaParamRef<jstring>& script,
+                          const base::android::JavaParamRef<jobject>& callback);
+
   void EvaluateJavaScriptForTests(
       JNIEnv* env,
       const base::android::JavaParamRef<jstring>& script,
