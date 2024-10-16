@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 module content.mojom;
 
 import "cc/mojom/browser_controls_state.mojom";
@@ -173,6 +175,9 @@ struct CreateViewParams {
   // This must be null unless the view being created is a partitioned popin.
   // See https://explainers-by-googlers.github.io/partitioned-popins/
   blink.mojom.PartitionedPopinParams? partitioned_popin_params;
+  
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  bool private_mode = false;
 };
 
 // A union to distinguish between parameters specific to local main frame

@@ -1,6 +1,10 @@
 // Copyright 2013 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #ifndef CONTENT_SHELL_BROWSER_SHELL_BROWSER_CONTEXT_H_
 #define CONTENT_SHELL_BROWSER_SHELL_BROWSER_CONTEXT_H_
@@ -9,6 +13,7 @@
 
 #include "base/files/file_path.h"
 #include "base/memory/raw_ptr.h"
+#include "components/prefs/pref_service.h"
 #include "content/public/browser/browser_context.h"
 
 class SimpleFactoryKey;
@@ -75,6 +80,8 @@ class ShellBrowserContext : public BrowserContext {
       reduce_accept_lang_controller_delegate_;
   std::unique_ptr<OriginTrialsControllerDelegate>
       origin_trials_controller_delegate_;
+
+  std::unique_ptr<PrefService> user_pref_service_;
 
  private:
   // Performs initialization of the ShellBrowserContext while IO is still

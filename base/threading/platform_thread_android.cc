@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "base/threading/platform_thread.h"
 
 #include <errno.h>
@@ -113,12 +115,14 @@ void TerminateOnThread() {
 }
 
 size_t GetDefaultThreadStackSize(const pthread_attr_t& attributes) {
+  // ALOHA https://app.clickup.com/t/2e5x6wx
+  const uint32_t default_stack_size = 2 * (1 << 20); // 2Mb
 #if !defined(ADDRESS_SANITIZER)
-  return 0;
+  return default_stack_size;
 #else
   // AddressSanitizer bloats the stack approximately 2x. Default stack size of
   // 1Mb is not enough for some tests (see http://crbug.com/263749 for example).
-  return 2 * (1 << 20);  // 2Mb
+  return default_stack_size * 2;
 #endif
 }
 

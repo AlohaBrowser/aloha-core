@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/platform/media/web_media_player_impl.h"
 
 #include <algorithm>
@@ -1953,6 +1955,11 @@ void WebMediaPlayerImpl::OnError(media::PipelineStatus status) {
   if (watch_time_reporter_)
     watch_time_reporter_->OnError(status);
 
+  // ALOHA https://app.clickup.com/t/2rqdtxz
+  if (client_ != nullptr) {
+    client_->OnMediaError(status);
+  }
+
   if (ready_state_ == WebMediaPlayer::kReadyStateHaveNothing) {
     // Any error that occurs before reaching ReadyStateHaveMetadata should
     // be considered a format error.
@@ -3748,6 +3755,11 @@ void WebMediaPlayerImpl::UpdateBackgroundVideoOptimizationState() {
   }
 }
 
+// ALOHA https://app.clickup.com/t/86epnk66e
+void WebMediaPlayerImpl::SetShouldPlayBackground(bool should_play_background) {
+  should_play_background_ = should_play_background;
+}
+
 void WebMediaPlayerImpl::PauseVideoIfNeeded() {
   DCHECK(IsPageHidden() || IsFrameHidden());
 
@@ -3763,6 +3775,10 @@ void WebMediaPlayerImpl::PauseVideoIfNeeded() {
     pause_reason = WebMediaPlayerClient::PauseReason::kFrameHidden;
   }
 
+    
+  if(IsPageHidden() && should_play_background_) // ALOHA https://app.clickup.com/t/86epnk66e
+    return;
+  
   // client_->PausePlayback() will get `paused_when_hidden_` set to
   // false and UpdatePlayState() called, so set the flag to true after and then
   // return.

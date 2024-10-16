@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/gfx/browser_view_renderer.h"
 
 #include <memory>
@@ -465,15 +467,8 @@ sk_sp<SkPicture> BrowserViewRenderer::CapturePicture(int width,
   SkPictureRecorder recorder;
   SkCanvas* rec_canvas = recorder.beginRecording(width, height);
   if (compositor_) {
-    {
-      // Reset scroll back to the origin, will go back to the old
-      // value when scroll_reset is out of scope.
-      base::AutoReset<gfx::PointF> scroll_reset(&scroll_offset_unscaled_,
-                                                gfx::PointF());
-      compositor_->DidChangeRootLayerScrollOffset(scroll_offset_unscaled_);
-      CompositeSW(rec_canvas, /*software_canvas=*/false);
-    }
-    compositor_->DidChangeRootLayerScrollOffset(scroll_offset_unscaled_);
+    // ALOHA https://app.clickup.com/t/2e5vxw5
+    CompositeSW(rec_canvas, /*software_canvas=*/false);
   }
   return recorder.finishRecordingAsPicture();
 }

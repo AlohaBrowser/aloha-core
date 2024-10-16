@@ -28,6 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/frame/fullscreen_controller.h"
 
 #include "base/memory/ptr_util.h"
@@ -48,6 +50,9 @@
 #include "third_party/blink/renderer/core/page/page.h"
 #include "third_party/blink/renderer/core/page/spatial_navigation.h"
 #include "third_party/blink/renderer/core/page/spatial_navigation_controller.h"
+
+// ALOHA https://app.clickup.com/t/86eppm2e8
+#include "aloha/src/native/fullscreen_state_handler.h"
 
 namespace blink {
 
@@ -117,6 +122,12 @@ void FullscreenController::DidExitFullscreen() {
   if (state_ == State::kInitial)
     return;
 
+  // ALOHA https://app.clickup.com/t/2k0734w
+  if (video_element_for_hide_controls_) {
+    video_element_for_hide_controls_->video->SetMediaControlsIsHidden(false);
+    video_element_for_hide_controls_.reset();
+  }
+
   UpdatePageScaleConstraints(true);
 
   state_ = State::kInitial;
@@ -145,7 +156,9 @@ void FullscreenController::DidExitFullscreen() {
 
 void FullscreenController::EnterFullscreen(LocalFrame& frame,
                                            const FullscreenOptions* options,
-                                           FullscreenRequestType request_type) {
+                                           FullscreenRequestType request_type,
+                                           std::optional<aloha::FullscreenVideoElement> video_element, // ALOHA https://app.clickup.com/t/2hxwa9w
+                                           const std::string& pending_elem_class) { // ALOHA https://app.clickup.com/t/861m7a4e2
   const auto& screen_info = frame.GetChromeClient().GetScreenInfo(frame);
 
   const bool requesting_other_screen =
@@ -203,11 +216,20 @@ void FullscreenController::EnterFullscreen(LocalFrame& frame,
            << ", is_xr_overlay=" << fullscreen_options->is_xr_overlay << "}";
 #endif
 
+  // ALOHA https://app.clickup.com/t/2hxwa9w
+  video_element_for_hide_controls_ = std::move(video_element);
+  auto video_element_info =
+    video_element_for_hide_controls_
+      ? video_element_for_hide_controls_->info->Clone()
+      : mojom::blink::FullscreenVideoElementInfoPtr{};
+
   // Don't send redundant EnterFullscreen message to the browser for the
   // ancestor frames if the subframe has already entered fullscreen.
   if (!(request_type & FullscreenRequestType::kForCrossProcessDescendant)) {
     frame.GetLocalFrameHostRemote().EnterFullscreen(
         std::move(fullscreen_options),
+        std::move(video_element_info), // ALOHA https://app.clickup.com/t/2hxwa9w
+        WTF::String(pending_elem_class.c_str()), // ALOHA https://app.clickup.com/t/2hxwa9w
         WTF::BindOnce(&FullscreenController::EnterFullscreenCallback,
                       WTF::Unretained(this)));
   }
@@ -280,12 +302,18 @@ void FullscreenController::RestoreBackgroundColorOverride() {
 }
 
 void FullscreenController::NotifyFramesOfFullscreenEntry(bool granted) {
+  // ALOHA https://app.clickup.com/t/2k0734w
+  auto override_fullscreen_element = video_element_for_hide_controls_
+    ? video_element_for_hide_controls_->video
+    : nullptr;
+
   // Notify all pending local frames in order whether or not we successfully
   // entered fullscreen.
   for (LocalFrame* frame : *pending_frames_) {
     if (frame) {
       if (Document* document = frame->GetDocument()) {
-        Fullscreen::DidResolveEnterFullscreenRequest(*document, granted);
+        Fullscreen::DidResolveEnterFullscreenRequest(*document, granted,
+                                                     override_fullscreen_element); // ALOHA https://app.clickup.com/t/2k0734w
       }
     }
   }
@@ -297,13 +325,22 @@ void FullscreenController::NotifyFramesOfFullscreenEntry(bool granted) {
     if (!local_frame)
       continue;
     if (Document* document = local_frame->GetDocument()) {
-      Fullscreen::DidResolveEnterFullscreenRequest(*document, granted);
+      Fullscreen::DidResolveEnterFullscreenRequest(*document, granted,
+                                                   override_fullscreen_element); // ALOHA https://app.clickup.com/t/2k0734w
     }
   }
   pending_frames_->clear();
 }
 
-void FullscreenController::EnterFullscreenCallback(bool granted) {
+void FullscreenController::EnterFullscreenCallback(bool granted, bool hide_controls_for_video) {
+  // ALOHA https://app.clickup.com/t/2hxwa9w
+  if (!granted || !hide_controls_for_video) {
+    video_element_for_hide_controls_.reset();
+  }
+
+  if(!hide_controls_for_video)  // ALOHA https://app.clickup.com/t/86eppm2e8 only for JwPlayer
+    aloha::FullscreenStateHandler::Reset();
+
   if (granted) {
     // If the fullscreen is granted, then the VisualPropertiesUpdated message
     // will later be fired and the state will be updated then.

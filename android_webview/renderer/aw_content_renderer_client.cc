@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/renderer/aw_content_renderer_client.h"
 
 #include <memory>
@@ -212,11 +214,7 @@ void AwContentRendererClient::PrepareErrorPage(
     content::mojom::AlternativeErrorPageOverrideInfoPtr
         alternative_error_page_info,
     std::string* error_html) {
-  security_interstitials::SecurityInterstitialPageControllerDelegateImpl::Get(
-      render_frame)
-      ->PrepareForErrorPage();
-
-  android_system_error_page::PopulateErrorPageHtml(error, error_html);
+// ALOHA - show empty error page https://app.clickup.com/t/2f2f44p
 }
 
 uint64_t AwContentRendererClient::VisitedLinkHash(

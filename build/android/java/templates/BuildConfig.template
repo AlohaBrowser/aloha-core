@@ -95,13 +95,6 @@ public class BuildConfig {
     public static boolean ENABLE_DEBUG_LOGS = true;
 #endif
 
-#if defined(_APK_ASSETS_SUFFIXED_LIST)
-    public static String[] APK_ASSETS_SUFFIXED_LIST = {_APK_ASSETS_SUFFIXED_LIST};
-    public static String APK_ASSETS_SUFFIX = QUOTE(_APK_ASSETS_SUFFIX);
-#else
-    public static String[] APK_ASSETS_SUFFIXED_LIST = {};
-    public static String APK_ASSETS_SUFFIX = null;
-#endif
 
     // Enable features that are more typically available on desktop.
 #if defined(_IS_DESKTOP_ANDROID)

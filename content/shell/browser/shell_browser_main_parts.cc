@@ -1,6 +1,10 @@
 // Copyright 2013 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "content/shell/browser/shell_browser_main_parts.h"
 
@@ -21,6 +25,7 @@
 #include "build/build_config.h"
 #include "build/chromeos_buildflags.h"
 #include "cc/base/switches.h"
+#include "components/adblock/content/browser/adblock_web_ui_controller_factory.h"
 #include "components/performance_manager/embedder/graph_features.h"
 #include "components/performance_manager/embedder/performance_manager_lifetime.h"
 #include "content/public/browser/browser_thread.h"
@@ -31,6 +36,7 @@
 #include "content/public/common/result_codes.h"
 #include "content/public/common/url_constants.h"
 #include "content/shell/android/shell_descriptors.h"
+#include "content/shell/browser/adblock/adblock_shell_browser_context.h"
 #include "content/shell/browser/shell.h"
 #include "content/shell/browser/shell_browser_context.h"
 #include "content/shell/browser/shell_devtools_manager_delegate.h"
@@ -150,7 +156,7 @@ int ShellBrowserMainParts::PreEarlyInitialization() {
 }
 
 void ShellBrowserMainParts::InitializeBrowserContexts() {
-  set_browser_context(new ShellBrowserContext(false));
+  set_browser_context(new AdblockShellBrowserContext());
   set_off_the_record_browser_context(new ShellBrowserContext(true));
   // Persistent Origin Trials needs to be instantiated as soon as possible
   // during browser startup, to ensure data is available prior to the first
@@ -198,6 +204,8 @@ int ShellBrowserMainParts::PreMainMessageLoopRun() {
 #endif
 
   InitializeBrowserContexts();
+  content::WebUIControllerFactory::RegisterFactory(
+      adblock::AdblockWebUIControllerFactory::GetInstance());
   Shell::Initialize(CreateShellPlatformDelegate());
   net::NetModule::SetResourceProvider(PlatformResourceProvider);
   ShellDevToolsManagerDelegate::StartHttpHandler(browser_context_.get());

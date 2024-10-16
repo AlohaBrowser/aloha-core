@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  This file is part of eyeo Chromium SDK,
+  Copyright (C) 2006-present eyeo GmbH
+
+  eyeo Chromium SDK is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 3 as
+  published by the Free Software Foundation.
+
+  eyeo Chromium SDK is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<grit latest_public_release="0" current_release="1" output_all_resource_defines="false">
+  <outputs>
+    <output filename="grit/adblock_resources.h" type="rc_header">
+        <emit emit_type="prepend">
+        </emit>
+    </output>
+    <output filename="adblock_resources.pak" type="data_package" />
+  </outputs>
+  <release seq="1">
+    <includes>
+      <include name="IDR_ADBLOCK_ELEMHIDE_JS" file="elemhide.js" type="BINDATA" />
+      <include name="IDR_ADBLOCK_ELEMHIDE_FOR_SELECTOR_JS" file="elemhide_for_selector.jst" type="BINDATA" />
+      <include name="IDR_ADBLOCK_ELEMHIDE_EMU_JS" file="elemhideemu.jst" type="BINDATA" />
+      <include name="IDR_ADBLOCK_SNIPPETS_JS" file="${root_gen_dir}/components/adblock/core/resources/snippets.jst" use_base_dir="false" type="BINDATA" compress="gzip" />
+      <include name="IDR_ADBLOCK_SNIPPETS_XPATH3_DEP_JS" file="${root_gen_dir}/components/adblock/core/resources/snippets-xpath3-dep.jst" use_base_dir="false" type="BINDATA" compress="gzip" />
+      <include name="IDR_ADBLOCK_FLATBUFFER_EASYLIST" file="${root_gen_dir}/components/adblock/core/resources/easylist.fb" use_base_dir="false" type="BINDATA" compress="gzip" />
+      <include name="IDR_ADBLOCK_FLATBUFFER_EXCEPTIONRULES" file="${root_gen_dir}/components/adblock/core/resources/exceptionrules.fb" use_base_dir="false" type="BINDATA" compress="gzip" />
+      <include name="IDR_ADBLOCK_FLATBUFFER_ANTICV" file="${root_gen_dir}/components/adblock/core/resources/anticv.fb" use_base_dir="false" type="BINDATA" compress="gzip" />
+    </includes>
+  </release>
+</grit>

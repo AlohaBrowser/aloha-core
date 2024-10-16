@@ -1,0 +1,156 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+import("//components/adblock/features.gni")
+import("//third_party/flatbuffers/flatbuffer.gni")
+
+flatbuffer("schema") {
+  sources = [ "schema/filter_list_schema.fbs" ]
+}
+
+# Generates .cc file which contains the hash of the generated schema header.
+# This is used to detect changes in the schema at runtime and trigger a re-download of
+# the filter lists.
+action("generate_schema_hash") {
+  # The script lives in /chrome but has no dependencies to the //chrome target.
+  # According to the script's author, it could be moved to /build but only if
+  # there's code *upstream* that needs it outside of /chrome.
+  script = "//chrome/tools/build/sha256_file.py"
+  outputs = [ "${target_gen_dir}/schema/schema_hash.cc" ]
+  inputs = [ "${target_gen_dir}/schema/filter_list_schema_generated.h" ]
+
+  # The script expects an extensionless prefix of the output, rather than a path
+  # to the output file itself. It appends the ".cc" itself.
+  result_prefix = "${target_gen_dir}/schema/schema_hash"
+
+  args = [ rebase_path(result_prefix, root_build_dir) ] +
+         rebase_path(inputs, root_build_dir)
+
+  deps = [ ":schema" ]
+}
+
+source_set("schema_hash") {
+  sources = get_target_outputs(":generate_schema_hash")
+  sources += [ "//components/adblock/core/schema/schema_hash.h" ]
+
+  deps = [ ":generate_schema_hash" ]
+}
+
+config("eyeo_telemetry_config") {
+  defines = []
+
+  if (eyeo_telemetry_server_url != "") {
+    # Explicitly setting Telemetry server URL, used for testing with a test
+    # server.
+    defines += [ "EYEO_TELEMETRY_SERVER_URL=\"$eyeo_telemetry_server_url\"" ]
+  } else {
+    # Implicitly setting production Telemetry server URL based on
+    # eyeo_telemetry_client_id (or a default client id as a fallback).
+    if (eyeo_telemetry_client_id != "") {
+      defines += [ "EYEO_TELEMETRY_CLIENT_ID=\"$eyeo_telemetry_client_id\"" ]
+    } else {
+      print("WARNING! gn arg eyeo_telemetry_client_id is not set. " +
+            "Users will not be counted correctly by eyeo.")
+      eyeo_telemetry_client_id = "eyeochromium"
+    }
+    eyeo_telemetry_server_url =
+        "https://${eyeo_telemetry_client_id}.telemetry.eyeo.com/"
+    defines += [ "EYEO_TELEMETRY_SERVER_URL=\"$eyeo_telemetry_server_url\"" ]
+  }
+
+  if (eyeo_telemetry_activeping_auth_token != "") {
+    defines += [ "EYEO_TELEMETRY_ACTIVEPING_AUTH_TOKEN=\"$eyeo_telemetry_activeping_auth_token\"" ]
+  } else {
+    print("WARNING! gn arg eyeo_telemetry_activeping_auth_token is not set. " +
+          "Users will not be counted correctly by eyeo.")
+  }
+}
+
+source_set("core") {
+  output_name = "adblock_core"
+  sources = [
+    "activeping_telemetry_topic_provider.cc",
+    "activeping_telemetry_topic_provider.h",
+    "adblock_telemetry_service.cc",
+    "adblock_telemetry_service.h",
+    "features.cc",
+    "features.h",
+    "sitekey_storage.h",
+    "sitekey_storage_impl.cc",
+    "sitekey_storage_impl.h",
+  ]
+
+  deps = [
+    "//components/language/core/common",
+    "//third_party/flatbuffers",
+  ]
+
+  public_deps = [
+    "//components/adblock/core/classifier",
+    "//components/adblock/core/common",
+    "//components/adblock/core/common:utils",
+    "//components/adblock/core/configuration",
+    "//components/adblock/core/subscription",
+    "//components/keyed_service/core",
+    "//components/pref_registry",
+    "//components/prefs",
+    "//components/version_info",
+  ]
+
+  configs += [ ":eyeo_telemetry_config" ]
+}
+
+source_set("test_support") {
+  testonly = true
+  sources = [
+    "test/mock_sitekey_storage.cc",
+    "test/mock_sitekey_storage.h",
+  ]
+
+  public_deps = [
+    ":core",
+    "//components/adblock/core/subscription:test_support",
+    "//testing/gmock",
+    "//testing/gtest",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "test/activeping_telemetry_topic_provider_test.cc",
+    "test/adblock_telemetry_service_unittest.cc",
+    "test/bundled_subscription_test.cc",
+    "test/sitekey_storage_impl_test.cc",
+  ]
+
+  deps = [
+    ":core",
+    ":test_support",
+    "//base/test:test_support",
+    "//components/adblock/core/configuration:test_support",
+    "//components/adblock/core/resources:adblock_resources",
+    "//components/adblock/core/subscription:test_support",
+    "//components/prefs:test_support",
+    "//components/sync_preferences:test_support",
+    "//net:test_support",
+    "//services/network:test_support",
+    "//testing/gtest",
+  ]
+
+  configs += [ ":eyeo_telemetry_config" ]
+}
+

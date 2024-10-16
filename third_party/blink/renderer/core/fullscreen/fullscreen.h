@@ -27,6 +27,8 @@
  *
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_FULLSCREEN_FULLSCREEN_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_FULLSCREEN_FULLSCREEN_H_
 
@@ -42,6 +44,9 @@
 #include "third_party/blink/renderer/platform/supplementable.h"
 #include "third_party/blink/renderer/platform/wtf/deque.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
+
+// ALOHA https://app.clickup.com/t/2hxwa9w
+#include "aloha/src/native/fullscreen_video_element.h"
 
 namespace blink {
 
@@ -107,7 +112,8 @@ class CORE_EXPORT Fullscreen final : public GarbageCollected<Fullscreen>,
 
   // Called by FullscreenController to notify that we've entered or exited
   // fullscreen. All frames are notified, so there may be no pending request.
-  static void DidResolveEnterFullscreenRequest(Document&, bool granted);
+  static void DidResolveEnterFullscreenRequest(Document&, bool granted,
+                                               HTMLVideoElement* override_fullscreen_element); // ALOHA https://app.clickup.com/t/2k0734w
   static void DidExitFullscreen(Document&);
 
   static void DidUpdateSize(Element&);
@@ -140,7 +146,8 @@ class CORE_EXPORT Fullscreen final : public GarbageCollected<Fullscreen>,
       FullscreenRequestType request_type,
       const FullscreenOptions* options,
       ScriptPromiseResolver<IDLUndefined>* resolver,
-      RequestFullscreenError error);
+      std::optional<aloha::FullscreenVideoElement> video_element_info, // ALOHA https://app.clickup.com/t/2hxwa9w
+      RequestFullscreenError error); 
 
   static void ContinueRequestFullscreen(
       Document&,
@@ -148,7 +155,9 @@ class CORE_EXPORT Fullscreen final : public GarbageCollected<Fullscreen>,
       FullscreenRequestType,
       const FullscreenOptions*,
       ScriptPromiseResolver<IDLUndefined>* resolver,
-      RequestFullscreenError error);
+      RequestFullscreenError error,
+      HTMLVideoElement* override_fullscreen_element); // ALOHA https://app.clickup.com/t/2k0734w
+
 
   static void ContinueExitFullscreen(
       Document*,
@@ -158,6 +167,10 @@ class CORE_EXPORT Fullscreen final : public GarbageCollected<Fullscreen>,
   void FullscreenElementChanged(Element* old_element,
                                 Element* new_element,
                                 FullscreenRequestType new_request_type);
+
+  // ALOHA https://app.clickup.com/t/2hxwa9w
+  static std::optional<aloha::FullscreenVideoElement> SelectFullscreenVideoElementInfo(
+    Element& pending);
 
   // Stores the pending request, promise and the type for executing
   // the asynchronous portion of the request.

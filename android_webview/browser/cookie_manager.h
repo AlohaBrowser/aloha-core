@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef ANDROID_WEBVIEW_BROWSER_COOKIE_MANAGER_H_
 #define ANDROID_WEBVIEW_BROWSER_COOKIE_MANAGER_H_
 
@@ -96,9 +98,29 @@ class CookieManager {
   // are owned by an AwBrowserContext - a non-null parent_context.
   explicit CookieManager(AwBrowserContext* parent_context);
   ~CookieManager();
+  
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  static CookieManager* GetInstance(int inst_num);
+  void MakeActive(JNIEnv* env);
 
   CookieManager(const CookieManager&) = delete;
   CookieManager& operator=(const CookieManager&) = delete;
+
+  // ALOHA https://app.clickup.com/t/2f2f49x
+  void AddCookieFromMigration(JNIEnv* env,
+                              const base::android::JavaParamRef<jstring>& name,
+                              const base::android::JavaParamRef<jstring>& value,
+                              const base::android::JavaParamRef<jstring>& domain,
+                              const base::android::JavaParamRef<jstring>& path,
+                              jlong creation,
+                              jlong expiration,
+                              jlong last_access,
+                              jboolean secure,
+                              jboolean httponly,
+                              jint same_site,
+                              jint priority,
+                              jint source_scheme,
+                              const base::android::JavaParamRef<jobject>& java_error_callback);
 
   // Passes a |cookie_manager_remote|, which this will use for CookieManager
   // APIs going forward. Only called in the Network Service path, with the
@@ -189,6 +211,19 @@ class CookieManager {
   }
 
  private:
+  friend class base::NoDestructor<CookieManager>;
+
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  CookieManager(int inst_num);
+  
+
+  // ALOHA https://app.clickup.com/t/2f2f49x
+  void AddCookieFromMigrationImpl(std::unique_ptr<net::CanonicalCookie> cookie, GURL source_url,
+                                base::RepeatingCallback<void(const std::string&)> error_callback);
+  void OnSetCanonicalCookieForMigration(
+    base::RepeatingCallback<void(const std::string&)> error_callback,
+    GURL source_url, net::CookieAccessResult result);
+
   // Returns the CookieStore, creating it if necessary. This must only be called
   // on the CookieStore TaskRunner.
   net::CookieStore* GetCookieStore();
@@ -317,6 +352,9 @@ class CookieManager {
 
   // The CookieManager shared with the NetworkContext.
   mojo::Remote<network::mojom::CookieManager> mojo_cookie_manager_;
+
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  const int inst_num_;
 };
 
 }  // namespace android_webview

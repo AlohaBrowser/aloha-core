@@ -1,0 +1,95 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+import("//build/compiled_action.gni")
+import("//tools/grit/grit_rule.gni")
+
+# Converts text-format filter lists into flatbuffers using a standalone
+# converter tool.
+template("make_preloaded_subscription") {
+  compiled_action(target_name) {
+    tool = "//components/adblock/core/converter:adblock_flatbuffer_converter"
+    inputs = [ invoker.input ]
+    outputs = [ invoker.output ]
+    args = [
+      rebase_path(invoker.input, root_build_dir),
+      invoker.url,
+      rebase_path(invoker.output, root_build_dir),
+    ]
+  }
+}
+
+# Note, url is *not* used to download the list during build time, only to
+# identify the subscription. Consider it metadata.
+make_preloaded_subscription("make_easylist") {
+  input = "//components/adblock/core/resources/easylist.txt.gz"
+  url = "https://easylist-downloads.adblockplus.org/easylist.txt"
+  output = "${target_gen_dir}/easylist.fb"
+}
+
+make_preloaded_subscription("make_exceptionrules") {
+  input = "//components/adblock/core/resources/exceptionrules.txt.gz"
+  url = "https://easylist-downloads.adblockplus.org/exceptionrules.txt"
+  output = "${target_gen_dir}/exceptionrules.fb"
+}
+
+make_preloaded_subscription("make_anticv") {
+  input = "//components/adblock/core/resources/anticv.txt.gz"
+  url = "https://easylist-downloads.adblockplus.org/abp-filters-anti-cv.txt"
+  output = "${target_gen_dir}/anticv.fb"
+}
+
+action("prepare_snippets") {
+  script = "//components/adblock/core/resources/snippets_deps.py"
+  if (is_debug) {
+    _snippet_lib = "//components/adblock/core/resources/snippets/dist/isolated-first-all.source.jst"
+  } else {
+    _snippet_lib = "//components/adblock/core/resources/snippets/dist/isolated-first-all.jst"
+  }
+  _snippet_deps =
+      "//components/adblock/core/resources/snippets/dist/dependencies.jst"
+  inputs = [
+    _snippet_deps,
+    _snippet_lib,
+  ]
+  outputs = [
+    "${target_gen_dir}/snippets.jst",
+    "${target_gen_dir}/snippets-xpath3-dep.jst",
+  ]
+  args = [
+    "--deps",
+    rebase_path(_snippet_deps, root_build_dir),
+    "--lib",
+    rebase_path(_snippet_lib, root_build_dir),
+    "--output",
+    rebase_path("${target_gen_dir}", root_build_dir),
+  ]
+}
+
+grit("adblock_resources") {
+  source = "adblock_resources.grd"
+  outputs = [
+    "grit/adblock_resources.h",
+    "adblock_resources.pak",
+  ]
+  deps = [
+    ":make_anticv",
+    ":make_easylist",
+    ":make_exceptionrules",
+    ":prepare_snippets",
+  ]
+  output_dir = "$root_gen_dir/components/adblock/core/resources"
+}

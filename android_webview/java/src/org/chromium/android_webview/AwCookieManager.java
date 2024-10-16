@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview;
 
 import android.os.Handler;
@@ -20,6 +22,13 @@ import org.chromium.base.library_loader.LibraryLoader;
 import java.util.Arrays;
 import java.util.List;
 
+// ALOHA https://app.clickup.com/t/2f2f49x
+import androidx.annotation.MainThread;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.File;
+import org.chromium83.chrome.browser.cookies.CanonicalCookie;
+
 /**
  * AwCookieManager manages cookies according to RFC2109 spec.
  *
@@ -30,8 +39,6 @@ import java.util.List;
  */
 @JNINamespace("android_webview")
 public final class AwCookieManager {
-    private final long mNativeCookieManager;
-
     /**
      * The class loader will take care of synchronization as each class
      * is only loaded once at the time it is needed. Meaning that the first time
@@ -46,11 +53,46 @@ public final class AwCookieManager {
         return DefaultCookieManagerHolder.sDefaultCookieManager;
     }
 
+    private long mNativeCookieManager;
+
+    // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+    private static AwCookieManager publicInstance;
+    private static AwCookieManager privateInstance;
+
+    // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+    public static AwCookieManager getPublicCookieManager() {
+        if (publicInstance == null) {
+            publicInstance = new AwCookieManager(AwCookieManagerJni.get().getPublicCookieManager());
+        }
+        return publicInstance;
+    }
+
+    // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+    public static AwCookieManager getPrivateCookieManager() {
+        if (privateInstance == null) {
+            privateInstance = new AwCookieManager(AwCookieManagerJni.get().getPrivateCookieManager());
+        }
+        return privateInstance;
+    }
+
+    // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+    public static AwCookieManager getActive() {
+        long active = AwCookieManagerJni.get().getActive();
+        if (active == getPublicCookieManager().mNativeCookieManager) {
+            return publicInstance;
+        }
+        if (active == getPrivateCookieManager().mNativeCookieManager) {
+            return privateInstance;
+        }
+        return null;
+    }
+
+    
     @VisibleForTesting
     public AwCookieManager() {
         this(AwCookieManagerJni.get().getDefaultCookieManager());
     }
-
+    // ALOHA - Cookies https://app.clickup.com/t/2dmr616
     public AwCookieManager(long nativeCookieManager) {
         LibraryLoader.getInstance().ensureInitialized();
         mNativeCookieManager = nativeCookieManager;
@@ -151,6 +193,8 @@ public final class AwCookieManager {
      * The value of the callback is true iff at least one cookie was removed.
      * @param callback A callback called after the cookies (if any) are removed.
      */
+    // ALOHA: Work is run asynchronously. https://app.clickup.com/t/2f2ezv7
+    @MainThread
     public void removeSessionCookies(Callback<Boolean> callback) {
         try {
             AwCookieManagerJni.get()
@@ -169,6 +213,8 @@ public final class AwCookieManager {
      * The value of the callback is true iff at least one cookie was removed.
      * @param callback A callback called after the cookies (if any) are removed.
      */
+    // ALOHA: Work is run asynchronously. https://app.clickup.com/t/2f2ezv7
+    @MainThread
     public void removeAllCookies(Callback<Boolean> callback) {
         try {
             AwCookieManagerJni.get()
@@ -216,6 +262,40 @@ public final class AwCookieManager {
                 .setAllowFileSchemeCookies(mNativeCookieManager, AwCookieManager.this, accept);
     }
 
+    // ALOHA https://app.clickup.com/t/2f2f49x
+    public static List<CanonicalCookie> readCookiesFrom83(File inputFile) throws Exception {
+        try {
+            FileInputStream inputStream = new FileInputStream(inputFile);
+            try {
+                return CanonicalCookie.readListFromStream(new DataInputStream(inputStream));
+            } finally {
+                inputStream.close();
+            }
+        } catch (Throwable ex) {
+            throw new Exception("Failed to read cookies for migration", ex);
+        }
+    }
+
+    // ALOHA https://app.clickup.com/t/2f2f49x
+    @MainThread
+    public void addCookiesFromMigration(List<CanonicalCookie> cookies, Callback<String> errorCallback) {
+        try {
+            ErrorCallback callback = new ErrorCallback(errorCallback);
+            for (CanonicalCookie cookie : cookies) {
+                try {
+                    AwCookieManagerJni.get().addCookieFromMigration(
+                            mNativeCookieManager, cookie.getName(), cookie.getValue(), cookie.getDomain(),
+                            cookie.getPath(), cookie.getCreationDate(), cookie.getExpirationDate(),
+                            cookie.getLastAccessDate(), cookie.isSecure(), cookie.isHttpOnly(),
+                            cookie.getSameSite(), cookie.getPriority(), cookie.sourceScheme(), callback);
+                } catch(Throwable ex) {
+                }
+            }
+        } catch (Throwable ex) {
+            errorCallback.onResult("Failed to migrate cookies by exception: " + ex);
+        }
+    }
+
     /**
      * Sets whether cookies for insecure schemes (http:) are permitted to include the "Secure"
      * directive.
@@ -258,7 +338,35 @@ public final class AwCookieManager {
         }
     }
 
-    /** A tuple to hold a URL and Value when setting a cookie. */
+    // ALOHA https://app.clickup.com/t/2f2f49x
+    static class ErrorCallback implements Callback<String> {
+        @Nullable
+        Callback<String> mCallback;
+        @Nullable
+        Handler mHandler;
+
+        public ErrorCallback(@Nullable Callback<String> callback) {
+            if (callback != null) {
+                if (Looper.myLooper() == null) {
+                    throw new IllegalStateException("new ErrorCallback should be called on "
+                            + "a thread with a running Looper.");
+                }
+                mCallback = callback;
+                mHandler = new Handler();
+            }
+        }
+
+        @Override
+        public void onResult(final String result) {
+            if (mHandler == null) return;
+            assert mCallback != null;
+            mHandler.post(mCallback.bind(result));
+        }
+    }
+
+    /**
+     * A tuple to hold a URL and Value when setting a cookie.
+     */
     private static class UrlValue {
         public String mUrl;
         public String mValue;
@@ -293,9 +401,18 @@ public final class AwCookieManager {
         return new UrlValue(url, value);
     }
 
+    // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+    public void makeActive() {
+        AwCookieManagerJni.get().makeActive(mNativeCookieManager);
+    }
+
     @NativeMethods
     interface Natives {
         long getDefaultCookieManager();
+        
+        // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+        long getPublicCookieManager();
+        long getPrivateCookieManager();
 
         void setShouldAcceptCookies(
                 long nativeCookieManager, AwCookieManager caller, boolean accept);
@@ -339,5 +456,15 @@ public final class AwCookieManager {
 
         void setWorkaroundHttpSecureCookiesForTesting(
                 long nativeCookieManager, AwCookieManager caller, boolean allow);
+
+        // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+        void makeActive(long nativeCookieManager);
+        long getActive();
+
+        // ALOHA https://app.clickup.com/t/2f2f49x
+        void addCookieFromMigration(
+                long nativeCookieManager, String name, String value, String domain, String path,
+                long creation, long expiration, long last_access, boolean secure, boolean httponly,
+                int same_site, int priority, int source_scheme, ErrorCallback errorCallback);
     }
 }

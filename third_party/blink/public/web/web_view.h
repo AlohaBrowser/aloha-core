@@ -28,6 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_PUBLIC_WEB_WEB_VIEW_H_
 #define THIRD_PARTY_BLINK_PUBLIC_WEB_WEB_VIEW_H_
 
@@ -147,6 +149,7 @@ class BLINK_EXPORT WebView {
           fenced_frame_mode,
       bool compositing_enabled,
       bool widgets_never_composited,
+      bool private_mode, // ALOHA https://app.clickup.com/t/2dmrud4
       WebView* opener,
       CrossVariantMojoAssociatedReceiver<mojom::PageBroadcastInterfaceBase>
           page_handle,
@@ -211,6 +214,9 @@ class BLINK_EXPORT WebView {
   // Marks the WebView as being opened by a DOM call. This is relevant
   // for whether window.close() may be called.
   virtual void SetOpenedByDOM() = 0;
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  virtual bool IsPrivateMode() const = 0;
 
   // Frames --------------------------------------------------------------
 

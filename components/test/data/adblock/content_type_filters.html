@@ -1,0 +1,69 @@
+<!--
+  This file is part of eyeo Chromium SDK,
+  Copyright (C) 2006-present eyeo GmbH
+
+  eyeo Chromium SDK is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 3 as
+  published by the Free Software Foundation.
+
+  eyeo Chromium SDK is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+  <h2>Static content</h2>
+  <div class="copy_me">
+    <span class="id_to_elem_hide">This element should be hidden by EH filter: example.com##.id_to_elem_hide</span>
+    <br/><br/>
+  </div>
+  <div class="copy_me">
+    <span class="id_to_elem_hide_emu">This element should be hidden by EHE filter: example.com#?#span:-abp-contains(id_to_elem_hide_emu)</span>
+    <br/><br/>
+  </div>
+  <div class="copy_me">
+    <span class="id_to_remove_by_eh">This element should be removed by EH filter: example.com##.id_to_remove_by_eh { remove: true; }</span>
+    <br/><br/>
+  </div>
+  <div class="copy_me">
+    <span class="id_to_remove_by_ehe">This element should be removed by EHE filter: example.com#?#span:-abp-contains(id_to_remove_by_ehe) { remove: true; }</span>
+    <br/><br/>
+  </div>
+  <div class="copy_me">
+    <span class="id_to_apply_style_by_eh" style="background-color: #FF0000!important;">This element should change background by EH filter: example.com##.id_to_apply_style_by_eh { background-color: #00FF00!important; }</span>
+    <br/><br/>
+  </div>
+  <div class="copy_me">
+    <span class="id_to_apply_style_by_ehe" style="background-color: #FF0000!important;">This element should change background by EHE filter: example.com#?#span:-abp-contains(id_to_apply_style_by_ehe) { background-color: #00FF00!important; }</span>
+    <br/><br/>
+  </div>
+  <br/><br/>
+  <h2>Element changes: visible => hidden => visible & CSS applied</h2>
+  <div>
+    <span id="changing_element" style="background-color: #FF0000!important;">This element should be hidden but then selector changes and inline CSS should be applied</span>
+    <br/><br/>
+  </div>
+  <br/><br/>
+  <h2 id="dynamic_content_header">Dynamic content</h2>
+  <script>
+    // Duplicate static content to test handling DOM mutations
+    function addDynamicContent() {
+      let dynamic_content_header = document.getElementById('dynamic_content_header');
+      let divs_to_append_dynamically = document.querySelectorAll(".copy_me");
+      for (let div_element of divs_to_append_dynamically) {
+        dynamic_content_header.parentNode.appendChild(div_element.cloneNode(true));
+      };
+      window.dynamic_content_loaded = true;
+    }
+    setTimeout(addDynamicContent, 500);
+  </script>
+</body>
+</html>

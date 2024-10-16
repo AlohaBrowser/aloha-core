@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 module android_webview.mojom;
 
 import "mojo/public/mojom/base/string16.mojom";
@@ -53,6 +55,11 @@ enum HitTestDataType{
 
   // Hit on an editable text input element. All other values will be empty.
   kEditText = 9,
+
+  // ALOHA https://app.clickup.com/t/2f2ey18
+  // Hit on a video element or it found nearby. |video_src| will contain
+  // the absolute valid link on the video source.
+  kVideo = 10,
 };
 
 // Holds all hit test data needed by public WebView APIs.
@@ -72,6 +79,10 @@ struct HitTestData {
 
   // The valid absolute url of the image source.
   url.mojom.Url img_src;
+
+  // ALOHA https://app.clickup.com/t/2f2ey18
+  // The valid absolute url of the video source.
+  url.mojom.Url video_src;
 };
 
 // Similar to blink::mojom::LocalMainFrame. This interface adds additional

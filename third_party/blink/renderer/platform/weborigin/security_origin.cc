@@ -26,6 +26,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/platform/weborigin/security_origin.h"
 
 #include <stdint.h>
@@ -459,6 +461,11 @@ void SecurityOrigin::GrantLoadLocalResources() {
 
 void SecurityOrigin::GrantUniversalAccess() {
   universal_access_ = true;
+}
+
+// ALOHA https://app.clickup.com/t/861m7r8nk
+void SecurityOrigin::RevokeUniversalAccess() {
+  universal_access_ = false;
 }
 
 void SecurityOrigin::GrantCrossAgentClusterAccess() {

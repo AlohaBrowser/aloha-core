@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/testing/fake_local_frame_host.h"
 
 #include "skia/public/mojom/skcolor.mojom-blink.h"
@@ -24,8 +26,10 @@ void FakeLocalFrameHost::Init(blink::AssociatedInterfaceProvider* provider) {
 
 void FakeLocalFrameHost::EnterFullscreen(
     mojom::blink::FullscreenOptionsPtr options,
+    mojom::blink::FullscreenVideoElementInfoPtr video_element, // ALOHA https://app.clickup.com/t/2hxwa9w
     EnterFullscreenCallback callback) {
-  std::move(callback).Run(true);
+  std::move(callback).Run(true,
+        false); // ALOHA https://app.clickup.com/t/2hxwa9w
 }
 
 void FakeLocalFrameHost::ExitFullscreen() {}

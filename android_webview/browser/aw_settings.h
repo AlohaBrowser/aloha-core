@@ -1,6 +1,10 @@
 // Copyright 2013 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #ifndef ANDROID_WEBVIEW_BROWSER_AW_SETTINGS_H_
 #define ANDROID_WEBVIEW_BROWSER_AW_SETTINGS_H_
@@ -90,6 +94,7 @@ class AwSettings : public content::WebContentsObserver {
   bool initial_page_scale_is_non_default() {
     return initial_page_scale_is_non_default_;
   }
+  bool IsContentFilteringEnabled();
 
   // Called from Java. Methods with "Locked" suffix require that the settings
   // access lock is held during their execution.
@@ -144,6 +149,9 @@ class AwSettings : public content::WebContentsObserver {
   void UpdateGeolocationEnabledLocked(
       JNIEnv* env,
       const base::android::JavaParamRef<jobject>& obj);
+  void UpdateContentFilteringEnabledLocked(
+      JNIEnv* env,
+      const base::android::JavaParamRef<jobject>& obj);
 
   void PopulateWebPreferences(blink::web_pref::WebPreferences* web_prefs);
   bool GetAllowFileAccess();
@@ -196,6 +204,7 @@ class AwSettings : public content::WebContentsObserver {
       SpeculativeLoadingAllowedFlags::SPECULATIVE_LOADING_DISABLED};
   bool bfcache_enabled_in_java_settings_{false};
   bool geolocation_enabled_{false};
+  bool content_filtering_enabled_{true};
 
   // Whether the settings that would affect the initial page scale is set to a
   // non-default value or not. This includes directly changing the initial page

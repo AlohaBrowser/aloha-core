@@ -1,0 +1,25 @@
+# If changed, go to https://sequencediagram.org/ to regenerate diagram
+title eyeo Chromium SDK initialization sequence
+
+participant ProfileImpl (UI thread)
+participant BrowserContextDependencyManager (UI thread)
+participant SubscriptionServiceFactory (UI thread)
+participant SubscriptionService (UI thread)
+participant SubscriptionPersistentStorage (ThreadPool)
+participant PreloadedSubscriptionProvider (UI Thread)
+
+ProfileImpl (UI thread)->BrowserContextDependencyManager (UI thread): CreateBrowserContextServices()
+note over BrowserContextDependencyManager (UI thread): Service created due to ServiceIsCreatedWithBrowserContext() = true
+BrowserContextDependencyManager (UI thread)->SubscriptionServiceFactory (UI thread): BuildServiceInstanceFor()
+SubscriptionServiceFactory (UI thread)->SubscriptionService (UI thread): create and Initialize()
+
+SubscriptionService (UI thread)->(2)SubscriptionPersistentStorage (ThreadPool): Load subscriptions
+SubscriptionPersistentStorage (ThreadPool)-->SubscriptionService (UI thread): StorageInitialized
+
+SubscriptionService (UI thread)->(2)SubscriptionPersistentStorage (ThreadPool): Remove duplicate subscriptions
+note over SubscriptionService (UI thread): Now other services such as ResourceClassificationRunner can\nstart using SubscriptionService for their resource filtering needs
+SubscriptionService (UI thread)-> PreloadedSubscriptionProvider (UI Thread): Update preloaded subscriptions from memory.
+
+SubscriptionService (UI thread): Install subscriptions from pref
+
+SubscriptionService (UI thread): Install custom filters from pref

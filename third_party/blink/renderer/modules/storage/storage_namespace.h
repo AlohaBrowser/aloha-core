@@ -23,6 +23,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_STORAGE_STORAGE_NAMESPACE_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_STORAGE_STORAGE_NAMESPACE_H_
 
@@ -77,7 +79,8 @@ class MODULES_EXPORT StorageNamespace final
   }
 
   // Creates a namespace for LocalStorage.
-  StorageNamespace(StorageController*);
+  StorageNamespace(StorageController*,
+                   bool private_mode); // ALOHA https://app.clickup.com/t/2dmrud4
   // Creates a namespace for SessionStorage.
   StorageNamespace(Page& page, StorageController*, const String& namespace_id);
 
@@ -128,6 +131,9 @@ class MODULES_EXPORT StorageNamespace final
   // Also forces all owned CachedStorageAreas to be reconnected.
   void ResetStorageAreaAndNamespaceConnections();
 
+  // ALOHA https://app.clickup.com/t/2hcppgv
+  void ClearAllAreas();
+
  private:
   void EnsureConnected();
 
@@ -145,6 +151,9 @@ class MODULES_EXPORT StorageNamespace final
           scoped_refptr<CachedStorageArea>,
           BlinkStorageKeyHashTraits>
       cached_areas_;
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  const bool private_mode_;
 };
 
 }  // namespace blink
