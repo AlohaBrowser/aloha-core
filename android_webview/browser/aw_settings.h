@@ -196,6 +196,7 @@ class AwSettings : public content::WebContentsObserver {
       SpeculativeLoadingAllowedFlags::SPECULATIVE_LOADING_DISABLED};
   bool bfcache_enabled_in_java_settings_{false};
   bool geolocation_enabled_{false};
+  bool content_filtering_enabled_{true};
 
   // Whether the settings that would affect the initial page scale is set to a
   // non-default value or not. This includes directly changing the initial page

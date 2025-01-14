@@ -1,6 +1,12 @@
 // Copyright 2017 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
 
 #include "android_webview/browser/aw_feature_list_creator.h"
 
@@ -32,6 +38,7 @@
 #include "base/strings/string_split.h"
 #include "base/time/time.h"
 #include "base/trace_event/trace_event.h"
+#include "components/adblock/core/common/adblock_prefs.h"
 #include "components/autofill/core/common/autofill_prefs.h"
 #include "components/embedder_support/android/metrics/android_metrics_service_client.h"
 #include "components/embedder_support/origin_trials/origin_trial_prefs.h"
@@ -172,6 +179,11 @@ std::unique_ptr<PrefService> AwFeatureListCreator::CreatePrefService() {
   AwMetricsServiceClient::RegisterMetricsPrefs(pref_registry.get());
   variations::VariationsService::RegisterPrefs(pref_registry.get());
 
+  // TODO(DPD-2251): Revert this once we migrate all prefs from local to user
+  // state in AwBrowserContext, meaning when all users are on version v119 or
+  // newer.
+  adblock::common::prefs::RegisterProfilePrefs(pref_registry.get());
+
   embedder_support::OriginTrialPrefs::RegisterPrefs(pref_registry.get());
   AwBrowserProcess::RegisterNetworkContextLocalStatePrefs(pref_registry.get());
   AwBrowserProcess::RegisterEnterpriseAuthenticationAppLinkPolicyPref(
@@ -185,6 +197,13 @@ std::unique_ptr<PrefService> AwFeatureListCreator::CreatePrefService() {
   PrefNameSet persistent_prefs;
   for (const char* const pref_name : kPersistentPrefsAllowlist)
     persistent_prefs.insert(pref_name);
+
+  // TODO(DPD-2251): Revert this once we migrate all prefs from local to user
+  // state in AwBrowserContext, meaning when all users are on version v119 or
+  // newer.
+  for (auto& pref_name : adblock::common::prefs::GetPrefs()) {
+    persistent_prefs.insert(pref_name.data());
+  }
 
   persistent_prefs.insert(std::string(metrics::prefs::kMetricsLastSeenPrefix) +
                           kBrowserMetricsName);

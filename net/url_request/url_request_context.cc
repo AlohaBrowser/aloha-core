@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "net/url_request/url_request_context.h"
 
 #include <inttypes.h>
@@ -141,7 +143,23 @@ std::unique_ptr<URLRequest> URLRequestContext::CreateRequest(
     const std::optional<net::NetLogSource> net_log_source) const {
   return std::make_unique<URLRequest>(
       base::PassKey<URLRequestContext>(), url, priority, delegate, this,
-      traffic_annotation, is_for_websockets, net_log_source);
+      traffic_annotation, is_for_websockets, net_log_source,
+      send_dnt_header_); // ALOHA https://app.clickup.com/t/2f29z75
+}
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+CookieStore* URLRequestContext::cookie_store(int inst_num) const {
+  return cookie_stores_[inst_num >= 0? inst_num: active_cookie_store_].get();
+}
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+void URLRequestContext::set_cookie_store(int inst_num, std::unique_ptr<CookieStore> cookie_store) {
+  cookie_stores_[inst_num] = std::move(cookie_store);
+}
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+void URLRequestContext::set_active_cookie_store(int inst_num) {
+  active_cookie_store_ = inst_num;
 }
 
 void URLRequestContext::AssertNoURLRequests() const {

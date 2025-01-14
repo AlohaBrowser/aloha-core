@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/cookie_manager.h"
 
 #include <stdint.h>
@@ -56,9 +58,15 @@
 #include "services/network/public/mojom/cookie_manager.mojom.h"
 #include "url/url_constants.h"
 
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+#include "services/network/public/mojom/network_context.mojom.h"
+#include "content/browser/storage_partition_impl.h"
+#include "aloha/src/native/aloha_consts.h"
+
 // Must come after all headers that specialize FromJniType() / ToJniType().
 #include "android_webview/browser_jni_headers/AwCookieManager_jni.h"
 
+using namespace std::literals::string_literals;
 using base::WaitableEvent;
 using base::android::ConvertJavaStringToUTF16;
 using base::android::ConvertJavaStringToUTF8;
@@ -180,12 +188,148 @@ static base::OnceCallback<void(int)> IntCallbackAdapter(base::OnceClosure f) {
 // Are cookies allowed for file:// URLs by default?
 const bool kDefaultFileSchemeAllowed = false;
 
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+static int active_cookie_manager_num = -1;
+
 }  // namespace
+
+CookieManager::CookieManager(AwBrowserContext* const parent_context)
+    : parent_context_(parent_context),
+      allow_file_scheme_cookies_(kDefaultFileSchemeAllowed),
+      cookie_store_created_(false),
+      workaround_http_secure_cookies_(
+          base::android::BuildInfo::GetInstance()->target_sdk_version() <
+          base::android::SDK_VERSION_R),
+      cookie_store_client_thread_("CookieMonsterClient"),
+      cookie_store_backend_thread_("CookieMonsterBackend"),
+      setting_new_mojo_cookie_manager_(false),
+      inst_num_(0) {
+  cookie_store_client_thread_.Start();
+  cookie_store_backend_thread_.Start();
+  cookie_store_task_runner_ = cookie_store_client_thread_.task_runner();
+  cookie_store_path_ = GetContextPath().Append(FILE_PATH_LITERAL("Cookies"));
+  if (!parent_context_) {
+    // Default profile
+    MigrateCookieStorePath();
+  }
+}
 
 // static
 CookieManager* CookieManager::GetDefaultInstance() {
   static base::NoDestructor<CookieManager> instance(nullptr);
   return instance.get();
+}
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+CookieManager* CookieManager::GetInstance(int inst_num) {
+  static CookieManager *instances[aloha::kCookieManagersCount] = {nullptr};
+  if (instances[0] == nullptr) {
+    for(size_t i = 0; i < std::size(instances); i++) {
+      instances[i] = new CookieManager(i);
+    }
+  }
+  return instances[inst_num];
+}
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+void CookieManager::MakeActive(JNIEnv* env) {
+  auto* net_ctx = AwBrowserContext::GetDefault()->GetDefaultStoragePartition()->GetNetworkContext();
+  if (net_ctx != nullptr) {
+    net_ctx->SetActiveCookieManager(inst_num_);
+    active_cookie_manager_num = inst_num_;
+  }
+}
+
+// ALOHA https://app.clickup.com/t/2f2f49x
+void CookieManager::AddCookieFromMigration(
+    JNIEnv* env,
+    const JavaParamRef<jstring>& name,
+    const JavaParamRef<jstring>& value,
+    const JavaParamRef<jstring>& domain,
+    const JavaParamRef<jstring>& path,
+    jlong creation,
+    jlong expiration,
+    jlong last_access,
+    jboolean secure,
+    jboolean httponly,
+    jint same_site,
+    jint priority,
+    jint source_scheme,
+    const JavaParamRef<jobject>& java_error_callback) {
+
+  DCHECK(java_error_callback != nullptr);
+  base::RepeatingCallback<void(const std::string&)> error_callback =
+      base::BindRepeating(&base::android::RunStringCallbackAndroid,
+                          ScopedJavaGlobalRef<jobject>(java_error_callback));
+
+  // ALOHA: Copy-paste from //chrome/browser/android/cookies/cookies_fetcher_util.cc
+
+  std::string domain_str(base::android::ConvertJavaStringToUTF8(env, domain));
+  std::string path_str(base::android::ConvertJavaStringToUTF8(env, path));
+  auto creation_date = base::Time::FromDeltaSinceWindowsEpoch(base::Microseconds(creation));
+  auto expiration_date = base::Time::FromDeltaSinceWindowsEpoch(base::Microseconds(expiration));
+
+  auto source_url = net::cookie_util::CookieDomainAndPathToURL(
+      domain_str, path_str,
+      static_cast<net::CookieSourceScheme>(source_scheme));
+
+  std::unique_ptr<net::CanonicalCookie> cookie =
+      net::CanonicalCookie::FromStorage(
+          base::android::ConvertJavaStringToUTF8(env, name),
+          base::android::ConvertJavaStringToUTF8(env, value), domain_str,
+          path_str,
+          creation_date,
+          net::CanonicalCookie::ValidateAndAdjustExpiryDate(expiration_date, creation_date, net::CookieSourceScheme::kNonSecure), // ALOHA https://app.clickup.com/t/2ttwk4z
+          base::Time::FromDeltaSinceWindowsEpoch(
+              base::Microseconds(last_access)),
+          /*last_update=*/base::Time::Now(),
+          secure, httponly, static_cast<net::CookieSameSite>(same_site),
+          static_cast<net::CookiePriority>(priority), absl::nullopt,
+          static_cast<net::CookieSourceScheme>(source_scheme), 
+          url::PORT_UNSPECIFIED, net::CookieSourceType::kOther); // ALOHA https://app.clickup.com/t/86eqcg80j
+  // FromStorage() uses a less strict version of IsCanonical(), we need to check
+  // the stricter version as well here. This is safe because this function is
+  // only used for incognito cookies which don't survive Chrome updates and
+  // therefore should never be the "older" less strict variety.
+  if (!cookie || !cookie->IsCanonical()) {
+    error_callback.Run("Failed to construct cookie: "s
+        + (cookie == nullptr ? "null" : "non-canonical")
+        + ". Url='" + source_url.possibly_invalid_spec() + "'.");
+    return;
+  }
+
+  ExecCookieTask(base::BindOnce(
+    &CookieManager::AddCookieFromMigrationImpl, base::Unretained(this), std::move(cookie),
+    std::move(source_url), std::move(error_callback)));
+}
+
+// ALOHA https://app.clickup.com/t/2f2f49x
+void CookieManager::AddCookieFromMigrationImpl(
+  std::unique_ptr<net::CanonicalCookie> cookie, GURL source_url,
+  base::RepeatingCallback<void(const std::string&)> error_callback) {
+
+  network::mojom::CookieManager::SetCanonicalCookieCallback callback =
+    base::BindOnce(&CookieManager::OnSetCanonicalCookieForMigration, base::Unretained(this),
+      std::move(error_callback), source_url);
+
+  if (auto* mojo_manager = GetMojoCookieManager()) {
+    mojo_manager->SetCanonicalCookie(*cookie, source_url,
+      net::CookieOptions::MakeAllInclusive(), std::move(callback));
+  } else {
+    GetCookieStore()->SetCanonicalCookieAsync(std::move(cookie), source_url,
+      net::CookieOptions::MakeAllInclusive(), std::move(callback));
+  }
+}
+
+// ALOHA https://app.clickup.com/t/2f2f49x
+void CookieManager::OnSetCanonicalCookieForMigration(
+  base::RepeatingCallback<void(const std::string&)> error_callback,
+  GURL source_url, net::CookieAccessResult result) {
+
+  if (!result.status.IsInclude()) {
+    error_callback.Run("Failed to set cookie for migration: status='" + result.status.GetDebugString()
+      + "' url='" + source_url.possibly_invalid_spec() + "'.");
+  }
 }
 
 namespace {
@@ -199,24 +343,28 @@ base::FilePath GetPathInAppDirectory(std::string path) {
 }
 }  // namespace
 
-CookieManager::CookieManager(AwBrowserContext* const parent_context)
-    : parent_context_(parent_context),
-      allow_file_scheme_cookies_(kDefaultFileSchemeAllowed),
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+CookieManager::CookieManager(int inst_num)
+    : allow_file_scheme_cookies_(kDefaultFileSchemeAllowed),
       cookie_store_created_(false),
       workaround_http_secure_cookies_(
           base::android::BuildInfo::GetInstance()->target_sdk_version() <
           base::android::SDK_VERSION_R),
-      cookie_store_client_thread_("CookieMonsterClient"),
-      cookie_store_backend_thread_("CookieMonsterBackend"),
-      setting_new_mojo_cookie_manager_(false) {
+      // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+      cookie_store_client_thread_("CookieMonsterClient"s + std::to_string(inst_num)),
+      cookie_store_backend_thread_("CookieMonsterBackendPrivate"s + std::to_string(inst_num)),
+      setting_new_mojo_cookie_manager_(false),
+      inst_num_(inst_num) {
   cookie_store_client_thread_.Start();
   cookie_store_backend_thread_.Start();
   cookie_store_task_runner_ = cookie_store_client_thread_.task_runner();
-  cookie_store_path_ = GetContextPath().Append(FILE_PATH_LITERAL("Cookies"));
-  if (!parent_context_) {
-    // Default profile
-    MigrateCookieStorePath();
-  }
+
+  // TODO(amalova): initialize cookie_store_path_ for non-default profile
+  // Do not migrate cookies for non-default profile.
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  cookie_store_path_ = GetPathInAppDirectory("bromium/Cookies")
+                            .AddExtension(std::to_string(inst_num));
+  MigrateCookieStorePath();
 }
 
 CookieManager::~CookieManager() = default;
@@ -227,7 +375,9 @@ void CookieManager::MigrateCookieStorePath() {
       GetPathInAppDirectory("Cookies-journal");
   base::FilePath new_cookie_journal_path =
       GetPathInAppDirectory("Default/Cookies-journal");
-
+#if EXPENSIVE_DCHECKS_ARE_ON() // ALOHA Allow for DCHECK build
+  base::PermanentThreadAllowance::AllowBlocking();
+#endif  // EXPENSIVE_DCHECKS_ARE_ON()
   if (base::PathExists(old_cookie_store_path)) {
     base::CreateDirectory(cookie_store_path_.DirName());
     base::Move(old_cookie_store_path, cookie_store_path_);
@@ -814,6 +964,27 @@ base::FilePath CookieManager::GetContextPath() const {
     return AwBrowserContext::BuildStoragePath(
         base::FilePath(AwBrowserContextStore::kDefaultContextPath));
   }
+}
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+static jlong JNI_AwCookieManager_GetPublicCookieManager(JNIEnv* env) {
+  return reinterpret_cast<intptr_t>(CookieManager::GetInstance(aloha::kNormalCookieManager));
+}
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+static jlong JNI_AwCookieManager_GetPrivateCookieManager(JNIEnv* env) {
+  return reinterpret_cast<intptr_t>(CookieManager::GetInstance(aloha::kPrivateCookieManager));
+}
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+static jlong JNI_AwCookieManager_GetActive(JNIEnv* env) {
+  if (active_cookie_manager_num == aloha::kNormalCookieManager) {
+    return JNI_AwCookieManager_GetPublicCookieManager(env);
+  }
+  if (active_cookie_manager_num == aloha::kPrivateCookieManager) {
+    return JNI_AwCookieManager_GetPrivateCookieManager(env);
+  }
+  return 0;
 }
 
 }  // namespace android_webview

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.content.browser.selection;
 
 import android.annotation.SuppressLint;
@@ -35,6 +37,7 @@ import java.util.List;
 
 /** Controls Smart Text selection. Talks to the Android TextClassificationManager API. */
 public class SmartSelectionProvider {
+    public static boolean isEnabled = true; // ALOHA https://app.clickup.com/t/2e5x8e2
     private static final String TAG = "SmartSelProvider";
 
     @IntDef({RequestType.CLASSIFY, RequestType.SUGGEST_AND_CLASSIFY})
@@ -196,6 +199,10 @@ public class SmartSelectionProvider {
 
         @Override
         protected SelectionClient.Result doInBackground() {
+            // ALOHA https://app.clickup.com/t/2e5x8e2
+            if (!isEnabled) {
+                return new SelectionClient.Result();
+            }
             int start = mOriginalStart;
             int end = mOriginalEnd;
 

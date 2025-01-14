@@ -383,7 +383,7 @@ bool HTMLScriptElement::supports(const AtomicString& type) {
     return true;
 
   if (type == script_type_names::kSpeculationrules) {
-    return true;
+    return false; // ALOHA https://app.clickup.com/t/86eq7f03n
   }
   if (type == script_type_names::kWebbundle)
     return true;

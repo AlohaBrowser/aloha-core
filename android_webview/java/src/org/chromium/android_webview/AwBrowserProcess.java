@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview;
 
 import android.content.ComponentName;
@@ -84,7 +86,7 @@ import java.util.concurrent.TimeUnit;
 public final class AwBrowserProcess {
     private static final String TAG = "AwBrowserProcess";
 
-    private static final String WEBVIEW_DIR_BASENAME = "webview";
+    private static final String WEBVIEW_DIR_BASENAME = "br_webview";
 
     private static final int MINUTES_PER_DAY =
             (int) TimeUnit.SECONDS.toMinutes(TimeUtils.SECONDS_PER_DAY);

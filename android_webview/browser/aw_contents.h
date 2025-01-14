@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef ANDROID_WEBVIEW_BROWSER_AW_CONTENTS_H_
 #define ANDROID_WEBVIEW_BROWSER_AW_CONTENTS_H_
 
@@ -309,6 +311,20 @@ class AwContents : public FindHelper::Listener,
   void RendererResponsive(content::RenderProcessHost* render_process_host);
 
   bool UseLegacyGeolocationPermissionAPI();
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  void SetPrivateMode(JNIEnv* env, jboolean enable);
+  
+  // ALOHA https://app.clickup.com/t/86epcdndk
+  void SetAdblockEnabled(JNIEnv* env, jboolean enable);
+
+  // ALOHA https://app.clickup.com/t/2u59j0h
+  void RequestDownloadUrl(JNIEnv* env, const base::android::JavaParamRef<jstring>& j_url);
+
+  // ALOHA https://app.clickup.com/t/861mawmth
+  void MediaPlayerPlay(JNIEnv* env, int cid, int rid, int did);
+
+  // ALOHA https://app.clickup.com/t/861mawmth
+  void MediaPlayerPause(JNIEnv* env, int cid, int rid, int did);
 
   // content::WebContentsObserver overrides
   void PrimaryPageChanged(content::Page& page) override;

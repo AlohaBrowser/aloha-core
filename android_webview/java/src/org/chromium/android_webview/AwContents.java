@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview;
 
 import android.annotation.SuppressLint;
@@ -167,6 +169,8 @@ import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.alohamobile.bromium.BromiumClient;
+
 /**
  * Exposes the native AwContents class, and together these classes wrap the WebContents and Browser
  * components that are required to implement Android WebView API. This is the primary entry point
@@ -283,13 +287,18 @@ public class AwContents implements SmartClipProvider {
      */
     public static class HitTestData {
         // Used in getHitTestResult.
-        public int hitTestResultType;
+        // @deprecated ALOHA https://app.clickup.com/t/2f2ey18: Ambiguous value! Use values of href, anchorText, imgSrc and videoSrc.
+        @Deprecated public int hitTestResultType;
+
         public String hitTestResultExtraData;
 
         // Used in requestFocusNodeHref (all three) and requestImageRef (only imgSrc).
         public String href;
         public String anchorText;
         public String imgSrc;
+
+        // ALOHA https://app.clickup.com/t/2f2ey18
+        public String videoSrc;
     }
 
     /**
@@ -569,6 +578,16 @@ public class AwContents implements SmartClipProvider {
     // Permissions are requested on a drop event, and are released when another drag starts
     // (drag-started event) or when the current page navigates to a new URL.
     private DragAndDropPermissions mDragAndDropPermissions;
+
+    private String mAlohaLocale; // ALOHA https://app.clickup.com/t/86eq98abz
+    private String mAlohaLocaleList; // ALOHA https://app.clickup.com/t/86eq98abz
+
+    // ALOHA https://app.clickup.com/t/86eq98abz
+    public void setLocale(String locale, String localeList) { 
+        mAlohaLocale = locale;
+        mAlohaLocaleList = localeList;
+        updateDefaultLocale();
+    }
 
     private static class WebContentsInternalsHolder implements WebContents.InternalsHolder {
         private final WeakReference<AwContents> mAwContentsRef;
@@ -1408,6 +1427,7 @@ public class AwContents implements SmartClipProvider {
             mZoomControls = new AwZoomControls(this);
             mBackgroundThreadClient = new BackgroundThreadClientImpl();
             mIoThreadClient = new IoThreadClientImpl();
+            mBrowserContext.setServiceWorkerIoThreadClient(mIoThreadClient); // ALOHA https://app.clickup.com/t/86eqdq4cm
             mInterceptNavigationDelegate = new InterceptNavigationDelegateImpl();
             mDisplayObserver = new AwDisplayAndroidObserver();
             mUpdateVisibilityRunnable = () -> updateWebContentsVisibility();
@@ -1522,6 +1542,13 @@ public class AwContents implements SmartClipProvider {
             throw new IllegalStateException("Cannot get profile for destroyed WebView.");
         }
         mBrowserContextAccessed = true;
+        return mBrowserContext;
+    }
+
+    // ALOHA https://app.clickup.com/t/86eqwh1hb will delete the method when update new Сhromium
+    // Method doesn't check AwContents impl state and doesn't throw any ecxeption
+    @NonNull
+    public AwBrowserContext getBrowserContextInternal() {
         return mBrowserContext;
     }
 
@@ -1857,7 +1884,7 @@ public class AwContents implements SmartClipProvider {
         }
         return wrapper;
     }
-
+    
     /**
      * Set current locales to native. Propagates this information to the Accept-Language header for
      * subsequent requests. Note that this will affect <b>all</b> AwContents, not just this
@@ -1865,6 +1892,17 @@ public class AwContents implements SmartClipProvider {
      */
     @VisibleForTesting
     public void updateDefaultLocale() {
+        // ALOHA https://app.clickup.com/t/86eq98abz
+        if (mAlohaLocale != null && !mAlohaLocale.isEmpty() 
+            && mAlohaLocaleList != null && !mAlohaLocaleList.isEmpty()) {
+            
+            sCurrentLocales = mAlohaLocaleList;
+            AwContentsJni.get()
+                    .updateDefaultLocale(mAlohaLocale, mAlohaLocaleList);
+            mSettings.updateAcceptLanguages();
+            return;
+        }
+
         String locales = LocaleUtils.getDefaultLocaleListString();
         if (!sCurrentLocales.equals(locales)) {
             sCurrentLocales = locales;
@@ -2383,6 +2421,14 @@ public class AwContents implements SmartClipProvider {
                                 mNativeAwContents,
                                 mScrollOffsetManager.computeHorizontalScrollRange(),
                                 mScrollOffsetManager.computeVerticalScrollRange()));
+    }
+
+    // ALOHA https://app.clickup.com/t/2f2f2ke
+    // Do not change original capturePicture as it used in several places
+    public Picture capturePicture(int w, int h) {
+        if (TRACE) Log.i(TAG, "%s capturePicture", this);
+        if (isDestroyed(WARN)) return null;
+        return new AwPicture(AwContentsJni.get().capturePicture(mNativeAwContents, w, h));
     }
 
     public void clearView() {
@@ -3470,6 +3516,20 @@ public class AwContents implements SmartClipProvider {
         mWebContents.evaluateJavaScriptForTests(script, jsCallback);
     }
 
+    // ALOHA https://app.clickup.com/t/861m7r8nk
+    public void evaluateJavaScriptUnchecked(String script, final Callback<String> callback) {
+        if (TRACE) Log.i(TAG, "%s evaluateJavascript=%s", this, script);
+        if (isDestroyed(WARN)) return;
+        JavaScriptCallback jsCallback = null;
+        if (callback != null) {
+            jsCallback = jsonResult -> {
+                AwThreadUtils.postToCurrentLooper(callback.bind(jsonResult));
+            };
+        }
+
+        mWebContents.evaluateJavaScriptUnchecked(script, jsCallback);
+    }
+
     /**
      * Send a MessageEvent to main frame.
      *
@@ -4077,7 +4137,37 @@ public class AwContents implements SmartClipProvider {
         return mDisplayModeController.getDisplayMode();
     }
 
-    // --------------------------------------------------------------------------------------------
+    /**
+     * ALOHA https://app.clickup.com/t/2dmrud4
+     * Toggle aloha private mode. Currently affects only the local storage.
+     * Cookies toggled by AwCookieManager.setActiveCookieManager.
+     * @param enable 'true' for turn on private mode.
+     */
+    public void setPrivateMode(boolean enable) {
+        AwContentsJni.get().setPrivateMode(mNativeAwContents, enable);
+    }
+
+    // ALOHA https://app.clickup.com/t/86epcdndk
+    public void setAdblockEnabled(boolean enable) {
+        AwContentsJni.get().setAdblockEnabled(mNativeAwContents, enable);
+    }
+
+    /**
+     * ALOHA https://app.clickup.com/t/2u59j0h
+     * Request start download by |url|. Used for download images from browser cache.
+     * If file size less cache size, then BromiumClient.onDownloadFinish() will be called
+     * when download completes successfully, else AwContents.onDownloadStart() will be called.
+     * If file not in cache, then download will be done via chromium downloader.
+     * If current page or |url| is in domains blacklist, AwContents.onDownloadStart()
+     * will be called (see https://app.clickup.com/t/2u59j0h?comment=1465391946).
+     * In case of error, AwContentsClient.onReceivedError() will be called.
+     */
+    public void requestDownloadUrl(String url) {
+        AwContentsJni.get().requestDownloadUrl(mNativeAwContents, url);
+        mContentsClient.onRequestedDownloadUrl(url);
+    }
+
+    //--------------------------------------------------------------------------------------------
     //  Methods called from native via JNI
     // --------------------------------------------------------------------------------------------
 
@@ -4217,12 +4307,15 @@ public class AwContents implements SmartClipProvider {
     // Called as a result of AwContentsJni.get().updateLastHitTestData.
     @CalledByNative
     private void updateHitTestData(
-            int type, String extra, String href, String anchorText, String imgSrc) {
+            int type, String extra, String href, String anchorText, String imgSrc, String videoSrc) {
         mPossiblyStaleHitTestData.hitTestResultType = type;
         mPossiblyStaleHitTestData.hitTestResultExtraData = extra;
         mPossiblyStaleHitTestData.href = href;
         mPossiblyStaleHitTestData.anchorText = anchorText;
         mPossiblyStaleHitTestData.imgSrc = imgSrc;
+
+        // ALOHA https://app.clickup.com/t/2f2ey18
+        mPossiblyStaleHitTestData.videoSrc = videoSrc;
     }
 
     @CalledByNative
@@ -4484,6 +4577,16 @@ public class AwContents implements SmartClipProvider {
             }
         }
         return false;
+    }
+
+    // ALOHA https://app.clickup.com/t/861mawmth
+    public void mediaPlayerPlayImpl(BromiumClient.MediaPlayerId playerId) {
+        AwContentsJni.get().mediaPlayerPlay(mNativeAwContents, playerId.cid, playerId.rid, playerId.did);
+    }
+
+    // ALOHA https://app.clickup.com/t/861mawmth
+    public void mediaPlayerPauseImpl(BromiumClient.MediaPlayerId playerId) {
+        AwContentsJni.get().mediaPlayerPause(mNativeAwContents, playerId.cid, playerId.rid, playerId.did);
     }
 
     @VisibleForTesting
@@ -5196,5 +5299,20 @@ public class AwContents implements SmartClipProvider {
         void flushBackForwardCache(long nativeAwContents, int reason);
 
         void cancelAllPrerendering(long nativeAwContents);
+        
+        // ALOHA https://app.clickup.com/t/2dmrud4
+        void setPrivateMode(long nativeAwContents, boolean enable);
+
+        // ALOHA
+        void setAdblockEnabled(long nativeAwContents, boolean enable);
+
+        // ALOHA https://app.clickup.com/t/2u59j0h
+        void requestDownloadUrl(long nativeAwContents, String url);
+
+        // ALOHA https://app.clickup.com/t/861mawmth
+        void mediaPlayerPlay(long nativeAwContents, int cid, int rid, int did);
+
+        // ALOHA https://app.clickup.com/t/861mawmth
+        void mediaPlayerPause(long nativeAwContents, int cid, int rid, int did);
     }
 }

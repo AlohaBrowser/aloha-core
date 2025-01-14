@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "net/url_request/url_request_context_builder.h"
 
 #include <memory>
@@ -68,6 +70,8 @@
 #include "net/device_bound_sessions/session_service.h"
 #include "net/device_bound_sessions/session_store.h"
 #endif  // BUILDFLAG(ENABLE_DEVICE_BOUND_SESSIONS)
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+#include "aloha/src/native/aloha_consts.h"
 
 namespace net {
 
@@ -189,10 +193,16 @@ void URLRequestContextBuilder::set_enterprise_reporting_endpoints(
 }
 #endif  // BUILDFLAG(ENABLE_REPORTING)
 
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
 void URLRequestContextBuilder::SetCookieStore(
+    int inst_num,
     std::unique_ptr<CookieStore> cookie_store) {
   cookie_store_set_by_client_ = true;
-  cookie_store_ = std::move(cookie_store);
+  cookie_stores_[inst_num] = std::move(cookie_store);
+}
+
+void URLRequestContextBuilder::SetCookieStore(std::unique_ptr<CookieStore> cookie_store) {
+  SetCookieStore(aloha::kDefaultCookieManager, std::move(cookie_store));
 }
 
 void URLRequestContextBuilder::SetProtocolHandler(
@@ -396,12 +406,16 @@ std::unique_ptr<URLRequestContext> URLRequestContextBuilder::Build() {
         HttpAuthHandlerRegistryFactory::CreateDefault());
   }
 
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
   if (cookie_store_set_by_client_) {
-    context->set_cookie_store(std::move(cookie_store_));
+    for(size_t i = 0; i < std::size(cookie_stores_); i++) {
+      context->set_cookie_store(i, std::move(cookie_stores_[i]));
+    }
   } else {
     auto cookie_store = std::make_unique<CookieMonster>(nullptr /* store */,
                                                         context->net_log());
-    context->set_cookie_store(std::move(cookie_store));
+    context->set_cookie_store(aloha::kDefaultCookieManager,
+                              std::move(cookie_stores_[aloha::kDefaultCookieManager]));
   }
 
   context->set_transport_security_state(

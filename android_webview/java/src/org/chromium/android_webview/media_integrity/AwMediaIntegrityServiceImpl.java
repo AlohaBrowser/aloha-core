@@ -163,8 +163,11 @@ public class AwMediaIntegrityServiceImpl implements WebViewMediaIntegrityService
             callback.call(WebViewMediaIntegrityErrorCode.INTERNAL_ERROR);
             return;
         }
-        final AwBrowserContext awBrowserContext = awContents.getBrowserContext();
-
+        final AwBrowserContext awBrowserContext = awContents.getBrowserContextInternal(); // ALOHA https://app.clickup.com/t/86eqwh1hb Now use noexcept method, 
+                                                                                          // old method could throw unhandled exception when AwContnents is destroyed,
+                                                                                          // but "This check is not required for internal code." https://source.chromium.org/chromium/chromium/src/+/8078f05c56cd02e19b4aa4c9100f73ddf2d737a9
+                                                                                          // Our fix is like Chromium, they'll fix it in M133
+                                                                                         
         final MediaIntegrityProviderKey key =
                 new MediaIntegrityProviderKey(
                         sourceOrigin, topLevelOrigin, apiStatus, cloudProjectNumber);

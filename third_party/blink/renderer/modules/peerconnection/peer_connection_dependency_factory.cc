@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/modules/peerconnection/peer_connection_dependency_factory.h"
 
 #include <stddef.h>
@@ -114,13 +116,7 @@ enum WebRTCIPHandlingPolicy {
 };
 
 WebRTCIPHandlingPolicy GetWebRTCIPHandlingPolicy(const String& preference) {
-  if (preference == kWebRTCIPHandlingDefaultPublicAndPrivateInterfaces)
-    return kDefaultPublicAndPrivateInterfaces;
-  if (preference == kWebRTCIPHandlingDefaultPublicInterfaceOnly)
-    return kDefaultPublicInterfaceOnly;
-  if (preference == kWebRTCIPHandlingDisableNonProxiedUdp)
-    return kDisableNonProxiedUdp;
-  return kDefault;
+  return kDisableNonProxiedUdp; // ALOHA https://app.clickup.com/t/86ep381z0 FOR DISABLE WebRTC IP LEAKING MUST RETURN JUST kDisableNonProxiedUdp
 }
 
 bool IsValidPortRange(uint16_t min_port, uint16_t max_port) {

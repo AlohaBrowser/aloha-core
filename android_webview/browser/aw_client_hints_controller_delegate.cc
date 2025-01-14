@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/aw_client_hints_controller_delegate.h"
 
 #include "android_webview/browser/aw_browser_process.h"
@@ -116,22 +118,8 @@ void AwClientHintsControllerDelegate::GetAllowedClientHintsFromSource(
 bool AwClientHintsControllerDelegate::IsJavaScriptAllowed(
     const GURL& url,
     content::RenderFrameHost* parent_rfh) {
-  // Javascript can only be disabled per-frame, so if we're pre-loading
-  // and/or there is no frame Javascript is considered enabled.
-  if (!parent_rfh) {
-    return true;
-  }
-  content::WebContents* web_contents =
-      content::WebContents::FromRenderFrameHost(
-          parent_rfh->GetOutermostMainFrame());
-  if (!web_contents) {
-    return true;
-  }
-  AwContents* aw_contents = AwContents::FromWebContents(web_contents);
-  if (!aw_contents) {
-    return true;
-  }
-  return aw_contents->IsJavaScriptAllowed();
+  // ALOHA https://app.clickup.com/t/862k2mzza
+  return true;
 }
 
 blink::UserAgentMetadata

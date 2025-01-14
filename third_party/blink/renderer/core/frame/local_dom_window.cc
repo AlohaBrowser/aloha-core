@@ -24,6 +24,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/frame/local_dom_window.h"
 
 #include <memory>
@@ -199,6 +201,20 @@ int RequestAnimationFrame(Document* document,
 }
 
 }  // namespace
+// ALOHA https://app.clickup.com/t/861m7r8nk
+std::atomic<bool> LocalDOMWindow::allow_unchecked_js_ = false;
+
+bool LocalDOMWindow::IsUncheckedJSAllowed() const {
+  return allow_unchecked_js_;
+}
+
+void LocalDOMWindow::AllowUncheckedJS() {
+  allow_unchecked_js_ = true;
+}
+
+void LocalDOMWindow::DenyUncheckedJS() {
+  allow_unchecked_js_ = false;
+}
 
 class LocalDOMWindow::NetworkStateObserver final
     : public GarbageCollected<LocalDOMWindow::NetworkStateObserver>,
@@ -2211,7 +2227,10 @@ DOMWindow* LocalDOMWindow::open(v8::Isolate* isolate,
   // side and add some defense in depth, we'll check against the entry realm
   // as well here.
   if (!BindingSecurity::ShouldAllowAccessTo(entered_window, this)) {
-    NOTREACHED();
+    // Trigger DCHECK() failure, while gracefully failing on release builds.
+    // NOTREACHED_IN_MIGRATION(); // ALOHA https://app.clickup.com/t/86eqcf31g crashed application
+    
+    return nullptr;
   }
 
   UseCounter::Count(*entered_window, WebFeature::kDOMWindowOpen);

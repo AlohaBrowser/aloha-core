@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef ANDROID_WEBVIEW_BROWSER_AW_BROWSER_CONTEXT_H_
 #define ANDROID_WEBVIEW_BROWSER_AW_BROWSER_CONTEXT_H_
 
@@ -105,8 +107,12 @@ class AwBrowserContext : public content::BrowserContext,
   jlong GetQuotaManagerBridge(JNIEnv* env);
 
   AwFormDatabaseService* GetFormDatabaseService();
-  CookieManager* GetCookieManager();
+ 
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  CookieManager* GetCookieManager(int inst_num);
 
+  CookieManager* GetCookieManager();
+  
   bool IsDefaultBrowserContext() const;
 
   base::android::ScopedJavaLocalRef<jobjectArray>
@@ -192,6 +198,7 @@ class AwBrowserContext : public content::BrowserContext,
   friend class AwBrowserContextIoThreadHandle;
   void CreateUserPrefService();
   void MigrateLocalStatePrefs();
+  void MigrateEyeoLocalStatePrefs();
 
   // Return the IO thread client for this browser context that should be used
   // by service workers. This method should never be called except by

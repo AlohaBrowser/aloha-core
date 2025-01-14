@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "net/url_request/url_request_http_job.h"
 
 #include <algorithm>
@@ -440,6 +442,11 @@ void URLRequestHttpJob::Start() {
   request_info_.reporting_upload_depth = request_->reporting_upload_depth();
 #endif
 
+  // ALOHA https://app.clickup.com/t/2f29z75
+  request_info_.send_dnt_header = request()->get_send_dnt_header();
+  
+  
+
   CookieStore* cookie_store = request()->context()->cookie_store();
   const CookieAccessDelegate* delegate =
       cookie_store ? cookie_store->cookie_access_delegate() : nullptr;
@@ -768,6 +775,11 @@ void URLRequestHttpJob::AddExtraHeaders() {
           HttpRequestHeaders::kAcceptLanguage,
           accept_language);
     }
+  }
+ 
+  // ALOHA https://app.clickup.com/t/2f29z75
+  if(request_info_.send_dnt_header) {
+    request_info_.extra_headers.SetHeaderIfMissing("DNT", "1");
   }
 }
 

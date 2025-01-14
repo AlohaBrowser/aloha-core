@@ -2474,7 +2474,7 @@ const char kSkipTouchEventFilterFilteringProcessParamValueBrowserAndRenderer[] =
 
 BASE_FEATURE(kSpeculationRulesPrefetchFuture,
              "SpeculationRulesPrefetchFuture",
-             base::FEATURE_ENABLED_BY_DEFAULT);
+             base::FEATURE_DISABLED_BY_DEFAULT); // ALOHA https://app.clickup.com/t/86eq7f03n
 
 BASE_FEATURE(kSpeculativeImageDecodes,
              "SpeculativeImageDecodes",

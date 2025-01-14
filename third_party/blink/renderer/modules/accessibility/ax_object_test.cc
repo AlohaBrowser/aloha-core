@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/modules/accessibility/ax_object.h"
 
 #include <memory>
@@ -1475,7 +1477,8 @@ TEST_F(AccessibilityTest, ComputeIsInertReason) {
     LocalFrame::NotifyUserActivation(
         document.GetFrame(), mojom::UserActivationNotificationType::kTest);
     Fullscreen::RequestFullscreen(*element);
-    Fullscreen::DidResolveEnterFullscreenRequest(document, /*granted*/ true);
+    Fullscreen::DidResolveEnterFullscreenRequest(document, /*granted*/ true,
+        /*override_fullscreen_element*/ nullptr); // ALOHA https://app.clickup.com/t/861m4jwng
   };
   auto ExitFullscreen = [&]() {
     Fullscreen::FullyExitFullscreen(document);

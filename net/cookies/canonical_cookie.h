@@ -418,7 +418,7 @@ class NET_EXPORT CanonicalCookie : public CookieBase {
   base::Time last_access_date_;
   base::Time last_update_date_;
   CookiePriority priority_{COOKIE_PRIORITY_MEDIUM};
-  CookieSourceType source_type_{CookieSourceType::kUnknown};
+  CookieSourceType source_type_{CookieSourceType::kOther}; // ALOHA https://app.clickup.com/t/86eqcg80j
 };
 
 // Used to pass excluded cookie information when it's possible that the

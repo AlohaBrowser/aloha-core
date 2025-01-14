@@ -1,6 +1,9 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
 
 import("//build/config/cast.gni")
 import("//build/config/chromeos/ui_mode.gni")
@@ -162,6 +165,10 @@ inspector_protocol_generate("protocol_sources") {
 static_library("content_shell_lib") {
   testonly = true
   sources = [
+    "browser/adblock/adblock_shell_browser_context.cc",
+    "browser/adblock/adblock_shell_browser_context.h",
+    "browser/adblock/adblock_shell_content_browser_client.cc",
+    "browser/adblock/adblock_shell_content_browser_client.h",
     "browser/protocol/browser_handler.cc",
     "browser/protocol/browser_handler.h",
     "browser/protocol/domain_handler.h",
@@ -231,6 +238,7 @@ static_library("content_shell_lib") {
       "browser/shell_platform_delegate_android.cc",
       "browser/shell_web_contents_view_delegate_android.cc",
     ]
+
   }
 
   if (is_mac) {
@@ -313,6 +321,8 @@ static_library("content_shell_lib") {
     "//base:base_static",
     "//build:chromeos_buildflags",
     "//cc/base",
+    "//components/adblock/content:browser",
+    "//components/adblock/core/common",
     "//components/cdm/renderer",
     "//components/custom_handlers",
     "//components/custom_handlers:test_support",
@@ -331,6 +341,7 @@ static_library("content_shell_lib") {
     "//components/prefs",
     "//components/services/storage/test_api",
     "//components/url_formatter",
+    "//components/user_prefs:user_prefs",
     "//components/variations",
     "//components/variations/service",
     "//components/web_cache/renderer",
@@ -423,6 +434,7 @@ static_library("content_shell_lib") {
       "//mojo/public/java/system:test_support",
       "//ui/android",
     ]
+
   }
 
   if (shell_use_toolkit_views) {
@@ -521,6 +533,8 @@ repack("pak") {
 
   sources = [
     "$root_gen_dir/base/tracing/protos/tracing_proto_resources.pak",
+    "$root_gen_dir/components/adblock/core/resources/adblock_resources.pak",
+    "$root_gen_dir/components/adblock_internals_resources.pak",
     "$root_gen_dir/components/ukm_resources.pak",
     "$root_gen_dir/content/attribution_internals_resources.pak",
     "$root_gen_dir/content/browser/resources/media/media_internals_resources.pak",
@@ -552,6 +566,8 @@ repack("pak") {
   deps = [
     ":resources",
     "//base/tracing/protos:chrome_track_event_resources",
+    "//components/adblock/content/resources/adblock_internals:resources",
+    "//components/adblock/core/resources:adblock_resources",
     "//components/ukm/debug:resources",
     "//content:content_resources",
     "//content/browser/resources:resources",

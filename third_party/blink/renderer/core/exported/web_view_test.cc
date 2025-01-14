@@ -28,6 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifdef UNSAFE_BUFFERS_BUILD
 // TODO(crbug.com/351564777): Remove this and convert code to safer constructs.
 #pragma allow_unsafe_buffers
@@ -520,8 +522,20 @@ TEST_F(WebViewTest, SetBaseBackgroundColorBeforeMainFrame) {
   // Note: this test doesn't use WebViewHelper since it intentionally runs
   // initialization code between WebView and WebLocalFrame creation.
   WebViewClient web_view_client;
-  WebViewImpl* web_view = web_view_helper_.CreateWebView(
-      &web_view_client, /*compositing_enabled=*/true);
+  WebViewImpl* web_view = To<WebViewImpl>(
+      WebView::Create(&web_view_client,
+                      /*is_hidden=*/false,
+                      /*is_prerendering=*/false,
+                      /*is_inside_portal=*/false,
+                      /*fenced_frame_mode=*/absl::nullopt,
+                      /*compositing_enabled=*/true,
+                      /*widgets_never_composited=*/false,
+                      /*private_mode*/false, // ALOHA https://app.clickup.com/t/861m4jwng
+                      /*opener=*/nullptr, mojo::NullAssociatedReceiver(),
+                      web_view_helper_.GetAgentGroupScheduler(),
+                      /*session_storage_namespace_id=*/base::EmptyString(),
+                      /*page_base_background_color=*/absl::nullopt));
+
   EXPECT_NE(SK_ColorBLUE, web_view->BackgroundColor());
   // WebView does not have a frame yet; while it's possible to set the page
   // background color, it won't have any effect until a local main frame is
@@ -2915,8 +2929,17 @@ ExternalDateTimeChooser* WebViewTest::GetExternalDateTimeChooser(
 TEST_F(WebViewTest, ClientTapHandlingNullWebViewClient) {
   // Note: this test doesn't use WebViewHelper since WebViewHelper creates an
   // internal WebViewClient on demand if the supplied WebViewClient is null.
-  WebViewImpl* web_view = web_view_helper_.CreateWebView(
-      /*web_view_client=*/nullptr, /*compositing_enabled=*/false);
+  WebViewImpl* web_view = To<WebViewImpl>(WebView::Create(
+      /*client=*/nullptr, /*is_hidden=*/false, /*is_prerendering=*/false,
+      /*is_inside_portal=*/false,
+      /*fenced_frame_mode=*/absl::nullopt,
+      /*compositing_enabled=*/false,
+      /*widgets_never_composited=*/false,
+      /*private_mode*/false, // ALOHA https://app.clickup.com/t/861m4jwng
+      /*opener=*/nullptr, mojo::NullAssociatedReceiver(),
+      web_view_helper_.GetAgentGroupScheduler(),
+      /*session_storage_namespace_id=*/base::EmptyString(),
+      /*page_base_background_color=*/absl::nullopt));
   frame_test_helpers::TestWebFrameClient web_frame_client;
   WebLocalFrame* local_frame = WebLocalFrame::CreateMainFrame(
       web_view, &web_frame_client, nullptr, mojo::NullRemote(),

@@ -1,0 +1,11 @@
+# If changed, go to https://sequencediagram.org/ to regenerate diagram
+
+title eyeo Chromium SDK User Setting flow
+participant UIFragment.java
+ref over AdblockController.java: unit tests start from here.
+UIFragment.java -> AdblockController.java: User event trigger\n(ex: onPreferenceChange)
+AdblockController.java -> FilteringConfiguration.java: ex: addCustomFilter
+FilteringConfiguration.java -> FilteringConfigurationAndroid: ex: AddCustomFilter\n(via JNI binding)
+FilteringConfigurationAndroid -> FilteringConfiguration: ex: AddCustomFilter
+note over FilteringConfiguration: Set User Pref
+end

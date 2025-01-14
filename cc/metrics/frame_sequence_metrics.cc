@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifdef UNSAFE_BUFFERS_BUILD
 // TODO(crbug.com/351564777): Remove this and convert code to safer constructs.
 #pragma allow_unsafe_buffers
@@ -285,7 +287,7 @@ void FrameSequenceMetrics::AdoptTrace(FrameSequenceMetrics* adopt_from) {
   adopt_from->trace_data_.trace_id = 0u;
 }
 
-void FrameSequenceMetrics::ReportMetrics() {
+void FrameSequenceMetrics::ReportMetrics() { 
   // Terminates |trace_data_| for all types of FrameSequenceTracker.
   trace_data_.Terminate(v3_, v4_, GetEffectiveThread());
 

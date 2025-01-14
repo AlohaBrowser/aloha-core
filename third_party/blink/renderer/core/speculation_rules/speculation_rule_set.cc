@@ -567,6 +567,12 @@ SpeculationRuleSet* SpeculationRuleSet::Parse(Source* source,
   SpeculationRuleSet* result = MakeGarbageCollected<SpeculationRuleSet>(
       base::PassKey<SpeculationRuleSet>(), source);
 
+  // ALOHA Added for function interruption.  https://app.clickup.com/t/86eq7f03n 
+  if(result) { 
+    result->SetError(SpeculationRuleSetErrorType::kInvalidRulesSkipped, "SpeculationRule is not supported"); 
+    return result; // ALOHA https://app.clickup.com/t/86eq7f03n
+  }
+  
   // Let parsed be the result of parsing a JSON string to an Infra value given
   // input.
   JSONParseError parse_error;

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/aw_content_browser_client.h"
 
 #include <cstddef>
@@ -135,6 +137,9 @@
 #include "ui/display/util/display_util.h"
 #include "ui/gfx/image/image_skia.h"
 #include "ui/resources/grit/ui_resources.h"
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+#include "aloha/src/native/aloha_consts.h"
 
 using content::BrowserThread;
 using content::FrameType;
@@ -328,9 +333,12 @@ void AwContentBrowserClient::ConfigureNetworkContextParams(
                                             network_context_params,
                                             cert_verifier_creation_params);
 
-  mojo::PendingRemote<network::mojom::CookieManager> cookie_manager_remote;
-  network_context_params->cookie_manager =
-      cookie_manager_remote.InitWithNewPipeAndPassReceiver();
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  mojo::PendingRemote<network::mojom::CookieManager> cookie_manager_remote[aloha::kCookieManagersCount];
+  network_context_params->cookie_manager_0 =
+      cookie_manager_remote[aloha::kNormalCookieManager].InitWithNewPipeAndPassReceiver();
+  network_context_params->cookie_manager_1 =
+      cookie_manager_remote[aloha::kPrivateCookieManager].InitWithNewPipeAndPassReceiver();
 
 #if DCHECK_IS_ON()
   g_created_network_context_params = true;
@@ -339,8 +347,11 @@ void AwContentBrowserClient::ConfigureNetworkContextParams(
   // Pass the mojo::PendingRemote<network::mojom::CookieManager> to
   // android_webview::CookieManager, so it can implement its APIs with this mojo
   // CookieManager.
-  aw_context->GetCookieManager()->SetMojoCookieManager(
-      std::move(cookie_manager_remote));
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  for(size_t i = 0; i < std::size(cookie_manager_remote); i++) {
+    aw_context->GetCookieManager(i)->SetMojoCookieManager(
+        std::move(cookie_manager_remote[i]));
+  }
 }
 
 AwBrowserContext* AwContentBrowserClient::InitBrowserContext() {
@@ -476,7 +487,7 @@ void AwContentBrowserClient::AllowCertificateError(
   // We only call the callback once but we must pass ownership to a function
   // that conditionally calls it.
   auto split_callback = base::SplitOnceCallback(std::move(callback));
-  if (client) {
+  if (client && is_primary_main_frame_request /* ALOHA https://app.clickup.com/t/2e5x5r6 */ ) {
     client->AllowCertificateError(cert_error, ssl_info.cert.get(), request_url,
                                   std::move(split_callback.first),
                                   &cancel_request);
@@ -1147,7 +1158,7 @@ void AwContentBrowserClient::WillCreateURLLoaderFactory(
     }
 
     auto xrw_allowlist_matcher =
-        AwSettings::FromWebContents(web_contents)->xrw_allowlist_matcher();
+        scoped_refptr<AwContentsOriginMatcher>(); // ALOHA https://app.clickup.com/t/862k4dtag
 
     content::GetIOThreadTaskRunner({})->PostTask(
         FROM_HERE,

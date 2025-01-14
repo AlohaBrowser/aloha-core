@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_TESTING_FAKE_LOCAL_FRAME_HOST_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_TESTING_FAKE_LOCAL_FRAME_HOST_H_
 
@@ -29,6 +31,7 @@ class FakeLocalFrameHost : public mojom::blink::LocalFrameHost {
 
   void Init(blink::AssociatedInterfaceProvider* provider);
   void EnterFullscreen(mojom::blink::FullscreenOptionsPtr options,
+                       mojom::blink::FullscreenVideoElementInfoPtr video_element, // ALOHA https://app.clickup.com/t/2hxwa9w
                        EnterFullscreenCallback callback) override;
   void ExitFullscreen() override;
   void FullscreenStateChanged(

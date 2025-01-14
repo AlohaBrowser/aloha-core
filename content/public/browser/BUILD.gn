@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD - style license that can be
 # found in the LICENSE file.
 
+# Modified by Aloha Mobile Ltd.
+
 import("//build/config/chromeos/ui_mode.gni")
 import("//build/config/ui.gni")
 import("//content/common/features.gni")
@@ -505,6 +507,10 @@ source_set("browser_sources") {
     "webui_config_map.h",
     "worker_type.h",
     "zoom_level_delegate.h",
+
+    # ALOHA
+    "//aloha/src/native/bromium_client_bridge.h",
+    "//aloha/src/native/bromium_client_bridge.cc",
   ]
   configs += [
     "//build/config:precompiled_headers",

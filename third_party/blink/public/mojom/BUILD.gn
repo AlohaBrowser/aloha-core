@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# Modified by Aloha Mobile Ltd.
+
 import("//build/config/features.gni")
 import("//build/config/ui.gni")
 import("//mojo/public/tools/bindings/mojom.gni")
@@ -1424,6 +1426,9 @@ mojom("mojom_core") {
     "//ui/gfx/range/mojom",
     "//url/mojom:url_mojom_gurl",
     "//url/mojom:url_mojom_origin",
+
+    # ALOHA https://app.clickup.com/t/2uat2t4
+    "//media/mojo/mojom",
   ]
 
   if (is_android) {

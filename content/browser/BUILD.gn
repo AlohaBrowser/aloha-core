@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# Modified by Aloha Mobile Ltd.
+
 import("//base/allocator/partition_allocator/partition_alloc.gni")
 import("//build/buildflag_header.gni")
 import("//build/config/chromeos/ui_mode.gni")
@@ -2384,6 +2386,10 @@ source_set("browser") {
     "worker_host/worker_script_loader.h",
     "worker_host/worker_script_loader_factory.cc",
     "worker_host/worker_script_loader_factory.h",
+
+    # ALOHA
+    "//aloha/src/native/log_assert_handler.cc",
+    "//aloha/src/native/log_assert_handler.h",
   ]
 
   if (is_android) {

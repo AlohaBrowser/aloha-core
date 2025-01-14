@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_PUBLIC_WEB_MODULES_MEDIASTREAM_WEB_MEDIA_PLAYER_MS_H_
 #define THIRD_PARTY_BLINK_PUBLIC_WEB_MODULES_MEDIASTREAM_WEB_MEDIA_PLAYER_MS_H_
 
@@ -216,6 +218,12 @@ class BLINK_MODULES_EXPORT WebMediaPlayerMS
   void RegisterFrameSinkHierarchy() override;
   void UnregisterFrameSinkHierarchy() override;
 
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  GURL GetLoadedUrl() const override { return {}; }
+
+  // ALOHA https://app.clickup.com/t/86epnk66e
+  void SetShouldPlayBackground(bool should_play_background) override { should_play_background_ = should_play_background; }
+  
  private:
   friend class WebMediaPlayerMSTest;
 
@@ -370,6 +378,9 @@ class BLINK_MODULES_EXPORT WebMediaPlayerMS
   bool opaque_ = true;
 
   bool has_first_frame_ = false;
+  
+  // ALOHA https://app.clickup.com/t/86epnk66e
+  bool should_play_background_ = false;
 
   // Monitors the duration of the media stream.
   std::unique_ptr<WatchTimeReporter> watch_time_reporter_;

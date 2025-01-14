@@ -2,11 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package com.android.webview.chromium;
 
 import android.graphics.Canvas;
 import android.view.View;
-import android.webkit.WebViewDelegate;
+import com.android.webview.chromium.WebViewDelegate;
 
 import org.chromium.android_webview.AwContents;
 import org.chromium.build.annotations.UsedByReflection;
@@ -16,7 +18,7 @@ import org.chromium.build.annotations.UsedByReflection;
  * can be constructed, bound to a single view context (i.e. AwContents) and then drawn and detached
  * from the view tree any number of times (using requestDrawGL and detach respectively).
  */
-class DrawGLFunctor implements AwContents.NativeDrawGLFunctor {
+/* ALOHA */ public class DrawGLFunctor implements AwContents.NativeDrawGLFunctor {
     // Pointer to native side instance
     private final WebViewDelegate mWebViewDelegate;
     private long mNativeDrawGLFunctor;

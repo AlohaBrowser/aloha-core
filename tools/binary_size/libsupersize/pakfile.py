@@ -155,9 +155,8 @@ def CreatePakSymbolsFromApk(section_ranges, apk_path, apk_pak_paths,
         logging.warning(
             'Expected .pak files to be STORED, but this one is compressed: %s',
             zip_info.filename)
-      path = archive_util.RemoveAssetSuffix(zip_info.filename)
-      section_name = _CreateSymbolsFromFile(path, contents, res_info,
-                                            symbols_by_id)
+      section_name = _CreateSymbolsFromFile(zip_info.filename, contents,
+                                            res_info, symbols_by_id)
       archive_util.ExtendSectionRange(section_ranges, section_name,
                                       zip_info.compress_size)
   return _FinalizeSymbols(symbols_by_id, pak_id_map)

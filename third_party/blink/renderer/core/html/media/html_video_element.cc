@@ -23,6 +23,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/html/media/html_video_element.h"
 
 #include <memory>
@@ -69,6 +71,9 @@
 #include "third_party/blink/renderer/platform/instrumentation/use_counter.h"
 #include "third_party/blink/renderer/platform/runtime_enabled_features.h"
 #include "third_party/blink/renderer/platform/web_test_support.h"
+
+// ALOHA https://app.clickup.com/t/2hxwa9w
+#include "aloha/src/native/find_video_url.h"
 
 namespace blink {
 
@@ -774,12 +779,15 @@ void HTMLVideoElement::SetIsEffectivelyFullscreen(
   is_effectively_fullscreen_ =
       status != blink::WebFullscreenVideoStatus::kNotEffectivelyFullscreen;
   if (GetWebMediaPlayer()) {
+    // ALOHA https://app.clickup.com/t/2hxwa9w
+    auto video_url = GetSourceUrl();
     for (auto& observer : GetMediaPlayerObserverRemoteSet())
-      observer->OnMediaEffectivelyFullscreenChanged(status);
+      observer->OnMediaEffectivelyFullscreenChanged( // ALOHA https://app.clickup.com/t/2hxwa9w
+        status, video_url, media_controls_is_hidden_); 
 
     GetWebMediaPlayer()->SetIsEffectivelyFullscreen(status);
     GetWebMediaPlayer()->OnDisplayTypeChanged(GetDisplayType());
-  }
+  }  
 }
 
 void HTMLVideoElement::SetIsDominantVisibleContent(bool is_dominant) {

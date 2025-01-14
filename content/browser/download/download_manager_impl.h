@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_BROWSER_DOWNLOAD_DOWNLOAD_MANAGER_IMPL_H_
 #define CONTENT_BROWSER_DOWNLOAD_DOWNLOAD_MANAGER_IMPL_H_
 
@@ -212,7 +214,8 @@ class CONTENT_EXPORT DownloadManagerImpl
 
   // InProgressDownloadManager::Delegate implementations.
   void OnDownloadsInitialized() override;
-  bool InterceptDownload(const download::DownloadCreateInfo& info) override;
+  // ALOHA https://app.clickup.com/t/mz8wrn
+  bool InterceptDownload(download::DownloadCreateInfo& info) override;
   base::FilePath GetDefaultDownloadDirectory() override;
   void StartDownloadItem(
       std::unique_ptr<download::DownloadCreateInfo> info,

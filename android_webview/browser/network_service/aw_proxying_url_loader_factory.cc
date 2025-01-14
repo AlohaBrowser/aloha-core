@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/network_service/aw_proxying_url_loader_factory.h"
 
 #include <memory>
@@ -68,6 +70,9 @@
 #include "url/gurl.h"
 #include "url/origin.h"
 
+// ALOHA https://app.clickup.com/t/2e5vz5u
+#include "aloha/src/native/aloha_consts.h"
+
 namespace android_webview {
 
 namespace {
@@ -104,7 +109,7 @@ const char kResponseHeaderViaShouldInterceptRequestName[] = "Client-Via";
 const char kResponseHeaderViaShouldInterceptRequestValue[] =
     "shouldInterceptRequest";
 const char kAutoLoginHeaderName[] = "X-Auto-Login";
-const char kRequestedWithHeaderWebView[] = "WebView";
+// ALOHA https://app.clickup.com/t/2e5vz5u
 
 // Argument struct for the |InterceptRequest::InterceptResponseReceived| method
 // which can live on the heap and be populated by async callbacks.
@@ -625,14 +630,15 @@ void InterceptedRequest::InterceptResponseReceived(
         committed_mode = CommittedRequestedWithHeaderMode::kNoHeader;
         break;
       case AwSettings::RequestedWithHeaderMode::APP_PACKAGE_NAME:
-        request_.cors_exempt_headers.SetHeader(
-            header,
-            base::android::BuildInfo::GetInstance()->host_package_name());
+        // ALOHA https://app.clickup.com/t/2e5vz5u
+        request_.cors_exempt_headers.SetHeader(header,
+                                               aloha::kAlohaBrowser);
         committed_mode = CommittedRequestedWithHeaderMode::kAppPackageName;
         break;
       case AwSettings::RequestedWithHeaderMode::CONSTANT_WEBVIEW:
+        // ALOHA https://app.clickup.com/t/2e5vz5u
         request_.cors_exempt_headers.SetHeader(header,
-                                               kRequestedWithHeaderWebView);
+                                               aloha::kAlohaBrowser);
         committed_mode = CommittedRequestedWithHeaderMode::kConstantWebview;
         break;
       default:

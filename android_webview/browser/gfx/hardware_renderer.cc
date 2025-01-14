@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/gfx/hardware_renderer.h"
 
 #include <algorithm>
@@ -511,7 +513,7 @@ void HardwareRenderer::OnViz::DisplayOutputSurfaceLost() {
   DCHECK_CALLED_ON_VALID_THREAD(viz_thread_checker_);
   if (!expect_context_loss_) {
     // Android WebView does not handle real context loss.
-    LOG(FATAL) << "Render thread context loss";
+    LOG(ERROR) << "Render thread context loss"; // ALOHA https://app.clickup.com/t/862k09kfu
   }
 }
 
