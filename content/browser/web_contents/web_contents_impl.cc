@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/web_contents/web_contents_impl.h"
 
 #include <stddef.h>
@@ -11667,6 +11669,11 @@ void WebContentsImpl::OnInputIgnored(const blink::WebInputEvent& event) {
     animation_manager->MaybeRecordIgnoredInput(event);
   }
 #endif
+}
+
+// ALOHA https://app.clickup.com/t/2dmrud4
+void WebContentsImpl::SetPrivateMode(bool enabled) {
+  primary_frame_tree_.SetPrivateMode(enabled);
 }
 
 input::mojom::RenderInputRouterDelegate*

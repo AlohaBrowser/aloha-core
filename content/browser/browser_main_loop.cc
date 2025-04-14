@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/browser_main_loop.h"
 
 #include <stddef.h>
@@ -246,6 +248,9 @@
 #if BUILDFLAG(MOJO_RANDOM_DELAYS_ENABLED)
 #include "mojo/public/cpp/bindings/lib/test_random_mojo_delays.h"
 #endif
+
+// ALOHA https://app.clickup.com/t/2rqhdp9
+#include "aloha/src/native/log_assert_handler.h"
 
 // One of the linux specific headers defines this as a macro.
 #ifdef DestroyAll
@@ -986,6 +991,10 @@ int BrowserMainLoop::PreMainMessageLoopRun() {
           font_render_params.subpixel_rendering),
       font_render_params.text_contrast, font_render_params.text_gamma);
   viz::GpuHostImpl::InitFontRenderParams(font_render_params);
+// ALOHA https://app.clickup.com/t/2rqhdp9
+#if DCHECK_IS_ON()
+  aloha::SetLogAssertHandler();
+#endif
 
 #if BUILDFLAG(IS_ANDROID)
   bool use_display_wide_color_gamut =

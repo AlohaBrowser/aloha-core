@@ -29,6 +29,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_PAGE_CHROME_CLIENT_IMPL_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_PAGE_CHROME_CLIENT_IMPL_H_
 
@@ -208,7 +210,9 @@ class CORE_EXPORT ChromeClientImpl final : public ChromeClient {
 
   void EnterFullscreen(LocalFrame&,
                        const FullscreenOptions*,
-                       FullscreenRequestType) override;
+                       FullscreenRequestType,
+                       std::optional<aloha::FullscreenVideoElement> video_element, // ALOHA https://app.clickup.com/t/2hxwa9w
+                       const std::string& pending_elem_class) override; // ALOHA https://app.clickup.com/t/861m7a4e2
   void ExitFullscreen(LocalFrame&) override;
   void FullscreenElementChanged(Element* old_element,
                                 Element* new_element,

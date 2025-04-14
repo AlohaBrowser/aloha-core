@@ -28,6 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/frame/frame_test_helpers.h"
 
 #include <memory>
@@ -745,6 +747,7 @@ void WebViewHelper::InitializeWebView(
                       /*fenced_frame_mode=*/fenced_frame_mode,
                       /*compositing_enabled=*/true,
                       /*widgets_never_composited=*/false,
+                      /*private_mode*/false, // ALOHA https://app.clickup.com/t/861m4jwng
                       /*opener=*/opener, mojo::NullAssociatedReceiver(),
                       *agent_group_scheduler_,
                       /*session_storage_namespace_id=*/std::string(),

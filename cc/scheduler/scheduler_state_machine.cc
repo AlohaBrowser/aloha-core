@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "cc/scheduler/scheduler_state_machine.h"
 
 #include "base/check_op.h"
@@ -1083,8 +1085,10 @@ void SchedulerStateMachine::DidDrawInternal(DrawResult draw_result) {
       consecutive_cant_draw_count_ = 0;
       forced_redraw_state_ = ForcedRedrawOnTimeoutState::IDLE;
       break;
-    case DrawResult::kAbortedCheckerboardAnimations:
-      DCHECK(!did_submit_in_last_frame_);
+    case DrawResult::kAbortedCheckerboardAnimations:      
+      //// ALOHA https://app.clickup.com/t/862kg54q2
+      //DCHECK(!did_submit_in_last_frame_);
+      
       needs_begin_main_frame_ = true;
       needs_redraw_ = true;
       consecutive_checkerboard_animations_++;
@@ -1099,7 +1103,10 @@ void SchedulerStateMachine::DidDrawInternal(DrawResult draw_result) {
       }
       break;
     case DrawResult::kAbortedMissingHighResContent:
-      DCHECK(!did_submit_in_last_frame_);
+
+      //// ALOHA https://app.clickup.com/t/862kg54q2
+      //DCHECK(!did_submit_in_last_frame_);
+      
       // It's not clear whether this missing content is because of missing
       // pictures (which requires a commit) or because of memory pressure
       // removing textures (which might not).  To be safe, request a commit

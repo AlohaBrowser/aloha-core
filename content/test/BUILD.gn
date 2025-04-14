@@ -1,6 +1,10 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
 
 import("//build/config/cast.gni")
 import("//build/config/chrome_build.gni")
@@ -9,6 +13,7 @@ import("//build/config/compiler/compiler.gni")
 import("//build/config/features.gni")
 import("//build/config/ui.gni")
 import("//build/nocompile.gni")
+import("//components/adblock/features.gni")
 import("//components/viz/common/debugger/viz_debugger.gni")
 import("//content/common/features.gni")
 import("//content/public/common/features.gni")
@@ -1759,6 +1764,11 @@ test("content_browsertests") {
     "../test/url_loader_interceptor_browsertest.cc",
   ]
 
+  if (is_android || eyeo_extend_chrome_devtools_protocol) {
+    sources +=
+        [ "../browser/devtools/protocol/devtools_eyeo_handler_browsertest.cc" ]
+  }
+
   if (is_linux) {
     sources += [ "../browser/network/address_map_linux_browsertest.cc" ]
   }
@@ -1812,6 +1822,8 @@ test("content_browsertests") {
     "//build:chromecast_buildflags",
     "//cc/slim",
     "//components//unexportable_keys:unexportable_keys",
+    "//components/adblock/core/configuration",
+    "//components/adblock/core/subscription",
     "//components/attribution_reporting:mojom",
     "//components/cbor",
     "//components/discardable_memory/client",
@@ -1855,6 +1867,7 @@ test("content_browsertests") {
     "//content/services/auction_worklet/public/cpp:test_support",
     "//content/services/auction_worklet/public/mojom:for_content_tests",
     "//content/shell:content_browsertests_mojom",
+    "//content/shell:content_shell_app",
     "//content/shell:content_shell_lib",
     "//content/shell:pak",
     "//content/test:mojo_web_test_bindings",

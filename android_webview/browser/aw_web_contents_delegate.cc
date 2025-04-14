@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/aw_web_contents_delegate.h"
 
 #include <utility>
@@ -39,6 +41,9 @@
 #include "third_party/blink/public/common/mediastream/media_stream_request.h"
 #include "third_party/blink/public/common/permissions/permission_utils.h"
 #include "third_party/blink/public/mojom/mediastream/media_stream.mojom.h"
+
+// ALOHA https://app.clickup.com/t/861m4jwng
+#include "android_webview/browser/aw_contents_client_bridge.h"
 
 // Must come after all headers that specialize FromJniType() / ToJniType().
 #include "android_webview/browser_jni_headers/AwWebContentsDelegate_jni.h"
@@ -398,6 +403,11 @@ bool AwWebContentsDelegate::ShouldAllowPartialParamMismatchOfPrerender2(
     CHECK(!navigation_handle.GetInitiatorOrigin().has_value());
   }
   return ret;
+}
+
+// ALOHA https://app.clickup.com/t/861m4jwng
+aloha::BromiumClientBridge* AwWebContentsDelegate::BromiumBridge(content::WebContents* web_contents) const {
+  return android_webview::AwContentsClientBridge::FromWebContents(web_contents);
 }
 
 scoped_refptr<content::FileSelectListener>

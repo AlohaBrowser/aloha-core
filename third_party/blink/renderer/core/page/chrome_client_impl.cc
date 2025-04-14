@@ -29,6 +29,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/page/chrome_client_impl.h"
 
 #include <memory>
@@ -936,9 +938,12 @@ cc::AnimationTimeline* ChromeClientImpl::GetScrollAnimationTimeline(
 
 void ChromeClientImpl::EnterFullscreen(LocalFrame& frame,
                                        const FullscreenOptions* options,
-                                       FullscreenRequestType request_type) {
+                                       FullscreenRequestType request_type,
+                                       std::optional<aloha::FullscreenVideoElement> video_element, // ALOHA https://app.clickup.com/t/2hxwa9w
+                                       const std::string& pending_elem_class) { // ALOHA https://app.clickup.com/t/861m7a4e2
   DCHECK(web_view_);
-  web_view_->EnterFullscreen(frame, options, request_type);
+  // ALOHA https://app.clickup.com/t/2hxwa9w
+  web_view_->EnterFullscreen(frame, options, request_type, std::move(video_element), pending_elem_class);
 }
 
 void ChromeClientImpl::ExitFullscreen(LocalFrame& frame) {

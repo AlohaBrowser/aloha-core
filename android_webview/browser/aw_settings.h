@@ -1,6 +1,10 @@
 // Copyright 2013 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #ifndef ANDROID_WEBVIEW_BROWSER_AW_SETTINGS_H_
 #define ANDROID_WEBVIEW_BROWSER_AW_SETTINGS_H_
@@ -90,6 +94,7 @@ class AwSettings : public content::WebContentsObserver {
   bool initial_page_scale_is_non_default() {
     return initial_page_scale_is_non_default_;
   }
+  bool IsContentFilteringEnabled();
 
   // Called from Java. Methods with "Locked" suffix require that the settings
   // access lock is held during their execution.
@@ -142,6 +147,9 @@ class AwSettings : public content::WebContentsObserver {
       JNIEnv* env,
       const base::android::JavaParamRef<jobject>& obj);
   void UpdateGeolocationEnabledLocked(
+      JNIEnv* env,
+      const base::android::JavaParamRef<jobject>& obj);
+  void UpdateContentFilteringEnabledLocked(
       JNIEnv* env,
       const base::android::JavaParamRef<jobject>& obj);
 
@@ -206,6 +214,7 @@ class AwSettings : public content::WebContentsObserver {
   // TODO(https://crbug.com/40615943): Remove this once we carry over the
   // initial page scale correctly.
   bool initial_page_scale_is_non_default_ = false;
+  bool content_filtering_enabled_{true};
 
   scoped_refptr<AwContentsOriginMatcher> xrw_allowlist_matcher_;
 

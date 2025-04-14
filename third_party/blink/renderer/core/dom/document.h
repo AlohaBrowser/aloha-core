@@ -928,6 +928,8 @@ class CORE_EXPORT Document : public ContainerNode,
   const AtomicString& BaseTarget() const { return base_target_; }
   void ProcessBaseElement();
 
+  void UpdatePlayingMedia(bool is_playing, bool should_play_background); // ALOHA https://app.clickup.com/t/86epnk66e
+
   // Fallback base URL.
   // https://html.spec.whatwg.org/C/#fallback-base-url
   KURL FallbackBaseURL() const;
@@ -2701,6 +2703,9 @@ class CORE_EXPORT Document : public ContainerNode,
   bool saw_elements_in_known_namespaces_ = false;
   bool is_srcdoc_document_;
   bool is_mobile_document_ = false;
+    
+  bool is_playing_; // ALOHA https://app.clickup.com/t/86epnk66e
+  bool should_play_background_; // ALOHA https://app.clickup.com/t/86epnk66e
 
   Member<LayoutView> layout_view_;
 

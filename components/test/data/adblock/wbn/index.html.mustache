@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<script type="webbundle">
+{
+    "source": "by_resource.wbn",
+    "resources": [
+        "by_resource/blue_subresource_loading.css",
+        "by_resource/blue_subresource_loading.png",
+        "by_resource/red_subresource_loading.css",
+        "by_resource/red_subresource_loading.png",
+        "by_resource/fetch_result_1_subresource_loading.json",
+        "by_resource/xhr_result_1_subresource_loading.json"
+    ]
+}
+</script>
+<script type="webbundle">
+    {
+        "source": "by_bundle_file.wbn",
+        "resources": [
+            "by_bundle_file/green_subresource_loading.css",
+            "by_bundle_file/green_subresource_loading.png",
+            "by_bundle_file/purple_subresource_loading.css",
+            "by_bundle_file/purple_subresource_loading.png",
+            "by_bundle_file/fetch_result_2_subresource_loading.json",
+            "by_bundle_file/xhr_result_2_subresource_loading.json"
+        ]
+    }
+</script>
+<script type="webbundle">
+    {
+        "source": "by_scope.wbn",
+        "scopes": [
+            "by_scope"
+        ]
+    }
+</script>
+
+<link rel="stylesheet" href="by_resource/blue_subresource_loading.css">
+<link rel="stylesheet" href="by_resource/red_subresource_loading.css">
+<link rel="stylesheet" href="by_bundle_file/green_subresource_loading.css">
+<link rel="stylesheet" href="by_bundle_file/purple_subresource_loading.css">
+<link rel="stylesheet" href="by_scope/orange_subresource_loading.css">
+<link rel="stylesheet" href="by_scope/pink_subresource_loading.css">
+
+<style>
+div {
+  background-color: grey;
+  width: 30px;
+  height: 30px;
+}
+img {
+  width: 30px;
+  height: 30px;
+}
+</style>
+
+<h3>Chromium Web bundles test</h3>
+
+<h4>Identified by resource</h4>
+
+<ul>
+  <li> Resources in by_resource.wbn
+       <ul>
+         <li>Shows blue box with by_resource/blue_subresource_loading.css, grey box after the css blocked:
+             <div class="blue"></div></li>
+         <li>Shows by_resource/blue_subresource_loading.png, nothing after the png blocked:
+             <br><img src="by_resource/blue_subresource_loading.png" /></li>
+         <li>Shows red box with by_resource/red_subresource_loading.css, grey box after the css blocked:
+             <div class="red"></div></li>
+         <li>Shows by_resource/red_subresource_loading.png, nothing after the png blocked:
+             <br><img src="by_resource/red_subresource_loading.png" /></li>
+         <li>Shows xhr result for by_resource/xhr_result_1_subresource_loading.json:
+             <br><code id='xhr_result_by_resource'>Pending</code></li>
+         <li>Shows fetch result for by_resource/fetch_result_1_subresource_loading.json:
+             <br><code id='fetch_result_by_resource'>Pending</code></li>
+       </ul>
+  </li>
+</ul>
+
+<h4>Identified by bundle file</h4>
+
+<ul>
+  <li> Resources in by_bundle_file.wbn (Please click <a href="fetch_subresources_in_blocked_bundle.html">here</a> to check fetch behavior with blocked bundle)
+       <ul>
+         <li>Shows green box with by_bundle_file/green_subresource_loading.css, grey box after the css blocked:
+             <div class="green"></div></li>
+         <li>Shows by_bundle_file/green_subresource_loading.png, nothing after the png blocked:
+             <br><img src="by_bundle_file/green_subresource_loading.png" /></li>
+         <li>Shows purple box with by_bundle_file/purple_subresource_loading.css, grey box after the css blocked:
+             <div class="purple"></div></li>
+         <li>Shows by_bundle_file/purple_subresource_loading.png, nothing after the png blocked:
+             <br><img src="by_bundle_file/purple_subresource_loading.png" /></li>
+         <li>Shows xhr result for by_bundle_file/xhr_result_2_subresource_loading.json:
+             <br><code id='xhr_result_by_bundle_file'>Pending</code></li>
+         <li>Shows fetch result for by_bundle_file/fetch_result_2_subresource_loading.json:
+             <br><code id='fetch_result_by_bundle_file'>Pending</code></li>
+       </ul>
+  </li>
+</ul>
+
+<h4>Identified by scope</h4>
+
+<ul>
+  <li> Resources in by_scope.wbn
+       <ul>
+         <li>Shows orange box with by_scope/orange_subresource_loading.css, grey box after the css blocked:
+             <div class="orange"></div></li>
+         <li>Shows by_scope/orange_subresource_loading.png, nothing after the png blocked:
+             <br><img src="by_scope/orange_subresource_loading.png" /></li>
+         <li>Shows pink box with by_scope/pink_subresource_loading.css, grey box after the css blocked:
+             <div class="pink"></div></li>
+         <li>Shows by_scope/pink_subresource_loading.png, nothing after the png blocked:
+             <br><img src="by_scope/pink_subresource_loading.png" /></li>
+         <li>Shows xhr result for by_scope/xhr_result_3_subresource_loading.json:
+             <br><code id='xhr_result_by_scope'>Pending</code></li>
+         <li>Shows fetch result for by_scope/fetch_result_3_subresource_loading.json:
+             <br><code id='fetch_result_by_scope'>Pending</code></li>
+       </ul>
+  </li>
+</ul>
+
+<p>
+To navigate to <a href="{{{navigation_to_unsigned_bundles_baseUrl}}}">{{{navigation_to_unsigned_bundles_baseUrl}}}</a> within a bundle file, download the bundle file by <a href="{{{navigation_to_unsigned_bundles_baseUrl}}}/navigation_to_unsigned_bundles.wbn">clicking here</a>.
+</p>
+
+<script>
+function testFetchXHR(method, url, log_element) {
+  if (method == "fetch") {
+    fetch(url)
+        .then((response) => response.json())
+        .then((data) => {
+          log_element.innerHTML = `fetch succeeded: ${JSON.stringify(data)}`;
+        })
+        .catch((error) => {
+          log_element.innerHTML = `Error occured: ${error}`;
+        });
+  } else if (method == "xhr") {
+    const xhr = new XMLHttpRequest();
+    xhr.addEventListener("load", (e) => {
+      log_element.innerHTML = `XMLHttpRequest succeeded: ${xhr.response}`;
+    });
+    xhr.addEventListener("error", (e) => {
+      log_element.innerHTML = `Error occured: ${e.type}`;
+    });
+    xhr.open("GET", url);
+    xhr.send();
+  } else {
+    log_element.innerHTML = `Invalid method: ${method}`;
+  }
+}
+
+testFetchXHR("xhr", "by_resource/xhr_result_1_subresource_loading.json", xhr_result_by_resource);
+testFetchXHR("fetch", "by_resource/fetch_result_1_subresource_loading.json", fetch_result_by_resource);
+testFetchXHR("xhr", "by_bundle_file/xhr_result_2_subresource_loading.json", xhr_result_by_bundle_file);
+testFetchXHR("fetch", "by_bundle_file/fetch_result_2_subresource_loading.json", fetch_result_by_bundle_file);
+testFetchXHR("xhr", "by_scope/xhr_result_3_subresource_loading.json", xhr_result_by_scope);
+testFetchXHR("fetch", "by_scope/fetch_result_3_subresource_loading.json", fetch_result_by_scope);
+</script>

@@ -1,6 +1,12 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
 
 #include "android_webview/browser/aw_contents.h"
 
@@ -10,6 +16,7 @@
 #include <string_view>
 #include <utility>
 
+#include "android_webview/browser/adblock/adblock_aw_webcontents_observer.h"
 #include "android_webview/browser/aw_app_defined_websites.h"
 #include "android_webview/browser/aw_browser_context.h"
 #include "android_webview/browser/aw_browser_main_parts.h"
@@ -71,6 +78,8 @@
 #include "base/threading/thread_restrictions.h"
 #include "base/trace_event/trace_event.h"
 #include "base/trace_event/typed_macros.h"
+#include "components/adblock/content/browser/adblock_webcontents_observer.h"
+#include "components/adblock/content/browser/factories/embedding_utils.h"
 #include "components/android_autofill/browser/android_autofill_client.h"
 #include "components/android_autofill/browser/android_autofill_manager.h"
 #include "components/android_autofill/browser/android_autofill_provider.h"
@@ -120,6 +129,16 @@
 #include "url/origin.h"
 #include "url/url_constants.h"
 
+// ALOHA https://app.clickup.com/t/2u59j0h
+#include "aloha/src/native/aloha_consts.h"
+#include "aloha/src/native/bromium.h"
+#include "android_webview/browser/aw_contents_client_bridge.h"
+#include "content/public/browser/download_request_utils.h"
+#include "content/public/browser/download_manager.h"
+
+// ALOHA https://app.clickup.com/t/861mawmth
+#include "content/browser/web_contents/web_contents_impl.h"
+#include "content/browser/media/media_web_contents_observer.h"
 // Must come after all headers that specialize FromJniType() / ToJniType().
 #include "android_webview/browser_jni_headers/AwContents_jni.h"
 #include "android_webview/browser_jni_headers/AwSiteVisitLogger_jni.h"
@@ -301,6 +320,12 @@ AwContents::AwContents(std::unique_ptr<WebContents> web_contents)
   asset_link_handler_ = std::make_unique<
       content_relationship_verification::DigitalAssetLinksHandler>(
       storage_access_url_loader_factory_);
+
+  auto* default_browser_context =
+      android_webview::AwBrowserContext::GetDefault();
+  adblock::EnsureBackgroundServicesStarted(default_browser_context);
+  adblock::RegisterAdblockWebContentObserver<AdblockAwWebContentObserver>(
+      web_contents_.get(), default_browser_context);
 
   content::SynchronousCompositor::SetClientForWebContents(
       web_contents_.get(), &browser_view_renderer_);
@@ -867,6 +892,12 @@ bool AwContents::AllowThirdPartyCookies() {
   return aw_settings->GetAllowThirdPartyCookies();
 }
 
+bool AwContents::IsContentFilteringEnabled() const {
+  DCHECK_CURRENTLY_ON(BrowserThread::UI);
+  AwSettings* aw_settings = AwSettings::FromWebContents(web_contents_.get());
+  return aw_settings->IsContentFilteringEnabled();
+}
+
 void AwContents::OnFindResultReceived(int active_ordinal,
                                       int match_count,
                                       bool finished) {
@@ -1004,9 +1035,14 @@ void AwContents::UpdateLastHitTestData(JNIEnv* env) {
   if (data->img_src.is_valid())
     img_src = ConvertUTF8ToJavaString(env, data->img_src.spec());
 
+  // ALOHA https://app.clickup.com/t/2f2ey18
+  ScopedJavaLocalRef<jstring> video_src;
+  if (data->video_src.is_valid())
+    video_src = ConvertUTF8ToJavaString(env, data->video_src.spec());
+
   Java_AwContents_updateHitTestData(env, obj, static_cast<jint>(data->type),
                                     extra_data_for_type, href, anchor_text,
-                                    img_src);
+                                    img_src, video_src);
 }
 
 void AwContents::OnSizeChanged(JNIEnv* env, int w, int h, int ow, int oh) {
@@ -1635,6 +1671,38 @@ void AwContents::ResumeLoadingCreatedPopupWebContents(JNIEnv* env) {
   web_contents_->ResumeLoadingCreatedWebContents();
 }
 
+// ALOHA https://app.clickup.com/t/2dmrud4
+void AwContents::SetPrivateMode(JNIEnv* env, jboolean enable) {
+  web_contents_->SetPrivateMode(enable == JNI_TRUE);
+}
+
+// ALOHA https://app.clickup.com/t/2u59j0h
+void AwContents::RequestDownloadUrl(JNIEnv* env, const JavaParamRef<jstring>& j_url) {
+  const GURL url(ConvertJavaStringToUTF8(env, j_url));
+
+  // ALOHA https://app.clickup.com/t/2u59j0h?comment=1465391946
+  if (aloha::IsAllowedDownloadFromCache(url) &&
+      aloha::IsAllowedDownloadFromCache(web_contents_->GetVisibleURL())) {
+    // See implementation in components/download/content/internal/context_menu_download.cc.
+    content::DownloadManager* dlm =
+        web_contents_->GetBrowserContext()->GetDownloadManager();
+    std::unique_ptr<download::DownloadUrlParameters> dl_params(
+        content::DownloadRequestUtils::CreateDownloadForWebContentsMainFrame(
+            web_contents_.get(), url,
+            TRAFFIC_ANNOTATION_WITHOUT_PROTO("Download via aloha request")));
+
+    dl_params->set_prefer_cache(true);
+    dl_params->set_request_origin(aloha::kDownloadRequestOrigin);
+    dlm->DownloadUrl(std::move(dl_params));
+  } else {
+    AwContentsClientBridge* client =
+      AwContentsClientBridge::FromWebContents(web_contents_.get());
+    if (client) {
+      client->NewDownload(url, url, {}, {}, {}, {}, {}, -1);
+    }
+  }
+}
+
 void JNI_AwContents_SetShouldDownloadFavicons(JNIEnv* env) {
   g_should_download_favicons = true;
 }
@@ -1853,6 +1921,22 @@ AwContents::RenderProcessGoneResult AwContents::OnRenderProcessGone(
 void AwContents::OnSafeBrowsingAllowListSet() {
   web_contents()->GetController().GetBackForwardCache().Flush(
       NotRestoredReason::kWebViewSafeBrowsingAllowlistChanged);
+}
+
+// ALOHA https://app.clickup.com/t/861mawmth
+void AwContents::MediaPlayerPause(JNIEnv* env, int cid, int rid, int did) {
+  static_cast<content::WebContentsImpl*>(web_contents_.get())
+    ->media_web_contents_observer()->GetMediaPlayerRemote(
+        content::MediaPlayerId(content::GlobalRenderFrameHostId(cid, rid), did))
+    ->RequestPause(true);
+}
+
+// ALOHA https://app.clickup.com/t/861mawmth
+void AwContents::MediaPlayerPlay(JNIEnv* env, int cid, int rid, int did) {
+  static_cast<content::WebContentsImpl*>(web_contents_.get())
+    ->media_web_contents_observer()->GetMediaPlayerRemote(
+        content::MediaPlayerId(content::GlobalRenderFrameHostId(cid, rid), did))
+    ->RequestPlay();
 }
 
 }  // namespace android_webview

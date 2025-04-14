@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/renderer/aw_render_frame_ext.h"
 
 #include <memory>
@@ -249,8 +251,20 @@ void AwRenderFrameExt::HandleHitTestResult(
       absolute_image_url = GetChildImageUrlFromElement(result.UrlElement());
   }
 
+  // ALOHA https://app.clickup.com/t/2v1r9c4
+  if (absolute_image_url.is_empty()) {
+    absolute_image_url = result.AlohaFindImageURL();
+  }
+
   PopulateHitTestData(result.AbsoluteLinkURL(), absolute_image_url,
                       result.IsContentEditable(), data.get());
+
+  // ALOHA https://app.clickup.com/t/2f2ey18
+  GURL video_url = result.AlohaFindVideoURL();
+  if (!video_url.is_empty()) {
+    data->type = mojom::HitTestDataType::kVideo;
+    data->video_src = std::move(video_url);
+  }
 
   GetFrameHost()->UpdateHitTestData(std::move(data));
 }

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package com.android.webview.chromium;
 
 import android.annotation.SuppressLint;
@@ -35,7 +37,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.webkit.WebViewDelegate;
+import com.android.webview.chromium.WebViewDelegate;
 
 import org.chromium.android_webview.AwConsoleMessage;
 import org.chromium.android_webview.AwContentsClient;
@@ -87,8 +89,7 @@ import java.util.regex.Pattern;
  * allow the source WebView to be injected by ContentViewClientAdapter. We
  * choose the latter, because it makes for a cleaner design.
  */
-@Lifetime.WebView
-class WebViewContentsClientAdapter extends SharedWebViewContentsClientAdapter {
+/*ALOHATODO: consider removal of this class */ abstract /**/ class WebViewContentsClientAdapter extends SharedWebViewContentsClientAdapter {
     // The WebChromeClient instance that was passed to WebView.setContentViewClient().
     private WebChromeClient mWebChromeClient;
     // The listener receiving find-in-page API results.

@@ -2,12 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 module media.mojom;
 
 import "media/mojo/mojom/media_types.mojom";
 import "mojo/public/mojom/base/time.mojom";
 import "services/media_session/public/mojom/media_session.mojom";
 import "ui/gfx/geometry/mojom/geometry.mojom";
+
+// ALOHA https://app.clickup.com/t/2hxwa9w
+import "url/mojom/url.mojom";
 
 // Implemented by HTMLMediaElement in the renderer process to allow the
 // browser to control media playback.
@@ -65,6 +70,14 @@ interface MediaPlayer {
   RequestVisibility() => (bool has_sufficiently_visible_video);
 };
 
+// ALOHA https://app.clickup.com/t/2uat2t4
+struct MediaPlayerId {
+  // id attribute for media tag.
+  string html_id;
+  // id attributes for iframes in which is media tag.
+  array<string> iframes_ids;
+};
+
 // Implemented by the MediaWebContentsObserver. The remote lives in the renderer
 // process and the receiver lives in the browser process.
 interface MediaPlayerObserverClient {
@@ -76,11 +89,18 @@ interface MediaPlayerObserverClient {
 // browser process.
 interface MediaPlayerObserver {
   // Notifies that the media player started playing content.
-  OnMediaPlaying();
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  OnMediaPlaying(url.mojom.Url media_url, url.mojom.Url document_url, double duration_s) =>
+                        (bool should_background_play);
 
   // Notifies that the media player stopped playing content,
   // indicating in |stream_ended| if playback has reached the end of the stream.
-  OnMediaPaused(bool stream_ended);
+  OnMediaPaused(bool stream_ended,
+                url.mojom.Url media_url, url.mojom.Url document_url, double duration_s); // ALOHA https://app.clickup.com/t/2qfa6r7
+
+  // ALOHA https://app.clickup.com/t/2rqdtxz
+  OnMediaError(string pipeline_status, url.mojom.Url media_url, url.mojom.Url document_url,
+      double current_time_s, double duration_s);
 
   // Notifies that the muted status of the media player has changed.
   OnMutedStatusChanged(bool muted);
@@ -98,7 +118,8 @@ interface MediaPlayerObserver {
   // This does not differentiate native controls fullscreen and custom controls
   // fullscreen. |status| is used by MediaWebContentsObserver to trigger
   // automatically Picture-in-Picture for fullscreen videos.
-  OnMediaEffectivelyFullscreenChanged(FullscreenVideoStatus status);
+  OnMediaEffectivelyFullscreenChanged(FullscreenVideoStatus status,
+      url.mojom.Url url, bool media_controls_is_hidden); // ALOHA https://app.clickup.com/t/2hxwa9w
 
   // Notifies that the size of the media player has changed.
   OnMediaSizeChanged(gfx.mojom.Size size);
@@ -136,5 +157,6 @@ interface MediaPlayerHost {
   // the scope of the RenderFrame.
   OnMediaPlayerAdded(pending_associated_remote<MediaPlayer> player_remote,
                      pending_associated_receiver<MediaPlayerObserver> observer,
-                     int32 player_id);
+                     int32 player_id,
+                     MediaPlayerId aloha_player_id); // ALOHA https://app.clickup.com/t/2f2eyt8
 };

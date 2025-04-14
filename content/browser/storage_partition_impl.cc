@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/storage_partition_impl.h"
 
 #include <stdint.h>
@@ -3215,6 +3217,24 @@ void StoragePartitionImpl::AddObserver(DataRemovalObserver* observer) {
 
 void StoragePartitionImpl::RemoveObserver(DataRemovalObserver* observer) {
   data_removal_observers_.RemoveObserver(observer);
+}
+
+// ALOHA https://app.clickup.com/t/2hcppgv
+void StoragePartitionImpl::ClearSessionStorage() {
+  for (const auto& [id, client] : dom_storage_clients_) {
+    client->ClearSessionStorage();
+  }
+  // GetStorageServicePartition()::PartitionImpl.session_storage_ will be cleared
+  // by dom_storage_clients_ through CachedStorageArea::remote_area_.
+}
+
+// ALOHA https://app.clickup.com/t/2hcppgv
+void StoragePartitionImpl::ClearLocalStorage(bool for_private_mode) {
+  for (const auto& [id, client] : dom_storage_clients_) {
+    client->ClearLocalStorage(for_private_mode);
+  }
+  // GetStorageServicePartition()::PartitionImpl.local_storage_ will be cleared
+  // by dom_storage_clients_ through CachedStorageArea::remote_area_.
 }
 
 void StoragePartitionImpl::FlushNetworkInterfaceForTesting() {

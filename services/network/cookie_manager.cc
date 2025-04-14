@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifdef UNSAFE_BUFFERS_BUILD
 // TODO(crbug.com/351564777): Remove this and convert code to safer constructs.
 #pragma allow_unsafe_buffers
@@ -59,13 +61,14 @@ void CookieManager::ListenerRegistration::DispatchCookieStoreChange(
   listener->OnCookieChange(change);
 }
 
-CookieManager::CookieManager(
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+CookieManager::CookieManager(int inst_num,
     net::URLRequestContext* url_request_context,
     FirstPartySetsAccessDelegate* const first_party_sets_access_delegate,
     scoped_refptr<SessionCleanupCookieStore> session_cleanup_cookie_store,
     mojom::CookieManagerParamsPtr params,
     network::tpcd::metadata::Manager* tpcd_metadata_manager)
-    : cookie_store_(url_request_context->cookie_store()),
+    : cookie_store_(url_request_context->cookie_store(inst_num)),
       session_cleanup_cookie_store_(std::move(session_cleanup_cookie_store)) {
   mojom::CookieAccessDelegateType cookie_access_delegate_type =
       mojom::CookieAccessDelegateType::USE_CONTENT_SETTINGS;

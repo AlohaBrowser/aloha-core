@@ -483,6 +483,119 @@ experimental domain Animation
       # Animation that was updated.
       Animation animation
 
+experimental domain Eyeo
+
+  # Disables all backend events for the domain (default).
+  command disable
+
+  # Enables all backend events for the domain.
+  command enable
+
+  # Gets the download statistics for the configuration.
+  command getDownloadStats
+    parameters
+      optional string configuration
+    returns
+      array of string download_stats
+
+  # Gets existing configurations.
+  command getConfigurations
+    returns
+      array of string configurations
+
+  command getSessionStats
+    parameters
+      optional string configuration
+    returns
+      array of string session_stats
+
+  # Gets the filter lists urls for the configuration.
+  command getFilterLists
+    parameters
+      optional string configuration
+    returns
+      array of string urls
+
+  # Adds the filter list url to the configuration.
+  command addFilterList
+    parameters
+      optional string configuration
+      string url
+
+  # Removes the filter list url from the configuration.
+  command removeFilterList
+    parameters
+      optional string configuration
+      string url
+
+  # Gets custom filters for the configuration.
+  command getCustomFilters
+    parameters
+      optional string configuration
+    returns
+      array of string filters
+
+  # Adds the custom filter to the configuration.
+  command addCustomFilter
+    parameters
+      optional string configuration
+      string filter
+
+  # Removes the custom filter from the configuration.
+  command removeCustomFilter
+    parameters
+      optional string configuration
+      string filter
+
+  # Gets allowed domains for the configuration.
+  command getAllowedDomains
+    parameters
+      optional string configuration
+    returns
+      array of string domains
+
+  # Adds the allowed domain to the configuration.
+  command addAllowedDomain
+    parameters
+      optional string configuration
+      string domain
+
+  # Removes the allowed domain from the configuration.
+  command removeAllowedDomain
+    parameters
+      optional string configuration
+      string domain
+
+  # Returns current adblock telemetry ping data to be sent next interval
+  command getTelemetryDebugInfo
+    returns
+      string telemetry_ping
+
+  event filterListsChanged
+    parameters
+      string configuration
+      array of string urls
+
+  event customFiltersChanged
+    parameters
+      string configuration
+      array of string filters
+
+  event pageAllowed
+    parameters
+      string subscription
+      string url
+
+  event requestAllowed
+    parameters
+      string subscription
+      string url
+
+  event requestBlocked
+    parameters
+      string subscription
+      string url
+
 # Audits domain allows investigation of page violations and possible improvements.
 experimental domain Audits
   depends on Network

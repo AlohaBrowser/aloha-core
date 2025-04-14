@@ -114,6 +114,7 @@ void AwBrowserProcess::CreateLocalState() {
 void AwBrowserProcess::OnLoseForeground() {
   if (local_state_)
     local_state_->CommitPendingWrite();
+  AwBrowserContext::GetDefault()->GetPrefService()->CommitPendingWrite();
 }
 
 AwBrowserPolicyConnector* AwBrowserProcess::browser_policy_connector() {

@@ -1,6 +1,10 @@
 // Copyright 2019 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
+
 
 module blink.mojom;
 
@@ -84,6 +88,9 @@ import "url/mojom/url.mojom";
 
 [EnableIf=is_mac]
 import "ui/base/mojom/attributed_string.mojom";
+
+// ALOHA https://app.clickup.com/t/2uat2t4
+import "media/mojo/mojom/media_player.mojom";
 
 // Information about a subframe being saved as "complete html".
 struct SavableSubframe {
@@ -247,6 +254,13 @@ struct IframeAttributes {
   string? src;
 };
 
+// ALOHA https://app.clickup.com/t/2hxwa9w
+struct FullscreenVideoElementInfo {
+  url.mojom.Url url;
+  double duration_s;
+  media.mojom.MediaPlayerId aloha_player_id;
+};
+
 // Code location for an enterprise legacy technology event. The data will be
 // uploaded to the enterprise management server without being parsed by the
 // browser process.
@@ -270,7 +284,10 @@ interface LocalFrameHost {
   // request to enter fullscreen was denied. Note that the actual transition to
   // fullscreen will occur on the next visual update, when the next
   // Widget::UpdateVisualProperties is sent.
-  EnterFullscreen(FullscreenOptions options) => (bool granted);
+  // ALOHA https://app.clickup.com/t/2hxwa9w
+  EnterFullscreen(FullscreenOptions options, FullscreenVideoElementInfo? video_element,
+                  string pending_elem_class)
+    => (bool granted, bool hide_controls_for_video);
 
   // Request to the browser to exit fullscreen mode.
   ExitFullscreen();
@@ -968,6 +985,10 @@ interface LocalFrame {
   // the given point in the view coordinate space.
   PluginActionAt(gfx.mojom.Point location, blink.mojom.PluginActionType action);
 
+  // https://gitlab.com/eyeo/adblockplus/chromium/issues/35
+  // Request for the renderer to insert user stylesheet.
+  InsertAbpElemhideStylesheet(string stylesheet);
+
   // Request to continue running the sequential focus navigation algorithm in
   // this frame. |source_frame_token| identifies the frame that issued this
   // request. This message is sent when finding the next focusable element would
@@ -1042,6 +1063,11 @@ interface LocalFrame {
   JavaScriptExecuteRequest(
       mojo_base.mojom.BigString16 javascript,
       bool wants_result) => (mojo_base.mojom.Value result);
+
+  // ALOHA https://app.clickup.com/t/861m7r8nk
+  JavaScriptExecuteRequestUnchecked(
+    mojo_base.mojom.BigString16 javascript,
+    bool wants_result) => (mojo_base.mojom.Value result);
 
   // ONLY FOR TESTS: Same as above but this can optionally:
   // - Trigger a fake user activation notification to test functionalities that

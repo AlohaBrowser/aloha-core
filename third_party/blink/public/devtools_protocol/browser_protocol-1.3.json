@@ -1242,6 +1242,198 @@
         ]
     },
     {
+        "domain": "Eyeo",
+        "description": "Eyeo domain for ad blocking engine commands.",
+        "experimental": true,
+        "commands": [
+            {
+              "name": "GetDownloadStats",
+              "description": "Gets the download statistics for the configuration.",
+              "parameters": [
+                {
+                  "name": "configuration",
+                  "type": "string",
+                  "optional": true,
+                  "description": "The configuration name (defaults to 'adblock')."
+                }
+              ],
+              "returns": [
+                {
+                  "name": "download_stats",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "The list of json style strings: { \"url\" : <url>, \"counters\" : { \"success\" : <successes>, \"error\": <errors> } }."
+                }
+              ]
+            },
+            {
+            "name": "getConfigurations",
+            "description": "Gets list of existing configurations.",
+            "returns": [
+              {
+                "name": "configurations",
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "The lists of configurations names and state."
+              }
+              ]
+            },
+            {
+              "name": "GetSessionStats",
+              "description": "Gets the session statistics for the configuration.",
+              "parameters": [
+                {
+                  "name": "configuration",
+                  "type": "string",
+                  "optional": true,
+                  "description": "The configuration name (defaults to 'adblock')."
+                }
+              ],
+              "returns": [
+                {
+                  "name": "session_stats",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "The list of json style strings: { \"url\" : <url>, \"counters\" : { \"allowed\" : <allowed_count>, \"blocked\": <blocked_count> } }."
+                }
+              ]
+            },
+            {
+                "name": "getFilterLists",
+                "description": "Gets the filter lists urls for the configuration.",
+                "parameters": [ { "name": "configuration", "type": "string",  "optional": true, "description": "The configuration name (defaults to 'adblock')." } ],
+                "returns": [ { "name": "lists", "type": "array", "items": { "type": "string" }, "description": "The filters lists urls." } ]
+            },
+            {
+                "name": "addFilterList",
+                "description": "Adds the filter list url to the configuration.",
+                "parameters": [
+                    { "name": "configuration", "type": "string",  "optional": true, "description": "The configuration name (defaults to 'adblock')." },
+                    { "name": "url", "type": "string",  "description": "The filter list url." }
+                ]
+            },
+            {
+                "name": "removeFilterList",
+                "description": "Removes the filter list url from the configuration.",
+                "parameters": [
+                    { "name": "configuration", "type": "string",  "optional": true, "description": "The configuration name (defaults to 'adblock')." },
+                    { "name": "url", "type": "string",  "description": "The filter list url." }
+                ]
+            },
+            {
+              "name": "getCustomFilters",
+              "description": "Gets the custom filters for the configuration.",
+              "parameters": [
+                {
+                  "name": "configuration",
+                  "type": "string",
+                  "optional": true,
+                  "description": "The configuration name (defaults to 'adblock')."
+                }
+              ],
+              "returns": [
+                {
+                  "name": "lists",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "The list of custom filters."
+                }
+              ]
+            },
+            {
+              "name": "addCustomFilter",
+              "description": "Adds the custom filter to the configuration.",
+              "parameters": [
+                {
+                  "name": "configuration",
+                  "type": "string",
+                  "optional": true,
+                  "description": "The configuration name (defaults to 'adblock')."
+                },
+                {
+                  "name": "filter",
+                  "type": "string",
+                  "description": "The custom filter."
+                }
+              ]
+            },
+            {
+              "name": "removeCustomFilter",
+              "description": "Removes the custom filter from the configuration.",
+              "parameters": [
+                {
+                  "name": "configuration",
+                  "type": "string",
+                  "optional": true,
+                  "description": "The configuration name (defaults to 'adblock')."
+                },
+                {
+                  "name": "filter",
+                  "type": "string",
+                  "description": "The custom filter."
+                }
+              ]
+          },
+          {
+            "name": "getAllowedDomains",
+            "description": "Gets the allowed domains for the configuration.",
+            "parameters": [
+              {
+                "name": "configuration",
+                "type": "string",
+                "optional": true,
+                "description": "The configuration name (defaults to 'adblock')."
+              }
+            ],
+            "returns": [
+              {
+                "name": "domains",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The list of allowed domains."
+              }
+            ]
+          },
+          {
+            "name": "addAllowedDomain",
+            "description": "Adds the allowed domain to the configuration.",
+            "parameters": [
+                { "name": "configuration", "type": "string",  "optional": true, "description": "The configuration name (defaults to 'adblock')." },
+                { "name": "domain", "type": "string",  "description": "The allowed domain." }
+            ]
+          },
+          {
+            "name": "removeAllowedDomain",
+            "description": "Removes the allowed domain from the configuration.",
+            "parameters": [
+                { "name": "configuration", "type": "string",  "optional": true, "description": "The configuration name (defaults to 'adblock')." },
+                { "name": "domain", "type": "string",  "description": "The allowed domain ." }
+            ]
+          },
+          {
+            "name": "getTelemetryDebugInfo",
+            "description": "Gets the current adblock telemetry ping data to be sent next interval",
+            "returns": [
+              {
+                "name": "telemetry_ping",
+                "type": "string",
+                "description": "Telemetry ping payload."
+              }
+            ]
+          }
+        ]
+    },
+    {
         "domain": "Audits",
         "description": "Audits domain allows investigation of page violations and possible improvements.",
         "dependencies": ["Network"],

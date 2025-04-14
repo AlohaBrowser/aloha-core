@@ -1,6 +1,10 @@
 // Copyright 2018 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #ifndef BASE_TRACE_EVENT_BUILTIN_CATEGORIES_H_
 #define BASE_TRACE_EVENT_BUILTIN_CATEGORIES_H_
@@ -96,6 +100,7 @@ PERFETTO_DEFINE_CATEGORIES_IN_NAMESPACE_WITH_ATTRS(
     perfetto::Category("exo"),
     perfetto::Category("extensions"),
     perfetto::Category("explore_sites"),
+    perfetto::Category("eyeo"),
     perfetto::Category("FileSystem"),
     perfetto::Category("file_system_provider"),
     perfetto::Category("fledge"),

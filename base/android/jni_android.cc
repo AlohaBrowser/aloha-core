@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "base/android/jni_android.h"
 
 #include <stddef.h>
@@ -22,6 +24,9 @@
 // Must come after all headers that specialize FromJniType() / ToJniType().
 #include "base/base_minimal_jni/JniAndroid_jni.h"
 
+namespace aloha {
+char g_callstack_file_name[1024] = {0}; // ALOHA https://app.clickup.com/t/2ewuxxy
+}
 namespace base {
 namespace android {
 namespace {
@@ -187,6 +192,23 @@ void CheckException(JNIEnv* env) {
     } else {
       LOG(FATAL) << kUncaughtExceptionMessage;
     }
+
+    // ALOHA https://app.clickup.com/t/2ewuxxy
+    std::string java_exception_info = GetJavaExceptionInfo(env, throwable);
+	  base::android::SetJavaException(java_exception_info.c_str());
+
+    if(strlen(aloha::g_callstack_file_name) != 0) {
+      FILE *f = fopen(aloha::g_callstack_file_name, "w");
+      if (f == nullptr) {
+        LOG(ERROR) << "Failed to open " << aloha::g_callstack_file_name;
+      } else {
+        fwrite(java_exception_info.c_str(), java_exception_info.size(), 1, f); // No reasons to check results
+        fflush(f);
+        fclose(f);
+        LOG(INFO) << "Java callstack written to " << aloha::g_callstack_file_name;
+      }
+    }
+    
     // Needed for tests, which do not terminate from LOG(FATAL).
     g_reentering = false;
     return;

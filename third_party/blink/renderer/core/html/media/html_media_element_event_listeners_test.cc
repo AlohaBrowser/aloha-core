@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
+
 #include <algorithm>
 #include <memory>
 
@@ -284,7 +287,8 @@ TEST_F(HTMLMediaElementEventListenersTest,
       GetDocument().GetFrame(), mojom::UserActivationNotificationType::kTest);
   Fullscreen::RequestFullscreen(*Video());
   Fullscreen::DidResolveEnterFullscreenRequest(GetDocument(),
-                                               true /* granted */);
+                                               true /* granted */,
+                                               nullptr /* override_fullscreen_element */); // ALOHA https://app.clickup.com/t/861m4jwng
 
   test::RunPendingTasks();
 

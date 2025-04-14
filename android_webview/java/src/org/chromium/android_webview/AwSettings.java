@@ -1,6 +1,12 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
 
 package org.chromium.android_webview;
 
@@ -219,6 +225,14 @@ public class AwSettings {
     private boolean mDisplayZoomControls = true;
     private final AwMediaIntegrityApiStatusConfig mIntegrityApiStatusConfig;
 
+    private boolean mContentFilteringEnabled = true;
+    
+    // ALOHA https://app.clickup.com/t/2f2ezk8
+    private boolean mUserAgentIsMobile = true;
+
+    // ALOHAhttps://app.clickup.com/t/86eq7zxkr
+    private boolean mNavigatorCookieEnabled = true;
+
     private @WebauthnMode int mWebauthnMode = WebauthnMode.NONE;
 
     // Cache default user agent string obtained through JNI, since it will not change during the
@@ -330,6 +344,10 @@ public class AwSettings {
         void updateGeolocationEnabled() {
             runOnUiThreadBlockingAndLocked(
                     AwSettings.this::updateGeolocationEnabledOnUiThreadLocked);
+        }
+
+        void updateContentFilteringEnabled() {
+            runOnUiThreadBlockingAndLocked(() -> updateContentFilteringEnabledOnUiThreadLocked());
         }
     }
 
@@ -1836,6 +1854,23 @@ public class AwSettings {
         }
     }
 
+    public void setContentFilteringEnabled(boolean enabled) {
+        if (TRACE) Log.i(TAG, "setContentFilteringEnabled = " + enabled);
+        synchronized (mAwSettingsLock) {
+            if (mContentFilteringEnabled != enabled) {
+                mContentFilteringEnabled = enabled;
+                mEventHandler.updateContentFilteringEnabled();
+            }
+        }
+    }
+
+    @CalledByNative
+    public boolean getContentFilteringEnabled() {
+        synchronized (mAwSettingsLock) {
+            return mContentFilteringEnabled;
+        }
+    }
+
     @ForceDarkMode
     public int getForceDarkMode() {
         synchronized (mAwSettingsLock) {
@@ -2154,6 +2189,15 @@ public class AwSettings {
         }
     }
 
+    private void updateContentFilteringEnabledOnUiThreadLocked() {
+        assert mEventHandler.mHandler != null;
+        ThreadUtils.assertOnUiThread();
+        if (mNativeAwSettings != 0) {
+            AwSettingsJni.get()
+                    .updateContentFilteringEnabledLocked(mNativeAwSettings, AwSettings.this);
+        }
+    }
+
     public void setEnterpriseAuthenticationAppLinkPolicyEnabled(boolean enabled) {
         synchronized (mAwSettingsLock) {
             mEventHandler.runOnUiThreadBlockingAndLocked(
@@ -2201,6 +2245,40 @@ public class AwSettings {
         synchronized (mAwSettingsLock) {
             return mIntegrityApiStatusConfig.getStatusForUri(uri);
         }
+    }
+
+    // ALOHA https://app.clickup.com/t/2f2ezk8
+    public void setUserAgentIsMobile(boolean isMobile) {
+        synchronized (mAwSettingsLock) {
+            if (mUserAgentIsMobile != isMobile) {
+                mUserAgentIsMobile = isMobile;
+                mEventHandler.updateWebkitPreferencesLocked();
+            }
+        }
+    }
+
+    // ALOHA https://app.clickup.com/t/2f2ezk8
+    @CalledByNative
+    private boolean isMobileUserAgentLocked() {
+        assert Thread.holdsLock(mAwSettingsLock);
+        return mUserAgentIsMobile;
+    }
+
+    // ALOHA https://app.clickup.com/t/86eq7zxkr
+    public void setNavigatorCookieEnabled(boolean enabled) {
+        synchronized (mAwSettingsLock) {
+            if (mNavigatorCookieEnabled != enabled) {
+                mNavigatorCookieEnabled = enabled;
+                mEventHandler.updateWebkitPreferencesLocked();
+            }
+        }
+    }
+
+    // ALOHA https://app.clickup.com/t/86eq7zxkr
+    @CalledByNative
+    private boolean isNavigatorCookieEnabledLocked() {
+        assert Thread.holdsLock(mAwSettingsLock);
+        return mNavigatorCookieEnabled;
     }
 
     public void setWebauthnSupport(@WebauthnMode int support) {
@@ -2267,6 +2345,8 @@ public class AwSettings {
         void updateSpeculativeLoadingAllowedLocked(long nativeAwSettings, AwSettings caller);
 
         void updateBackForwardCacheEnabledLocked(long nativeAwSettings, AwSettings caller);
+
+        void updateContentFilteringEnabledLocked(long nativeAwSettings, AwSettings caller);
 
         boolean isForceDarkApplied(long nativeAwSettings, AwSettings caller);
 

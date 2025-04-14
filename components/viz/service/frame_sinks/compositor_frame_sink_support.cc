@@ -1702,7 +1702,7 @@ void CompositorFrameSinkSupport::ProcessCompositorFrameTransitionDirective(
       // The save operation must have been completed before the renderer sends
       // an animate directive.
       auto& surface_animation_manager = it->second;
-      if (!surface_animation_manager->Animate()) {
+      if (!surface_animation_manager || (surface_animation_manager && !surface_animation_manager->Animate())) { // ALOHA https://app.clickup.com/t/86erbn9dd bugifix nullptr from bugsnag
         view_transition_token_to_animation_manager_.erase(it);
         return;
       }

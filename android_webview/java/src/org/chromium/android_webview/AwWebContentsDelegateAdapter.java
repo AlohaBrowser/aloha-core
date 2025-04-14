@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview;
 
 import android.annotation.SuppressLint;
@@ -27,6 +29,10 @@ import org.chromium.content_public.browser.InvalidateTypes;
 import org.chromium.content_public.common.ContentUrlConstants;
 import org.chromium.content_public.common.ResourceRequestBody;
 import org.chromium.url.GURL;
+
+// ALOHA https://app.clickup.com/t/2f2f3dt
+import org.chromium.android_webview.AwContentsClient.AwWebResourceError;
+import org.chromium.android_webview.AwContentsClient.AwWebResourceRequest;
 
 /**
  * Adapts the AwWebContentsDelegate interface to the AwContentsClient interface.
@@ -168,14 +174,15 @@ class AwWebContentsDelegateAdapter extends AwWebContentsDelegate {
     }
 
     @Override
-    public void openNewTab(
-            GURL url,
-            String extraHeaders,
-            ResourceRequestBody postData,
-            int disposition,
-            boolean isRendererInitiated) {
-        // Not supported.  There are very few cases where this is called other than in //chrome
-        // and we don't expect them to matter for WebView.
+    public void openNewTab(GURL url, String extraHeaders, ResourceRequestBody postData,
+            int disposition, boolean isRendererInitiated) {
+        // ALOHA: https://app.clickup.com/t/2f2f3dt
+        AwWebResourceRequest request = new AwWebResourceRequest();
+        request.url = url.getPossiblyInvalidSpec();
+        AwWebResourceError error = new AwWebResourceError();
+        error.errorCode = -100;
+        error.description = "AwWebContentsDelegateAdapter.openNewTab is not implemented";
+        mContentsClient.onReceivedError(request, error);
     }
 
     @Override
@@ -334,31 +341,18 @@ class AwWebContentsDelegateAdapter extends AwWebContentsDelegate {
      * is ready to be shown.
      */
     private void enterFullscreen() {
-        if (mAwContents.isFullScreen()) {
-            return;
-        }
-        View fullscreenView = mAwContents.enterFullScreen();
-        if (fullscreenView == null) {
-            return;
-        }
-        AwContentsClient.CustomViewCallback cb =
-                () -> {
-                    if (mCustomView != null) {
-                        mAwContents.requestExitFullscreen();
-                    }
-                };
-        mCustomView = new FrameLayout(mContext);
-        mCustomView.addView(fullscreenView);
-        mContentsClient.onShowCustomView(mCustomView, cb);
+        // ALOHA https://app.clickup.com/t/2hxwa9w
+        // Code here breaks fullscreen mode, so it is removed.
+
+        // ALOHA https://app.clickup.com/t/861m7mewp
+        mContentsClient.onEnterFullscreen();
     }
 
+    
     /** Called to show the web contents in embedded mode. */
     private void exitFullscreen() {
-        if (mCustomView != null) {
-            mCustomView = null;
-            mAwContents.exitFullScreen();
-            mContentsClient.onHideCustomView();
-        }
+        // ALOHA https://app.clickup.com/t/861m7mewp
+        mContentsClient.onExitFullscreen();
     }
 
     @Override

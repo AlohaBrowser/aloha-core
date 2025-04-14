@@ -1,6 +1,12 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
+
+# Modified by Aloha Mobile Ltd.
 
 import("//base/allocator/partition_allocator/partition_alloc.gni")
 import("//build/buildflag_header.gni")
@@ -10,6 +16,7 @@ import("//build/config/linux/pangocairo/pangocairo.gni")
 import("//build/config/ozone.gni")
 import("//build/config/ui.gni")
 import("//chromeos/ash/components/assistant/assistant.gni")
+import("//components/adblock/features.gni")
 import("//components/viz/common/debugger/viz_debugger.gni")
 import("//content/common/features.gni")
 import("//content/public/common/features.gni")
@@ -95,6 +102,9 @@ source_set("browser") {
     "//cc/animation",
     "//cc/mojo_embedder",
     "//cc/paint",
+    "//components/adblock/core:core",
+    "//components/adblock/core/configuration",
+    "//components/adblock/core/subscription",
     "//components/attribution_reporting:data_host_mojom",
     "//components/attribution_reporting:mojom",
     "//components/back_forward_cache:enum",
@@ -368,6 +378,8 @@ source_set("browser") {
     "$target_gen_dir/devtools/protocol/dom.h",
     "$target_gen_dir/devtools/protocol/emulation.cc",
     "$target_gen_dir/devtools/protocol/emulation.h",
+    "$target_gen_dir/devtools/protocol/eyeo.cc",
+    "$target_gen_dir/devtools/protocol/eyeo.h",
     "$target_gen_dir/devtools/protocol/fed_cm.cc",
     "$target_gen_dir/devtools/protocol/fed_cm.h",
     "$target_gen_dir/devtools/protocol/fetch.cc",
@@ -922,6 +934,8 @@ source_set("browser") {
     "devtools/protocol/dom_handler.h",
     "devtools/protocol/emulation_handler.cc",
     "devtools/protocol/emulation_handler.h",
+    "devtools/protocol/eyeo_handler.cc",
+    "devtools/protocol/eyeo_handler.h",
     "devtools/protocol/fedcm_handler.cc",
     "devtools/protocol/fedcm_handler.h",
     "devtools/protocol/fetch_handler.cc",
@@ -2470,6 +2484,10 @@ source_set("browser") {
     "worker_host/worker_script_loader.h",
     "worker_host/worker_script_loader_factory.cc",
     "worker_host/worker_script_loader_factory.h",
+
+    # ALOHA
+    "//aloha/src/native/log_assert_handler.cc",
+    "//aloha/src/native/log_assert_handler.h",
   ]
 
   if (is_android) {
@@ -3646,6 +3664,11 @@ source_set("browser") {
       "devtools/protocol/native_profiling_handler.h",
       "profiling_utils.cc",
     ]
+  }
+
+  if (eyeo_extend_chrome_devtools_protocol) {
+    print("WARNING! Enabled eyeo commands in ChromeDevToolsProtocol")
+    defines += [ "EYEO_EXTEND_CHROME_DEVTOOLS_PROTOCOL=1" ]
   }
 }
 

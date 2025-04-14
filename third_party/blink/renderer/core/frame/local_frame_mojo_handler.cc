@@ -1,6 +1,13 @@
 // Copyright 2021 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
+
 
 #include "third_party/blink/renderer/core/frame/local_frame_mojo_handler.h"
 
@@ -348,6 +355,14 @@ LocalFrameMojoHandler::LocalFrameMojoHandler(blink::LocalFrame& frame)
   registry->AddAssociatedInterface(WTF::BindRepeating(
       &LocalFrameMojoHandler::BindFullscreenVideoElementReceiver,
       WrapWeakPersistent(this)));
+}
+
+void LocalFrameMojoHandler::InsertAbpElemhideStylesheet(
+    const WTF::String& stylesheet) {
+  WebLocalFrameImpl* web_frame = WebLocalFrameImpl::FromFrame(frame_);
+  DCHECK(web_frame);
+  web_frame->GetDocument().InsertAbpElemhideStylesheet(stylesheet, nullptr,
+                                                       WebCssOrigin::kUser);
 }
 
 void LocalFrameMojoHandler::Trace(Visitor* visitor) const {
@@ -861,6 +876,23 @@ void LocalFrameMojoHandler::JavaScriptExecuteRequest(
   } else {
     std::move(callback).Run({});
   }
+}
+
+// ALOHA https://app.clickup.com/t/861m7r8nk
+void LocalFrameMojoHandler::JavaScriptExecuteRequestUnchecked(
+    const String& javascript,
+    bool wants_result,
+    JavaScriptExecuteRequestCallback callback) {
+  TRACE_EVENT_INSTANT0("test_tracing", "JavaScriptExecuteRequest",
+                       TRACE_EVENT_SCOPE_THREAD);
+
+  // ALOHA https://app.clickup.com/t/861m7r8nk
+  DomWindow()->AllowUncheckedJS();
+
+  JavaScriptExecuteRequest(javascript, wants_result, std::move(callback));
+
+  // ALOHA https://app.clickup.com/t/861m7r8nk
+  DomWindow()->DenyUncheckedJS();
 }
 
 void LocalFrameMojoHandler::JavaScriptExecuteRequestForTests(

@@ -33,6 +33,9 @@
 #include "third_party/blink/renderer/platform/mojo/heap_mojo_remote.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 
+// ALOHA https://app.clickup.com/t/2uat2t4
+#include "third_party/blink/public/mojom/frame/frame.mojom-forward.h"
+
 namespace blink {
 
 class AudioContextOptions;
@@ -319,6 +322,8 @@ class MODULES_EXPORT AudioContext final
   // Handles a disconnection from the MediaPlayerHost.
   void OnMediaPlayerDisconnect();
 
+  void OnMediaPlayingCallback(bool should_background_play); // ALOHA according interface 
+
   // https://webaudio.github.io/web-audio-api/#dom-audiocontext-suspended-by-user-slot
   bool suspended_by_user_ = false;
 
@@ -459,6 +464,7 @@ class MODULES_EXPORT AudioContext final
   HeapMojoAssociatedRemote<media::mojom::blink::MediaPlayerObserver>
       media_player_observer_;
 
+  media::mojom::blink::MediaPlayerIdPtr aloha_id_; // ALOHA
   SEQUENCE_CHECKER(main_thread_sequence_checker_);
 };
 

@@ -22,8 +22,8 @@ import java.util.Arrays;
 
 /**
  * A utility class to retrieve references to uncompressed assets insides the apk. A reference is
- * defined as tuple (file descriptor, offset, size) enabling direct mapping without deflation. This
- * can be used even within the renderer process, since it just dup's the apk's fd.
+ * defined as tuple (file descriptor, offset, size) enabling direct mapping without deflation.
+ * This can be used even within the renderer process, since it just dup's the apk's fd.
  */
 @NullMarked
 @JNINamespace("base::android")
@@ -51,8 +51,7 @@ public class ApkAssets {
                 afd.getParcelFileDescriptor().detachFd(), afd.getStartOffset(), afd.getLength()
             };
         } catch (IOException e) {
-            sLastError =
-                    "Error while loading asset " + apkSubpath + " from " + splitName + ": " + e;
+            sLastError = "Error while loading asset " + apkSubpath + " from " + splitName + ": " + e;
             // As a general rule there's no point logging here because the caller should handle
             // receiving an fd of -1 sensibly, and the log message is either mirrored later, or
             // unwanted (in the case where a missing file is expected), or wanted but will be

@@ -224,7 +224,7 @@ public class AccessibilityNodeInfoBuilder {
         node.setScrollable(scrollable);
         node.setSelected(selected);
         node.setVisibleToUser(visibleToUser);
-        node.setFieldRequired(isRequired);
+        //node.setFieldRequired(isRequired); // ALOHA commented for QA, unil we update in Kotlin
 
         // In the special case that we have invalid content on a focused field, we only want to
         // report that to the user at most once per {@link CONTENT_INVALID_THROTTLE_DELAY} time

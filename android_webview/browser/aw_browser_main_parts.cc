@@ -1,6 +1,12 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
 
 #include "android_webview/browser/aw_browser_main_parts.h"
 
@@ -37,6 +43,7 @@
 #include "base/path_service.h"
 #include "base/task/current_thread.h"
 #include "base/trace_event/named_trigger.h"
+#include "components/adblock/content/browser/adblock_web_ui_controller_factory.h"
 #include "components/crash/content/browser/child_exit_observer_android.h"
 #include "components/crash/core/common/crash_key.h"
 #include "components/embedder_support/android/metrics/memory_metrics_logger.h"
@@ -323,6 +330,8 @@ int AwBrowserMainParts::PreMainMessageLoopRun() {
   TRACE_EVENT0("startup", "AwBrowserMainParts::PreMainMessageLoopRun");
   AwBrowserProcess::GetInstance()->PreMainMessageLoopRun();
   browser_client_->InitBrowserContext();
+  content::WebUIControllerFactory::RegisterFactory(
+      adblock::AdblockWebUIControllerFactory::GetInstance());
   content::WebUIControllerFactory::RegisterFactory(
       AwWebUIControllerFactory::GetInstance());
   content::RenderFrameHost::AllowInjectingJavaScript();

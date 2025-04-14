@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "net/base/port_util.h"
 
 #include <limits>
@@ -15,6 +17,9 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
 #include "url/url_constants.h"
+
+// ALOHA https://app.clickup.com/t/2e5wpe6
+#include "aloha/src/native/aloha_consts.h"
 
 namespace net {
 
@@ -132,6 +137,12 @@ bool IsWellKnownPort(int port) {
 }
 
 bool IsPortAllowedForScheme(int port, std::string_view url_scheme) {
+  // ALOHA https://app.clickup.com/t/2e5wpyr
+  if (base::CompareCaseInsensitiveASCII(url_scheme, aloha::kAlohaScheme) == 0) {
+    LOG(WARNING) << __func__ << " Allow any port for scheme " << aloha::kAlohaScheme;
+    return true;
+  }
+
   // Reject invalid ports.
   if (!IsPortValid(port))
     return false;

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/renderer/render_frame_impl.h"
 
 #include <algorithm>
@@ -7020,6 +7022,9 @@ WebView* RenderFrameImpl::CreateNewWindow(
   view_params->never_composited = never_composited;
   view_params->partitioned_popin_params =
       std::move(reply->partitioned_popin_params);
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  view_params->private_mode = GetWebView()->IsPrivateMode();
 
   WebView* web_view = agent_scheduling_group_->CreateWebView(
       std::move(view_params),

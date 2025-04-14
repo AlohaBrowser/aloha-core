@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview.test;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -103,7 +105,7 @@ public class CookieManagerTest extends AwParameterizedTest {
 
     @Before
     public void setUp() {
-        mCookieManager = new AwCookieManager();
+        mCookieManager = AwCookieManager.getPublicCookieManager();
         mContentsClient = new TestAwContentsClient();
         final AwTestContainerView testContainerView =
                 mActivityTestRule.createAwTestContainerViewOnMainSync(mContentsClient);

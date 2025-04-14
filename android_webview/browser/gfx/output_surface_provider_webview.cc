@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/gfx/output_surface_provider_webview.h"
 
 #include <utility>
@@ -96,8 +98,9 @@ void OnContextLost(std::unique_ptr<bool> expect_loss,
   // doesn't have any useful information. Crash here on RenderThread to
   // understand the reason of context losts.
   // If this implementation changes, need to ensure `expect_loss` access from
-  // MarkAllowContextLoss is still valid.
-  LOG(FATAL) << "Non owned context lost!";
+  // MarkExpectContextLoss is still valid.
+  // ALOHA https://app.clickup.com/t/861maax09
+  LOG(ERROR) << "Non owned context lost!";
 }
 
 }  // namespace

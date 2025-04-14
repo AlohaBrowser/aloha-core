@@ -24,11 +24,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_HTML_MEDIA_HTML_MEDIA_ELEMENT_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_HTML_MEDIA_HTML_MEDIA_ELEMENT_H_
 
 #include <memory>
 #include <optional>
+// ALOHA https://app.clickup.com/t/861m81pn3
+#include <atomic>
 
 #include "base/synchronization/lock.h"
 #include "base/thread_annotations.h"
@@ -64,6 +68,9 @@
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 #include "third_party/webrtc_overrides/low_precision_timer.h"
+
+// ALOHA https://app.clickup.com/t/2uat2t4
+#include "third_party/blink/public/mojom/frame/frame.mojom-forward.h"
 
 namespace cc {
 class Layer;
@@ -168,6 +175,9 @@ class CORE_EXPORT HTMLMediaElement
 
   bool SupportsSave() const;
   bool SupportsLoop() const;
+
+  // ALOHA https://app.clickup.com/t/2f2eyt8, https://app.clickup.com/t/2hxwa9w and https://app.clickup.com/t/2uat2t4
+  media::mojom::blink::MediaPlayerIdPtr GetOrCreateMediaPlayerId();
 
   cc::Layer* CcLayer() const;
 
@@ -419,6 +429,9 @@ class CORE_EXPORT HTMLMediaElement
 
   // media::RemotePlaybackClientWrapper overrides:
   std::string GetActivePresentationId() override;
+  
+ // ALOHA https://app.clickup.com/t/2hxwa9w
+  void SetMediaControlsIsHidden(bool hidden) { media_controls_is_hidden_ = hidden; }
 
   // Returns the execution context for player creation. This will be the
   // execution context of the opener document if available, otherwise the
@@ -600,6 +613,9 @@ class CORE_EXPORT HTMLMediaElement
   void DidPlayerSizeChange(const gfx::Size& size) override;
   void OnRemotePlaybackDisabled(bool disabled) override;
 
+  // ALOHA https://app.clickup.com/t/2rqdtxz
+  void OnMediaError(media::PipelineStatus pipeline_status) override;
+
   // Returns a reference to the mojo remote for the MediaPlayerHost interface,
   // requesting it first from the BrowserInterfaceBroker if needed. It is an
   // error to call this method before having access to the document's frame.
@@ -724,6 +740,9 @@ class CORE_EXPORT HTMLMediaElement
 
   void AudioTracksTimerFired(TimerBase*);
 
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  blink::KURL GetSourceUrl() const;
+
   void ScheduleResolvePlayPromises();
   void ScheduleRejectPlayPromises(PlayPromiseError);
   void ScheduleNotifyPlaying();
@@ -749,6 +768,8 @@ class CORE_EXPORT HTMLMediaElement
   // bind to.
   mojo::PendingAssociatedReceiver<media::mojom::blink::MediaPlayerObserver>
   AddMediaPlayerObserverAndPassReceiver();
+
+  void OnMediaPlayingCallback(bool should_background_play);
 
   // Timers used to schedule one-shot tasks with no delay.
   HeapTaskRunnerTimer<HTMLMediaElement> load_timer_;
@@ -1020,6 +1041,12 @@ class CORE_EXPORT HTMLMediaElement
       HeapMojoAssociatedReceiverSet<media::mojom::blink::MediaPlayer,
                                     HTMLMediaElement>>>
       media_player_receiver_set_;
+
+  // ALOHA https://app.clickup.com/t/2hxwa9w
+  bool media_controls_is_hidden_ = false;
+
+  // ALOHA https://app.clickup.com/t/2uat2t4
+  media::mojom::blink::MediaPlayerIdPtr aloha_player_id_;
 };
 
 template <>

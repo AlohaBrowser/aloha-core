@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
 #ifndef SERVICES_NETWORK_PUBLIC_CPP_NET_IPC_PARAM_TRAITS_H_
 #define SERVICES_NETWORK_PUBLIC_CPP_NET_IPC_PARAM_TRAITS_H_
 
@@ -269,6 +273,7 @@ IPC_STRUCT_TRAITS_BEGIN(net::RedirectInfo)
   IPC_STRUCT_TRAITS_MEMBER(new_referrer)
   IPC_STRUCT_TRAITS_MEMBER(insecure_scheme_was_upgraded)
   IPC_STRUCT_TRAITS_MEMBER(is_signed_exchange_fallback_redirect)
+  IPC_STRUCT_TRAITS_MEMBER(bypass_redirect_checks)
   IPC_STRUCT_TRAITS_MEMBER(new_referrer_policy)
   IPC_STRUCT_TRAITS_MEMBER(critical_ch_restart_time)
 IPC_STRUCT_TRAITS_END()

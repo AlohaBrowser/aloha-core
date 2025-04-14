@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.content.browser.webcontents;
 
 import static org.chromium.build.NullUtil.assumeNonNull;
@@ -728,6 +730,14 @@ public class WebContentsImpl
         WebContentsImplJni.get().evaluateJavaScript(mNativeWebContentsAndroid, script, callback);
     }
 
+    // ALOHA https://app.clickup.com/t/861m7r8nk
+    @Override
+    public void evaluateJavaScriptUnchecked(String script, @Nullable JavaScriptCallback callback) {
+        ThreadUtils.assertOnUiThread();
+        if (isDestroyed() || script == null) return;
+        WebContentsImplJni.get().evaluateJavaScriptUnchecked(mNativeWebContentsAndroid, script, callback);
+    }
+
     @Override
     public void evaluateJavaScriptForTests(String script, @Nullable JavaScriptCallback callback) {
         ThreadUtils.assertOnUiThread();
@@ -1374,6 +1384,12 @@ public class WebContentsImpl
                 String script,
                 @Nullable JavaScriptCallback callback);
 
+        // ALOHA https://app.clickup.com/t/861m7r8nk
+        void evaluateJavaScriptUnchecked(
+                long nativeWebContentsAndroid,
+                String script,
+                @Nullable JavaScriptCallback callback);
+        
         void evaluateJavaScriptForTests(
                 long nativeWebContentsAndroid,
                 String script,

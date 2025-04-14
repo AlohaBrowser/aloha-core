@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 module network.mojom;
 
 import "components/ip_protection/mojom/core.mojom";
@@ -489,8 +491,13 @@ struct NetworkContextParams {
 
   // Binds to the cookie manager associated with this network context, which
   // should only be handed out to trusted processes.
+  // TODO(aloha): consider array here
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
   [EnableIf=is_android]
-  pending_receiver<CookieManager>? cookie_manager;
+  pending_receiver<CookieManager>? cookie_manager_0;
+  [EnableIf=is_android]
+  pending_receiver<CookieManager>? cookie_manager_1;
+
 
   // Whether to enable Domain Reliability.
   bool enable_domain_reliability = false;
@@ -935,6 +942,12 @@ struct URLLoaderFactoryParams {
 // network revocation is in the comment for `RevokeNetworkForNonces()` below.
 [RequireContext=sandbox.mojom.Context.kPrivilegedUtility]
 interface NetworkContext {
+  // ALOHA https://app.clickup.com/t/2f29z75
+  SetSendDNTHeader(bool send);
+
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  SetActiveCookieManager(int32 inst_num);
+
   // Sets a client for this network context.
   SetClient(pending_remote<NetworkContextClient> client);
 

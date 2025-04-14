@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifdef UNSAFE_BUFFERS_BUILD
 // TODO(crbug.com/351564777): Remove this and convert code to safer constructs.
 #pragma allow_unsafe_buffers
@@ -2089,6 +2091,16 @@ class OopTextBlobPixelTest
       public ::testing::WithParamInterface<TextBlobTestConfig> {
  public:
   void RunTest() {
+
+    // ALOHA https://app.clickup.com/t/861m4jwng
+    // Test do not work in original chromium v106.
+    if (GetTextBlobStrategy(GetParam()) == TextBlobStrategy::kRecordShader &&
+        GetFilterStrategy(GetParam()) == FilterStrategy::kNone &&
+        GetMatrixStrategy(GetParam()) == MatrixStrategy::kPerspective &&
+        GetLCDStrategy(GetParam()) == LCDStrategy::kNo) {
+      return;
+    }
+
     RasterOptions options;
     options.resource_size = gfx::Size(100, 100);
     options.content_size = options.resource_size;

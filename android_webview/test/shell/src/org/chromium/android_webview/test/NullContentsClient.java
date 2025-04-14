@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
 package org.chromium.android_webview.test;
 
 import android.graphics.Bitmap;
@@ -250,4 +251,35 @@ public class NullContentsClient extends AwContentsClient {
     public boolean onRenderProcessGone(AwRenderProcessGoneDetail detail) {
         return false;
     }
+
+    @Override
+    public void onMediaPlay(
+            MediaPlayerId playerId, String mediaUrl, String documentUrl,
+            double durationSec, boolean isAudioOnly) {}
+    @Override
+    public void onMediaPause(
+            MediaPlayerId playerId, String mediaUrl, String documentUrl,
+            double durationSec, boolean isAudioOnly) {}
+    @Override
+    public void onMediaDestroy(MediaPlayerId playerId, String mediaUrl, String documentUrl) {}
+    @Override
+    public void onMediaError(
+            MediaPlayerId playerId, String pipelineStatus,
+            String mediaUrl, String documentUrl, double currentTimeSec, double durationSec) {}
+    @Override
+    public boolean shouldHideControlsInFullscreen(MediaPlayerId playerId, String url, double durationSec, String playerClass) {
+        return false;
+    }
+    @Override
+    public void onEnterFullscreen(MediaPlayerId playerId, String url, boolean mediaControlsIsHidden) {}
+    @Override
+    public void onExitFullscreen(MediaPlayerId playerId, String url) {}
+    @Override
+    public void onPageLoaded(String url, boolean isError) {}
+    @Override
+    public void onDownloadToCacheFinished(
+            String url, String originalUrl, String userAgent, String contentDisposition,
+            String mimeType, String downloadedFilePath) {}
+    @Override
+    public void onRequestedDownloadUrl(String url) {}
 }

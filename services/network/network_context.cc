@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "services/network/network_context.h"
 
 #include <algorithm>
@@ -158,6 +160,9 @@
 #include "services/network/url_request_context_builder_mojo.h"
 #include "services/network/web_transport.h"
 #include "url/gurl.h"
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+#include "aloha/src/native/aloha_consts.h"
 
 #if BUILDFLAG(IS_CT_SUPPORTED)
 // gn check does not account for BUILDFLAG(). So, for iOS builds, it will
@@ -725,25 +730,33 @@ NetworkContext::NetworkContext(
           url_loader_factory_for_cert_net_fetcher
               .InitWithNewPipeAndPassReceiver();
 
-  scoped_refptr<SessionCleanupCookieStore> session_cleanup_cookie_store =
-      MakeSessionCleanupCookieStore();
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  std::array<scoped_refptr<SessionCleanupCookieStore>,aloha::kCookieManagersCount> session_cleanup_cookie_stores;
+  for(size_t i = 0; i < session_cleanup_cookie_stores.size(); i++) {
+    session_cleanup_cookie_stores[i] = MakeSessionCleanupCookieStore(i);
+  }
 
   url_request_context_owner_ = MakeURLRequestContext(
       std::move(url_loader_factory_for_cert_net_fetcher),
-      session_cleanup_cookie_store,
+      session_cleanup_cookie_stores,
       std::move(on_url_request_context_builder_configured),
       params_->bound_network);
   url_request_context_ = url_request_context_owner_.url_request_context.get();
 
-  cookie_manager_ = std::make_unique<CookieManager>(
-      url_request_context_, &first_party_sets_access_delegate_,
-      std::move(session_cleanup_cookie_store),
-      std::move(params_->cookie_manager_params),
-      network_service_->tpcd_metadata_manager());
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  CHECK(cookie_managers_.size() == session_cleanup_cookie_stores.size());
 
-  cookie_manager_->AddSettingsWillChangeCallback(
+  for(size_t i = 0; i < cookie_managers_.size(); i++) {
+    cookie_managers_[i] = std::make_unique<CookieManager>(i,
+        url_request_context_, &first_party_sets_access_delegate_,
+        std::move(session_cleanup_cookie_stores[i]),
+        params_->cookie_manager_params.Clone(),
+        network_service_->tpcd_metadata_manager());
+
+      cookie_managers_[i]->AddSettingsWillChangeCallback(
       base::BindRepeating(&NetworkContext::OnCookieManagerSettingsChanged,
                           weak_factory_.GetWeakPtr()));
+  }
 
   network_service_->RegisterNetworkContext(this);
 
@@ -791,8 +804,12 @@ NetworkContext::NetworkContext(
 #endif  // BUILDFLAG(IS_CT_SUPPORTED)
 
 #if BUILDFLAG(IS_ANDROID)
-  if (params_->cookie_manager) {
-    GetCookieManager(std::move(params_->cookie_manager));
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  if (params_->cookie_manager_0) {
+    GetCookieManagerImpl(aloha::kNormalCookieManager, std::move(params_->cookie_manager_0));
+  }
+  if (params_->cookie_manager_1) {
+    GetCookieManagerImpl(aloha::kPrivateCookieManager, std::move(params_->cookie_manager_1));
   }
 #endif  // BUILDFLAG(IS_ANDROID)
 
@@ -830,12 +847,23 @@ NetworkContext::NetworkContext(
           /*receiver=*/mojo::NullReceiver(),
           /*params=*/nullptr,
           /*manager=*/nullptr),
-      cookie_manager_(std::make_unique<CookieManager>(
+      // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+      cookie_managers_{
+        std::make_unique<CookieManager>(
+          aloha::kNormalCookieManager,
           url_request_context,
           nullptr,
           /*first_party_sets_access_delegate=*/nullptr,
-          /*params=*/nullptr,
-          /*tpcd_metadata_manager=*/nullptr)),
+          nullptr,
+          nullptr),
+        std::make_unique<CookieManager>(
+          aloha::kPrivateCookieManager,
+          url_request_context,
+          nullptr,
+          /*first_party_sets_access_delegate=*/nullptr,
+          nullptr,
+          nullptr),
+      },
       socket_factory_(
           std::make_unique<SocketFactory>(url_request_context_->net_log(),
                                           url_request_context)),
@@ -1030,9 +1058,28 @@ void NetworkContext::GetViaObliviousHttp(
   ohttp_handler_.StartRequest(std::move(request), std::move(client));
 }
 
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+void NetworkContext::GetCookieManagerImpl(
+    int inst_num,
+    mojo::PendingReceiver<mojom::CookieManager> receiver) {
+  cookie_managers_[inst_num]->AddReceiver(std::move(receiver));
+}
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
 void NetworkContext::GetCookieManager(
     mojo::PendingReceiver<mojom::CookieManager> receiver) {
-  cookie_manager_->AddReceiver(std::move(receiver));
+  GetCookieManagerImpl(active_cookie_manager_, std::move(receiver));
+}
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+void NetworkContext::SetActiveCookieManager(int inst_num) {
+  active_cookie_manager_ = inst_num;
+  url_request_context_->set_active_cookie_store(active_cookie_manager_);
+}
+
+// ALOHA https://app.clickup.com/t/2f29z75
+void NetworkContext::SetSendDNTHeader(bool send) {
+  url_request_context_->set_send_dnt_header(send);
 }
 
 void NetworkContext::GetRestrictedCookieManager(
@@ -1074,9 +1121,10 @@ void NetworkContext::OnComputedFirstPartySetMetadata(
   std::unique_ptr<RestrictedCookieManager> ptr =
       std::make_unique<RestrictedCookieManager>(
           role, url_request_context_->cookie_store(),
-          cookie_manager_->cookie_settings(), origin, isolation_info,
-          cookie_setting_overrides, devtools_cookie_setting_overrides,
-          std::move(cookie_observer), std::move(first_party_set_metadata),
+          // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+          cookie_managers_[aloha::kDefaultCookieManager]->cookie_settings(), origin, isolation_info,
+          cookie_setting_overrides, devtools_cookie_setting_overrides, std::move(cookie_observer),
+          std::move(first_party_set_metadata),
           network_service_->metrics_updater());
 
   auto callback = base::BindOnce(&NetworkContext::OnRCMDisconnect,
@@ -1271,10 +1319,10 @@ void NetworkContext::ClearTrustTokenSessionOnlyData(
   // Only called when Private State Tokens is enabled, i.e.,
   // `trust_token_store_` is non-null.
   DCHECK(trust_token_store_);
-  DCHECK(cookie_manager_);
+  DCHECK(cookie_managers_[aloha::kDefaultCookieManager]);
 
   DeleteCookiePredicate cookie_predicate =
-      cookie_manager_->cookie_settings().CreateDeleteCookieOnExitPredicate();
+      cookie_managers_[aloha::kDefaultCookieManager]->cookie_settings().CreateDeleteCookieOnExitPredicate();
 
   auto store_predicate = base::BindRepeating(
       [](DeleteCookiePredicate predicate, const std::string& origin) {
@@ -2576,7 +2624,8 @@ void NetworkContext::OnHttpAuthDynamicParamsChanged(
 URLRequestContextOwner NetworkContext::MakeURLRequestContext(
     mojo::PendingRemote<mojom::URLLoaderFactory>
         url_loader_factory_for_cert_net_fetcher,
-    scoped_refptr<SessionCleanupCookieStore> session_cleanup_cookie_store,
+    std::array<scoped_refptr<SessionCleanupCookieStore>,aloha::kCookieManagersCount>
+        session_cleanup_cookie_stores, // ALOHA - Cookies https://app.clickup.com/t/2dmr616
     OnURLRequestContextBuilderConfiguredCallback
         on_url_request_context_builder_configured,
     net::handles::NetworkHandle bound_network) {
@@ -2684,7 +2733,7 @@ URLRequestContextOwner NetworkContext::MakeURLRequestContext(
         network_service_->network_quality_estimator());
   }
   trust_token_store_ = std::make_unique<PendingTrustTokenStore>();
-
+  
   base::FilePath trust_token_path;
   if (GetFullDataFilePath(
           params_->file_paths,
@@ -2815,21 +2864,24 @@ URLRequestContextOwner NetworkContext::MakeURLRequestContext(
             pref_service.get(), network_service_->network_quality_estimator());
   }
 
-  if (session_cleanup_cookie_store) {
-    // If the pref service was registered and initialized use it.
-    // If not, use nullptr to indicate prefs aren't available.
-    std::unique_ptr<net::CookieMonster> cookie_store =
-        std::make_unique<net::CookieMonster>(
-            session_cleanup_cookie_store.get(), net_log,
-            pref_service
-                ? std::make_unique<KnownLegacyScopeDomainsPrefDelegate>(
-                      pref_service.get())
-                : nullptr);
-    if (params_->persist_session_cookies) {
-      cookie_store->SetPersistSessionCookies(true);
-    }
+    // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  for(size_t i = 0; i < aloha::kCookieManagersCount; i++) {
+    if (session_cleanup_cookie_stores[i]) {
+      // If the pref service was registered and initialized use it.
+      // If not, use nullptr to indicate prefs aren't available.
+      std::unique_ptr<net::CookieMonster> cookie_store =
+          std::make_unique<net::CookieMonster>(
+              session_cleanup_cookie_stores[i].get(), net_log,
+              pref_service
+                  ? std::make_unique<KnownLegacyScopeDomainsPrefDelegate>(
+                        pref_service.get())
+                  : nullptr);
+      if (params_->persist_session_cookies) {
+        cookie_store->SetPersistSessionCookies(true);
+      }
 
-    builder.SetCookieStore(std::move(cookie_store));
+      builder.SetCookieStore(i, std::move(cookie_store));
+    }
   }
 
   base::FilePath transport_security_persister_file_name;
@@ -3030,8 +3082,9 @@ URLRequestContextOwner NetworkContext::MakeURLRequestContext(
   return result;
 }
 
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
 scoped_refptr<SessionCleanupCookieStore>
-NetworkContext::MakeSessionCleanupCookieStore() const {
+NetworkContext::MakeSessionCleanupCookieStore(int inst_num) const {
   base::FilePath cookie_path;
   if (!GetFullDataFilePath(
           params_->file_paths,
@@ -3041,6 +3094,10 @@ NetworkContext::MakeSessionCleanupCookieStore() const {
     DCHECK(!params_->persist_session_cookies);
     return nullptr;
   }
+
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  cookie_path = cookie_path.RemoveExtension().AddExtension(std::to_string(inst_num));
+
   scoped_refptr<base::SequencedTaskRunner> client_task_runner =
       base::SingleThreadTaskRunner::GetCurrentDefault();
   scoped_refptr<base::SequencedTaskRunner> background_task_runner =

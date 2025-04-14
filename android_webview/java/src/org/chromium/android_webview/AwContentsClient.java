@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview;
 
 import android.app.Activity;
@@ -44,6 +46,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+// ALOHA https://app.clickup.com/t/2f2eyt8
+import com.alohamobile.bromium.BromiumClient;
+
 /**
  * Base-class that an AwContents embedder derives from to receive callbacks.
  * For any other callbacks we need to make transformations of (e.g. adapt parameters
@@ -51,8 +56,8 @@ import java.util.regex.Pattern;
  * new abstract methods that the our own client must implement.
  * i.e.: all methods in this class should either be final, or abstract.
  */
-@Lifetime.WebView
-public abstract class AwContentsClient {
+// ALOHA https://app.clickup.com/t/2f2eyt8
+public abstract class AwContentsClient extends BromiumClient {
     private static final String TAG = "AwContentsClient";
     private final AwContentsClientCallbackHelper mCallbackHelper;
 

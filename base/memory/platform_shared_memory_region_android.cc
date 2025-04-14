@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "base/memory/platform_shared_memory_region.h"
 
 #include <sys/mman.h>
@@ -54,7 +56,10 @@ PlatformSharedMemoryRegion PlatformSharedMemoryRegion::Take(
     return {};
   }
 
-  CHECK(CheckPlatformHandlePermissionsCorrespondToMode(fd.get(), mode, size));
+  if(!CheckPlatformHandlePermissionsCorrespondToMode(fd.get(), mode, size)) {
+    LOG(ERROR) << "CheckPlatformHandlePermissionsCorrespondToMode failed. Size=" << size;
+    return {};
+  }
 
   return PlatformSharedMemoryRegion(std::move(fd), mode, size, guid);
 }

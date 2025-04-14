@@ -1,6 +1,12 @@
 // Copyright 2013 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
 
 #ifndef CONTENT_BROWSER_RENDERER_HOST_RENDER_FRAME_HOST_IMPL_H_
 #define CONTENT_BROWSER_RENDERER_HOST_RENDER_FRAME_HOST_IMPL_H_
@@ -495,14 +501,22 @@ class CONTENT_EXPORT RenderFrameHostImpl
                                const std::u16string& method_name,
                                base::Value::List arguments,
                                JavaScriptResultCallback callback) override;
+
+  // https://gitlab.com/eyeo/adblockplus/chromium/issues/35
+  void InsertAbpElemhideStylesheet(const std::string& stylesheet) override;
+
   void ExecuteJavaScript(const std::u16string& javascript,
                          JavaScriptResultCallback callback) override;
   void ExecuteJavaScriptInIsolatedWorld(const std::u16string& javascript,
                                         JavaScriptResultCallback callback,
                                         int32_t world_id) override;
-  void ExecuteJavaScriptForTests(const std::u16string& javascript,
-                                 JavaScriptResultCallback callback,
-                                 int32_t world_id) override;
+  // ALOHA https://app.clickup.com/t/861m7r8nk
+  void ExecuteJavaScriptUnchecked(const std::u16string& javascript,
+                         JavaScriptResultCallback callback) override;
+  void ExecuteJavaScriptForTests(
+      const std::u16string& javascript,
+      JavaScriptResultCallback callback,
+      int32_t world_id = ISOLATED_WORLD_ID_GLOBAL) override;
   void ExecuteJavaScriptWithUserGestureForTests(
       const std::u16string& javascript,
       JavaScriptResultCallback callback,
@@ -2425,6 +2439,8 @@ class CONTENT_EXPORT RenderFrameHostImpl
 
   // blink::mojom::LocalFrameHost
   void EnterFullscreen(blink::mojom::FullscreenOptionsPtr options,
+                       blink::mojom::FullscreenVideoElementInfoPtr video_element, // ALOHA https://app.clickup.com/t/2hxwa9w
+                       const std::string& pending_elem_class, // ALOHA https://app.clickup.com/t/861m7a4e2
                        EnterFullscreenCallback callback) override;
   void ExitFullscreen() override;
   void FullscreenStateChanged(

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/modules/peerconnection/peer_connection_dependency_factory.h"
 
 #include <stddef.h>
@@ -936,6 +938,8 @@ PeerConnectionDependencyFactory::CreatePortAllocator(
       // |request_multiple_routes|. Whether local IP addresses could be
       // collected depends on if mic/camera permission is granted for this
       // origin.
+      webrtc_ip_handling_policy = mojom::blink::WebRtcIpHandlingPolicy::kDisableNonProxiedUdp; //  ALOHA https://app.clickup.com/t/86ep381z0 FOR DISABLE WebRTC IP LEAKING MUST RETURN JUST kDisableNonProxiedUdp
+      
       switch (webrtc_ip_handling_policy) {
         // TODO(guoweis): specify the flag of disabling local candidate
         // collection when webrtc is updated.

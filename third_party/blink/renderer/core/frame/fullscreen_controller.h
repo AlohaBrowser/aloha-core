@@ -28,6 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_FRAME_FULLSCREEN_CONTROLLER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_FRAME_FULLSCREEN_CONTROLLER_H_
 
@@ -38,6 +40,9 @@
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "ui/gfx/geometry/point_f.h"
 #include "ui/gfx/geometry/size.h"
+
+// ALOHA https://app.clickup.com/t/2hxwa9w
+#include "aloha/src/native/fullscreen_video_element.h"
 
 namespace blink {
 
@@ -61,7 +66,9 @@ class CORE_EXPORT FullscreenController {
   // fullscreen.
   void EnterFullscreen(LocalFrame&,
                        const FullscreenOptions*,
-                       FullscreenRequestType request_type);
+                       FullscreenRequestType request_type,
+                       std::optional<aloha::FullscreenVideoElement> video_element, // ALOHA https://app.clickup.com/t/2hxwa9w
+                       const std::string& pending_elem_class); // ALOHA https://app.clickup.com/t/861m7a4e2
   void ExitFullscreen(LocalFrame&);
 
   // Called by content::RenderWidget (via WebWidget) to notify that we've
@@ -87,7 +94,8 @@ class CORE_EXPORT FullscreenController {
 
   void NotifyFramesOfFullscreenEntry(bool granted);
 
-  void EnterFullscreenCallback(bool granted);
+  void EnterFullscreenCallback(bool granted,
+                               bool hide_controls_for_video); // ALOHA https://app.clickup.com/t/2hxwa9w
 
   WebViewImpl* web_view_base_;
 
@@ -103,6 +111,9 @@ class CORE_EXPORT FullscreenController {
 
   using PendingFullscreenSet = HeapLinkedHashSet<WeakMember<LocalFrame>>;
   Persistent<PendingFullscreenSet> pending_frames_;
+
+  // ALOHA https://app.clickup.com/t/2hxwa9w
+  std::optional<aloha::FullscreenVideoElement> video_element_for_hide_controls_;
 };
 
 }  // namespace blink

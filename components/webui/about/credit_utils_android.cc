@@ -8,13 +8,13 @@
 #include "base/files/file.h"
 
 // Must come after all headers that specialize FromJniType() / ToJniType().
-#include "components/webui/about/android/about_ui_jni_headers/CreditUtils_jni.h"
+// #include "components/webui/about/android/about_ui_jni_headers/CreditUtils_jni.h"
 
 namespace about_ui {
 
-static void JNI_CreditUtils_WriteCreditsHtml(JNIEnv* env, jint fd) {
+/*static void JNI_CreditUtils_WriteCreditsHtml(JNIEnv* env, jint fd) {
   base::File out_file(fd);
   out_file.WriteAtCurrentPos(base::as_byte_span(GetCredits(false)));
-}
+}*/
 
 }  // namespace about_ui

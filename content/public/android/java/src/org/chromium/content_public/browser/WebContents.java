@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.content_public.browser;
 
 import android.graphics.Bitmap;
@@ -364,6 +366,9 @@ public interface WebContents extends Parcelable {
      *                 If no result is required, pass null.
      */
     void evaluateJavaScript(String script, @Nullable JavaScriptCallback callback);
+
+    // ALOHA https://app.clickup.com/t/861m7r8nk
+    void evaluateJavaScriptUnchecked(String script, @Nullable JavaScriptCallback callback);
 
     /**
      * Injects the passed Javascript code in the current page and evaluates it.
