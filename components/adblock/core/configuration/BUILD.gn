@@ -1,0 +1,60 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+source_set("configuration") {
+  sources = [
+    "filtering_configuration.h",
+    "persistent_filtering_configuration.cc",
+    "persistent_filtering_configuration.h",
+  ]
+
+  deps = [ "//components/adblock/core/common:common" ]
+
+  public_deps = [
+    "//base",
+    "//components/prefs",
+    "//url:url",
+  ]
+}
+
+source_set("test_support") {
+  testonly = true
+  sources = [
+    "test/fake_filtering_configuration.cc",
+    "test/fake_filtering_configuration.h",
+    "test/mock_filtering_configuration.cc",
+    "test/mock_filtering_configuration.h",
+  ]
+  public_deps = [
+    ":configuration",
+    "//testing/gmock",
+    "//testing/gtest",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [ "test/persistent_filtering_configuration_test.cc" ]
+
+  deps = [
+    ":configuration",
+    "//base/test:test_support",
+    "//components/adblock/core/common:common",
+    "//components/prefs:test_support",
+    "//testing/gmock",
+    "//testing/gtest",
+  ]
+}

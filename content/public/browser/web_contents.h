@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_PUBLIC_BROWSER_WEB_CONTENTS_H_
 #define CONTENT_PUBLIC_BROWSER_WEB_CONTENTS_H_
 
@@ -1710,6 +1712,8 @@ class WebContents : public PageNavigator, public base::SupportsUserData {
   // `features::kBackForwardTransitions` is enabled for the supported platform.
   virtual BackForwardTransitionAnimationManager*
   GetBackForwardTransitionAnimationManager() = 0;
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  virtual void SetPrivateMode(bool enabled) = 0;
 
   // Returns the network handle targeting to a specific network. The value
   // `kInvalidNetworkHandle` indicates that the current default network will
@@ -1738,6 +1742,11 @@ class WebContents : public PageNavigator, public base::SupportsUserData {
   // creation, such as during a navigation that results in a new WebContents
   // (e.g., from a link click with `target="_blank"`, `window.open()`).
   virtual WindowOpenDisposition GetOriginalWindowOpenDisposition() const = 0;
+
+  // ALOHA https://app.clickup.com/t/86epcdndk
+  virtual void SetAdblockEnabled(bool enabled) = 0;
+  // ALOHA https://app.clickup.com/t/86epcdndk
+  virtual bool IsAdblockEnabled() = 0;
 
  private:
   // This interface should only be implemented inside content.

@@ -1,6 +1,10 @@
 // Copyright 2021 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include <optional>
 #include <string_view>
@@ -317,7 +321,7 @@ IN_PROC_BROWSER_TEST_F(IsolatedWebAppBrowserTest, SameOriginWindowOpen) {
   BrowserWaiter browser_waiter(nullptr);
   ASSERT_TRUE(ExecJs(app_frame, "window.open('/popup')"));
   Browser* popup = browser_waiter.AwaitAdded(FROM_HERE);
-  navigation_observer.WaitForNavigationFinished();
+  navigation_observer.Wait();
 
   ASSERT_NE(popup, nullptr);
   content::RenderFrameHost* popup_frame = GetPrimaryMainFrame(popup);

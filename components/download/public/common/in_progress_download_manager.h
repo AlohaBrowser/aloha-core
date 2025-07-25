@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef COMPONENTS_DOWNLOAD_PUBLIC_COMMON_IN_PROGRESS_DOWNLOAD_MANAGER_H_
 #define COMPONENTS_DOWNLOAD_PUBLIC_COMMON_IN_PROGRESS_DOWNLOAD_MANAGER_H_
 
@@ -66,7 +68,7 @@ class COMPONENTS_DOWNLOAD_EXPORT InProgressDownloadManager
     // Intercepts the download to another system if applicable. Returns true if
     // the download was intercepted.
     virtual bool InterceptDownload(
-        const DownloadCreateInfo& download_create_info);
+        DownloadCreateInfo& download_create_info); // ALOHA https://app.clickup.com/t/mz8wrn
 
     // Gets the default download directory.
     virtual base::FilePath GetDefaultDownloadDirectory();

@@ -1,0 +1,156 @@
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+import("//build/config/android/rules.gni")
+import("//build/config/locales.gni")
+import("//third_party/jni_zero/jni_zero.gni")
+import("//tools/grit/grit_rule.gni")
+
+android_library("adblock_java_tests") {
+  testonly = true
+
+  sources = [
+    "javatests/src/org/chromium/chrome/browser/adblock/AdblockControllerTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/CheckChromeFlagsTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/DefaultSettingsTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/FilteringConfigurationTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/ResourceClassificationNotifierTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesCircumventionTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesCspTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesElemhideEmuInvTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesElemhideEmuTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesElemhideTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesExceptionTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesFilterTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesHeaderFilterTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesHelper.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesInlineCssTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesRemoveTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesRewriteTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesServiceWorkersTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesSiteKeyTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesSnippetsTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesWebsocketTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/TestPagesWildcardDomainTest.java",
+  ]
+
+  deps = []
+
+  sources += [
+    "javatests/src/org/chromium/chrome/browser/adblock/AdblockFilterFragmentTest.java",
+    "javatests/src/org/chromium/chrome/browser/adblock/AdblockPopupMessageTest.java",
+  ]
+
+  deps += [
+    "//components/messages/android:java",
+    "//third_party/mockito:mockito_java",
+  ]
+
+  deps += [
+    "//base:base_java",
+    "//base:base_java_test_support",
+    "//chrome/android:chrome_java",
+    "//chrome/browser/flags:java",
+    "//chrome/browser/profiles/android:java",
+    "//chrome/browser/settings:test_support_java",
+    "//chrome/browser/tab:java",
+    "//chrome/browser/tabmodel:java",
+    "//chrome/test/android:chrome_java_integration_test_support",
+    "//chrome/test/android:chrome_java_test_support_common",
+    "//components/adblock/android:adblock_controller_java",
+    "//components/adblock/android:adblock_java_tests_base",
+    "//components/infobars/android:java",
+    "//components/infobars/core:infobar_enums_java",
+    "//components/messages/android/test:test_support_java",
+    "//content/public/android:content_full_java",
+    "//content/public/android:content_main_dex_java",
+    "//content/public/test/android:content_java_test_support",
+    "//net/android:net_java_test_support",
+    "//third_party/androidx:androidx_fragment_fragment_java",
+    "//third_party/androidx:androidx_test_monitor_java",
+    "//third_party/androidx:androidx_test_runner_java",
+    "//third_party/hamcrest:hamcrest_core_java",
+    "//third_party/hamcrest:hamcrest_library_java",
+    "//third_party/junit:junit",
+    "//ui/android:ui_no_recycler_view_java",
+    "//url:gurl_java",
+  ]
+
+  deps += [ ":adblock_ui_java" ]
+}
+
+android_library("adblock_ui_java") {
+  sources = [
+    "java/src/org/chromium/chrome/browser/adblock/settings/AdblockAllowedDomainsFragment.java",
+    "java/src/org/chromium/chrome/browser/adblock/settings/AdblockCustomFilterListsFragment.java",
+    "java/src/org/chromium/chrome/browser/adblock/settings/AdblockCustomFiltersFragment.java",
+    "java/src/org/chromium/chrome/browser/adblock/settings/AdblockCustomItemFragment.java",
+    "java/src/org/chromium/chrome/browser/adblock/settings/AdblockFilterListsAdapter.java",
+    "java/src/org/chromium/chrome/browser/adblock/settings/AdblockFilterListsFragment.java",
+    "java/src/org/chromium/chrome/browser/adblock/settings/AdblockMoreOptionsFragment.java",
+    "java/src/org/chromium/chrome/browser/adblock/settings/AdblockSettingsFragment.java",
+  ]
+
+  deps = [
+    ":java_ui_resources",
+    "//base:base_java",
+    "//build/android:build_java",
+    "//chrome/browser/preferences:java",
+    "//chrome/browser/profiles/android:java",
+    "//components/adblock/android:adblock_controller_java",
+    "//components/browser_ui/settings/android:java",
+    "//components/prefs/android:java",
+    "//components/user_prefs/android:java",
+    "//content/public/android:content_full_java",
+    "//third_party/androidx:androidx_fragment_fragment_java",
+    "//third_party/androidx:androidx_preference_preference_java",
+    "//third_party/jni_zero:jni_zero_java",
+  ]
+
+  resources_package = "org.chromium.chrome.browser.adblock"
+}
+
+android_resources("java_ui_resources") {
+  sources = [
+    "java/res/drawable-hdpi/fragment_adblock_custom_item_add.png",
+    "java/res/drawable-hdpi/fragment_adblock_custom_item_remove.png",
+    "java/res/drawable-mdpi/fragment_adblock_custom_item_add.png",
+    "java/res/drawable-mdpi/fragment_adblock_custom_item_remove.png",
+    "java/res/drawable-night-hdpi/fragment_adblock_custom_item_add.png",
+    "java/res/drawable-night-hdpi/fragment_adblock_custom_item_remove.png",
+    "java/res/drawable-night-mdpi/fragment_adblock_custom_item_add.png",
+    "java/res/drawable-night-mdpi/fragment_adblock_custom_item_remove.png",
+    "java/res/drawable-night-xhdpi/fragment_adblock_custom_item_add.png",
+    "java/res/drawable-night-xhdpi/fragment_adblock_custom_item_remove.png",
+    "java/res/drawable-night-xxhdpi/fragment_adblock_custom_item_add.png",
+    "java/res/drawable-night-xxhdpi/fragment_adblock_custom_item_remove.png",
+    "java/res/drawable-xhdpi/fragment_adblock_custom_item_add.png",
+    "java/res/drawable-xhdpi/fragment_adblock_custom_item_remove.png",
+    "java/res/drawable-xxhdpi/fragment_adblock_custom_item_add.png",
+    "java/res/drawable-xxhdpi/fragment_adblock_custom_item_remove.png",
+    "java/res/layout/adblock_custom_item.xml",
+    "java/res/layout/adblock_custom_item_settings.xml",
+    "java/res/layout/adblock_filter_lists_list_item.xml",
+    "java/res/xml/adblock_more_options.xml",
+    "java/res/xml/adblock_preferences.xml",
+  ]
+
+  deps = [ ":adblock_strings_grd" ]
+}
+
+java_strings_grd("adblock_strings_grd") {
+  grd_file = "adblock_strings.grd"
+  outputs = [ "values/adblock_strings.xml" ] +
+            process_file_template(
+                android_bundle_locales_as_resources,
+                [ "values-{{source_name_part}}/adblock_strings.xml" ])
+}

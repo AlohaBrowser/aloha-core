@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package com.android.webview.chromium;
 
 import org.chromium.android_webview.common.Lifetime;
 import org.chromium.build.annotations.UsedByReflection;
-
-@Lifetime.Singleton
-class DrawFunctor {
+/* ALOHA */ public class DrawFunctor {
     public static long getDrawFnFunctionTable() {
         return nativeGetFunctionTable();
     }

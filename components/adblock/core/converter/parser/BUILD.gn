@@ -1,0 +1,67 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+source_set("parser") {
+  sources = [
+    "content_filter.cc",
+    "content_filter.h",
+    "domain_option.cc",
+    "domain_option.h",
+    "filter_classifier.cc",
+    "filter_classifier.h",
+    "metadata.cc",
+    "metadata.h",
+    "snippet_filter.cc",
+    "snippet_filter.h",
+    "snippet_tokenizer.cc",
+    "snippet_tokenizer.h",
+    "url_filter.cc",
+    "url_filter.h",
+    "url_filter_options.cc",
+    "url_filter_options.h",
+  ]
+
+  public_deps = [
+    "//base",
+    "//components/adblock/core/common",
+    "//url",
+  ]
+
+  deps = [
+    "//third_party/icu/",
+    "//third_party/re2",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "test/content_filter_test.cc",
+    "test/domain_option_test.cc",
+    "test/filter_classifier_test.cc",
+    "test/metadata_test.cc",
+    "test/snippet_filter_test.cc",
+    "test/snippet_tokenizer_test.cc",
+    "test/url_filter_options_test.cc",
+    "test/url_filter_test.cc",
+  ]
+
+  deps = [
+    ":parser",
+    "//testing/gmock",
+    "//testing/gtest",
+  ]
+}

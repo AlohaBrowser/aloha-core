@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<!DOCTYPE translationbundle>
+<translationbundle lang="ca">
+<translation id="8714145577049629910">Ad blocking</translation>
+<translation id="3493556515901914593">Permet el bloqueig d\'anuncis en llocs web en aquesta aplicació</translation>
+<translation id="4516904298421534459">Llistes de filtres</translation>
+<translation id="4713094065435138404">Afegiu o suprimiu llistes de filtres específics per idioma</translation>
+<translation id="1575042640644572091">Anuncis acceptables</translation>
+<translation id="2763228171090923752">Instem als llocs web a que facin servir publicitat directa i no intrusiva. Per això hem establert directius estrictes per identificar els anuncis acceptables, que podeu trobar a la configuració predeterminada. Si voleu navegar sense anuncis, podeu desactivar aquesta configuració en qualsevol moment.</translation>
+<translation id="7857292107035345544">Llista blanca de dominis</translation>
+<translation id="3575711988891311088">Afegiu a aquesta llista tots els llocs web en què voleu veure anuncis</translation>
+<translation id="7059127752542505809">Afegeix un domini</translation>
+</translationbundle>

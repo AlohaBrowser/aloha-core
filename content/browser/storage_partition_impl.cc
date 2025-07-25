@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/storage_partition_impl.h"
 
 #include <stdint.h>
@@ -907,7 +909,7 @@ class StoragePartitionImpl::DataDeletionHelper {
       storage::QuotaManager* quota_manager,
       storage::SpecialStoragePolicy* special_storage_policy,
       storage::FileSystemContext* filesystem_context,
-      network::mojom::CookieManager* cookie_manager,
+      network::mojom::NetworkContext* network_context, // ALOHA https://app.clickup.com/t/86etj7905 needs access to both cookie managers
       InterestGroupManagerImpl* interest_group_manager,
       AttributionManager* attribution_manager,
       AggregationService* aggregation_service,
@@ -2754,11 +2756,18 @@ void StoragePartitionImpl::ClearDataImpl(
   // `helper` deletes itself when done in
   // DataDeletionHelper::DecrementTaskCount().
   deletion_helpers_running_++;
+
+  // ALOHA https://app.clickup.com/t/86etj7905 
+  auto domains = filter_builder->GetRegisterableDomains();
+  for(const auto& domain : domains) {
+    ClearStoragesForSite(domain);
+  }
+
   helper->ClearDataOnUIThread(
       storage_key, filter_builder, std::move(storage_key_policy_matcher),
       std::move(cookie_deletion_filter), GetPath(), dom_storage_context_.get(),
       quota_manager_.get(), special_storage_policy_.get(),
-      filesystem_context_.get(), GetCookieManagerForBrowserProcess(),
+      filesystem_context_.get(), GetNetworkContext(), // ALOHA https://app.clickup.com/t/86etj7905 needs access to both cookie managers
       interest_group_manager_.get(), attribution_manager_.get(),
       aggregation_service_.get(), private_aggregation_manager_.get(),
       shared_storage_manager_.get(),
@@ -2942,7 +2951,7 @@ void StoragePartitionImpl::DataDeletionHelper::ClearDataOnUIThread(
     storage::QuotaManager* quota_manager,
     storage::SpecialStoragePolicy* special_storage_policy,
     storage::FileSystemContext* filesystem_context,
-    network::mojom::CookieManager* cookie_manager,
+    network::mojom::NetworkContext* network_context, // ALOHA https://app.clickup.com/t/86etj7905 needs access to both cookie managers
     InterestGroupManagerImpl* interest_group_manager,
     AttributionManager* attribution_manager,
     AggregationService* aggregation_service,
@@ -3008,14 +3017,49 @@ void StoragePartitionImpl::DataDeletionHelper::ClearDataOnUIThread(
           net::CookiePartitionKeyCollection(storage_key.ToCookiePartitionKey());
     }
 
-    cookie_manager->DeleteCookies(
-        std::move(cookie_deletion_filter),
-        base::BindOnce(
-            &OnClearedCookies,
-            // Handle the cookie store being destroyed and the callback thus not
-            // being called.
-            mojo::WrapCallbackWithDefaultInvokeIfNotRun(
-                CreateTaskCompletionClosure(TracingDataType::kCookies))));
+    // ALOHA https://app.clickup.com/t/86etj7905
+    // Delete from public cookie
+    mojo::Remote<network::mojom::CookieManager>
+      cookie_manager_remote;
+    network_context->GetPublicCookieManager(
+        cookie_manager_remote.BindNewPipeAndPassReceiver());
+
+    CookieDeletionFilterPtr cookie_deletion_filter_private =  CookieDeletionFilter::New(*cookie_deletion_filter);
+    if (cookie_manager_remote &&
+      cookie_manager_remote.is_connected()) {
+        network::mojom::CookieManager* cookie_manager =
+            cookie_manager_remote.get();
+        cookie_manager->DeleteCookies(
+          std::move(cookie_deletion_filter),
+          base::BindOnce(
+              &OnClearedCookies,
+              // Handle the cookie store being destroyed and the callback thus not
+              // being called.
+              mojo::WrapCallbackWithDefaultInvokeIfNotRun(
+                  CreateTaskCompletionClosure(TracingDataType::kCookies))));
+     }
+
+    // ALOHA https://app.clickup.com/t/86etj7905
+    // Delete from private cookie
+    cookie_manager_remote.reset();
+    network_context->GetPrivateCookieManager(
+        cookie_manager_remote.BindNewPipeAndPassReceiver());
+
+    if (cookie_manager_remote &&
+      cookie_manager_remote.is_connected()) {
+        network::mojom::CookieManager* cookie_manager =
+            cookie_manager_remote.get(); 
+        
+        cookie_manager->DeleteCookies(
+          std::move(cookie_deletion_filter_private),
+          base::BindOnce(
+              &OnClearedCookies,
+              // Handle the cookie store being destroyed and the callback thus not
+              // being called.
+              mojo::WrapCallbackWithDefaultInvokeIfNotRun(
+                  CreateTaskCompletionClosure(TracingDataType::kCookies))));
+     }
+
   }
 
   // It is not expected to only delete internal interest group data, or to
@@ -3349,6 +3393,32 @@ void StoragePartitionImpl::AddObserver(DataRemovalObserver* observer) {
 
 void StoragePartitionImpl::RemoveObserver(DataRemovalObserver* observer) {
   data_removal_observers_.RemoveObserver(observer);
+}
+
+// ALOHA https://app.clickup.com/t/2hcppgv
+void StoragePartitionImpl::ClearSessionStorage() {
+  for (const auto& [id, client] : dom_storage_clients_) {
+    client->ClearSessionStorage();
+  }
+  // GetStorageServicePartition()::PartitionImpl.session_storage_ will be cleared
+  // by dom_storage_clients_ through CachedStorageArea::remote_area_.
+}
+
+// ALOHA https://app.clickup.com/t/2hcppgv
+void StoragePartitionImpl::ClearLocalStorage(bool for_private_mode) {
+  for (const auto& [id, client] : dom_storage_clients_) {
+    client->ClearLocalStorage(for_private_mode);
+  }
+  // GetStorageServicePartition()::PartitionImpl.local_storage_ will be cleared
+  // by dom_storage_clients_ through CachedStorageArea::remote_area_.
+}
+
+// ALOHA https://app.clickup.com/t/86etj7905
+// We don't save private local storage to disk, we have to clear it only in Blink 
+void StoragePartitionImpl::ClearStoragesForSite(const std::string& site) { 
+  for (const auto& [id, client] : dom_storage_clients_) {
+    client->ClearStoragesForSite(site);
+  }
 }
 
 void StoragePartitionImpl::FlushNetworkInterfaceForTesting() {

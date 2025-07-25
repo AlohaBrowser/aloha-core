@@ -36,6 +36,7 @@ class AuditsHandler;
 class DOMHandler;
 class DeviceOrientationHandler;
 class EmulationHandler;
+class EyeoHandler;
 class InputHandler;
 class InspectorHandler;
 class IOHandler;
@@ -202,6 +203,7 @@ class DevToolsSession : public protocol::FrontendChannel,
         std::is_same<T, protocol::DOMHandler>,
         std::is_same<T, protocol::DeviceOrientationHandler>,
         std::is_same<T, protocol::EmulationHandler>,
+        std::is_same<T, protocol::EyeoHandler>,
         std::is_same<T, protocol::InputHandler>,
         std::is_same<T, protocol::InspectorHandler>,
         std::is_same<T, protocol::IOHandler>,

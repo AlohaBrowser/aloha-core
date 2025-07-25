@@ -2,17 +2,23 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.ui.base;
+
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 
 import org.jni_zero.CalledByNative;
 import org.jni_zero.JNINamespace;
 
-import org.chromium.base.ApkAssets;
+import org.chromium.base.ContextUtils;
 import org.chromium.base.LocaleUtils;
 import org.chromium.base.Log;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -46,6 +52,9 @@ public final class ResourceBundle {
     public static void setAvailablePakLocales(String[] locales) {
         assert sAvailableLocales == null;
         sAvailableLocales = locales;
+        // ALOHA https://app.clickup.com/t/2rbv8qq
+        // Sort need for binarySearch in getLocalePakResourcePath().
+        Arrays.sort(sAvailableLocales);
     }
 
     public static void clearAvailablePakLocalesForTesting() {
@@ -93,21 +102,24 @@ public final class ResourceBundle {
                 pathPrefix = "assets/locales#lang_" + lang + "/";
             }
         }
-        String apkSubpath = pathPrefix + locale + ".pak";
+        String assetPath = pathPrefix + locale + ".pak";
+        AssetManager manager = ContextUtils.getApplicationContext().getAssets();
         // The file may not exist if the language split for this locale has not been installed
         // yet, so make sure it exists before returning the asset path.
-        if (ApkAssets.exists(apkSubpath)) {
-            return apkSubpath;
+        try (AssetFileDescriptor afd = manager.openNonAssetFd(assetPath)) {
+            return assetPath;
+        } catch (IOException e) {
+            // Fallback for apk targets.
+            // TODO(crbug.com/40168285): Remove the need for this fallback logic.
+            String fallbackPath = "assets/locales/" + locale + ".pak";
+            try (AssetFileDescriptor afd = manager.openNonAssetFd(fallbackPath)) {
+                return fallbackPath;
+            } catch (IOException e2) {
+            }
+            if (logError) {
+                Log.e(TAG, "path=%s", assetPath, e);
+            }
+            return null;
         }
-        // Fallback for apk targets.
-        // TODO(crbug.com/40168285): Remove the need for this fallback logic.
-        String fallbackPath = "assets/locales/" + locale + ".pak";
-        if (ApkAssets.exists(fallbackPath)) {
-            return fallbackPath;
-        }
-        if (logError) {
-            Log.e(TAG, "Did not exist: %s", apkSubpath);
-        }
-        return null;
     }
 }

@@ -1,12 +1,17 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "android_webview/lib/aw_main_delegate.h"
 
 #include <memory>
 #include <variant>
 
+#include "android_webview/browser/adblock/adblock_aw_content_browser_client.h"
 #include "android_webview/browser/aw_content_browser_client.h"
 #include "android_webview/browser/gfx/aw_draw_fn_impl.h"
 #include "android_webview/browser/gfx/browser_view_renderer.h"
@@ -38,6 +43,7 @@
 #include "base/threading/thread_restrictions.h"
 #include "build/build_config.h"
 #include "cc/base/switches.h"
+#include "components/adblock/content/renderer/adblock_content_renderer_client.h"
 #include "components/autofill/core/common/autofill_features.h"
 #include "components/crash/core/common/crash_key.h"
 #include "components/embedder_support/switches.h"
@@ -331,8 +337,8 @@ content::ContentClient* AwMainDelegate::CreateContentClient() {
 content::ContentBrowserClient* AwMainDelegate::CreateContentBrowserClient() {
   DCHECK(!aw_feature_list_creator_);
   aw_feature_list_creator_ = std::make_unique<AwFeatureListCreator>();
-  content_browser_client_ =
-      std::make_unique<AwContentBrowserClient>(aw_feature_list_creator_.get());
+  content_browser_client_ = std::make_unique<AdblockAwContentBrowserClient>(
+      aw_feature_list_creator_.get());
   return content_browser_client_.get();
 }
 
@@ -369,7 +375,8 @@ content::ContentGpuClient* AwMainDelegate::CreateContentGpuClient() {
 }
 
 content::ContentRendererClient* AwMainDelegate::CreateContentRendererClient() {
-  content_renderer_client_ = std::make_unique<AwContentRendererClient>();
+  content_renderer_client_ = std::make_unique<
+      adblock::AdblockContentRendererClient<AwContentRendererClient>>();
   return content_renderer_client_.get();
 }
 

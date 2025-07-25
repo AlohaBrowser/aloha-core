@@ -1,0 +1,56 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+template("archive_with_deps") {
+  runtime_deps_file = "${target_gen_dir}/${target_name}.runtime_deps"
+
+  # Collect runtime dependencies of the executable into a file.
+  # GN cannot currently handle runtime deps the same was as build-time
+  # deps - the only way of extracting runtime deps of a target is via
+  # 'write_runtime_deps'
+  group("${target_name}_runtime_deps") {
+    forward_variables_from(invoker,
+                           [
+                             "data",
+                             "data_deps",
+                             "deps",
+                             "public_deps",
+                             "testonly",
+                           ])
+
+    write_runtime_deps = runtime_deps_file
+  }
+
+  action("${target_name}") {
+    forward_variables_from(invoker, [ "testonly" ])
+
+    script = "//components/eyeo_testing/archive_with_deps.py"
+    output = invoker.output
+    outputs = [ output ]
+
+    args = [
+      "--input-file",
+      rebase_path(runtime_deps_file),
+      "--output",
+      rebase_path(output),
+      "--build-dir",
+      rebase_path(root_build_dir),
+    ]
+
+    data_deps = [ ":${target_name}_runtime_deps" ]
+    deps = [ ":${target_name}_runtime_deps" ]
+  }
+}

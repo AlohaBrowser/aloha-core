@@ -1,6 +1,10 @@
 // Copyright 2022 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include <algorithm>
 #include <sstream>
@@ -277,6 +281,17 @@ IN_PROC_BROWSER_TEST_F(ProfileKeyedServiceBrowserTest,
     "PermissionsUpdaterShutdownFactory",
     "PluginInfoHostImpl",
     "TurnSyncOnHelperShutdownNotifier",
+
+    // Eyeo services
+    "AdblockRequestThrottle",
+    "AdblockSubscriptionPersistentMetadata",
+    "AdblockSubscriptionService",
+    "AdblockTelemetryService",
+    "ContentSecurityPolicyInjector",
+    "ElementHider",
+    "ResourceClassificationRunner",
+    "SessionStats",
+    "SitekeyStorage",
   };
   // clang-format on
 
@@ -325,6 +340,17 @@ IN_PROC_BROWSER_TEST_F(ProfileKeyedServiceBrowserTest,
     // Picker.
     "feature_engagement::Tracker",
     "UserEducationService",
+
+    // Eyeo services
+    "AdblockRequestThrottle",
+    "AdblockSubscriptionPersistentMetadata",
+    "AdblockSubscriptionService",
+    "AdblockTelemetryService",
+    "ContentSecurityPolicyInjector",
+    "ElementHider",
+    "ResourceClassificationRunner",
+    "SessionStats",
+    "SitekeyStorage",
   };
   // clang-format on
 
@@ -851,6 +877,20 @@ IN_PROC_BROWSER_TEST_F(ProfileKeyedServiceGuestBrowserTest,
     // TODO(crbug.com/374351946): Investigate if this is necessary on CrOS.
     "ZeroSuggestCacheServiceFactory",
 #endif  // !BUILDFLAG(IS_CHROMEOS)
+
+    // eyeo Chromium SDK services:
+    "AdblockPrivateAPI",
+    "AdblockRequestThrottle",
+    "AdblockSubscriptionPersistentMetadata",
+    "AdblockSubscriptionService",
+    "AdblockTelemetryService",
+    "ContentSecurityPolicyInjector",
+    "ElementHider",
+    "EyeoDevToolsPrivateAPI",
+    "EyeoFilteringPrivateAPI",
+    "ResourceClassificationRunner",
+    "SessionStats",
+    "SitekeyStorage",
 
 #if BUILDFLAG(IS_CHROMEOS)
     // TODO(crbug.com/374351946):

@@ -1,0 +1,88 @@
+// This file is part of eyeo Chromium SDK,
+// Copyright (C) 2006-present eyeo GmbH
+//
+// eyeo Chromium SDK is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License version 3 as
+// published by the Free Software Foundation.
+//
+// eyeo Chromium SDK is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+// This is a private API exposing remote CDP targets and allowing to call
+// a custom CDP commands upon them.
+
+namespace eyeoDevToolsPrivate {
+
+  dictionary RemoteTargetInfo {
+    // Current page
+    DOMString page_url;
+    // Socket name
+    DOMString socket_name;
+  };
+
+  dictionary RequestInfo {
+    // URL of the request element which has been matched.
+    DOMString url;
+    // URL of subscription having the filter which matched for the request.
+    DOMString subscription;
+  };
+
+  dictionary PageElementInfo {
+    // Selector for the page element which has been targeted.
+    DOMString selector;
+    // The action executed upon the selector.
+    DOMString action;
+  };
+
+  interface Events {
+    // Fired when a new remote target is found.
+    static void onRemoteTargetFound(RemoteTargetInfo info);
+
+    // Fired when a remote target is lost.
+    // RemoteTargetInfo#page_url is empty for this event.
+    static void onRemoteTargetLost(RemoteTargetInfo info);
+
+    // Fired when a whole page is allowlisted.
+    static void onPageAllowed(RequestInfo info);
+
+    // Fired when a request (incl. popup) is explicitly allowed.
+    static void onRequestAllowed(RequestInfo info);
+
+    // Fired when a request(incl. popup) is blocked.
+    static void onRequestBlocked(RequestInfo info);
+
+    // Fired for a page element which was targeted by EH or EHE filter.
+    static void onPageElementMatched(PageElementInfo info);
+  };
+
+  // Returns command result as a JSON string.
+  callback CommandCallback = void(DOMString result_json_string);
+  // Called when the connection is ready.
+  callback ConnectCallback = void();
+  // Returns disconnected socket name or empty string if
+  // there was no connection established.
+  callback DisconnectCallback = void(DOMString socket_name);
+
+  interface Functions {
+    // Connect to requested socket.
+    static void connect(
+        DOMString socket_name,
+        ConnectCallback callback);
+    // Cancel any established connection.
+    static void disconnect(
+        optional DisconnectCallback callback);
+    // Restart device discovery, needed in case onRemoteTargetFound
+    // events were missed or not delivered.
+    static void restartDiscovery();
+    // Call a remote method with optional json string params.
+    static void sendRemoteCommand(
+        DOMString method,
+        optional DOMString params_json_string,
+        CommandCallback callback);
+  };
+};

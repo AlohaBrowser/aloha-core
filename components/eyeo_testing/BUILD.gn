@@ -1,0 +1,126 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+import("//build/symlink.gni")
+import("//components/eyeo_testing/archive_with_deps.gni")
+
+source_set("test_support") {
+  testonly = true
+
+  sources = [
+    "libadblockplus_reference_database.cc",
+    "libadblockplus_reference_database.h",
+    "test_request_reader.cc",
+    "test_request_reader.h",
+  ]
+
+  public_deps = [
+    "//base",
+    "//base/test:test_support",
+    "//net:net",
+    "//sql",
+    "//sql:test_support",
+    "//ui/base:base",
+    "//url",
+  ]
+}
+
+executable("verify_flatbuffer_adblocking") {
+  testonly = true
+
+  sources = [ "verify_flatbuffer_adblocking.cc" ]
+
+  deps = [
+    ":test_support",
+    "//components/adblock/core:core",
+    "//components/adblock/core/converter",
+    "//third_party/zlib/google:compression_utils",
+  ]
+
+  data = [
+    "//components/test/data/adblock/easylist.txt.gz",
+    "//components/test/data/adblock/exceptionrules.txt.gz",
+    "//components/test/data/adblock/anticv.txt.gz",
+  ]
+}
+
+executable("eyeometry_test_server") {
+  testonly = true
+
+  sources = [ "eyeometry_test_server.cc" ]
+
+  deps = [
+    "//base",
+    "//base/test:test_support",
+    "//net:test_support",
+  ]
+}
+
+archive_with_deps("archive_eyeometry_test_server") {
+  testonly = true
+  output = "${root_out_dir}/eyeometry_test_server.7z"
+  data_deps = [ ":eyeometry_test_server" ]
+}
+
+source_set("benchmark_support") {
+  testonly = true
+
+  sources = [
+    "benchmark_utils.cc",
+    "benchmark_utils.h",
+  ]
+
+  deps = [
+    "//components/adblock/core/converter",
+    "//third_party/zlib/google:compression_utils",
+  ]
+
+  public_deps = [
+    "//components/adblock/core",
+    "//url",
+  ]
+
+  data = [
+    "benchmark_data/easylist-benchmark.txt.gz",
+    "benchmark_data/easyprivacy-benchmark.txt.gz",
+    "benchmark_data/requests.json.gz",
+  ]
+}
+
+executable("eyeo_classification_benchmark") {
+  testonly = true
+
+  sources = [ "classification_benchmark.cc" ]
+
+  deps = [ ":benchmark_support" ]
+}
+
+executable("eyeo_element_hiding_benchmark") {
+  testonly = true
+
+  sources = [ "element_hiding_benchmark.cc" ]
+
+  deps = [ ":benchmark_support" ]
+}
+
+archive_with_deps("archive_eyeo_benchmarks") {
+  testonly = true
+  output = "${root_out_dir}/eyeo_benchmarks.7z"
+  data_deps = [
+    ":eyeo_classification_benchmark",
+    ":eyeo_element_hiding_benchmark",
+  ]
+}

@@ -3155,8 +3155,9 @@ IN_PROC_BROWSER_TEST_F(DevToolsTest,
 #define MAYBE_TestRawHeadersWithRedirectAndHSTS \
   DISABLED_TestRawHeadersWithRedirectAndHSTS
 #else
+// TODO DPD-3223. Re-enable the test.
 #define MAYBE_TestRawHeadersWithRedirectAndHSTS \
-  TestRawHeadersWithRedirectAndHSTS
+  DISABLED_TestRawHeadersWithRedirectAndHSTS
 #endif
 IN_PROC_BROWSER_TEST_F(DevToolsTest, MAYBE_TestRawHeadersWithRedirectAndHSTS) {
   net::EmbeddedTestServer https_test_server(

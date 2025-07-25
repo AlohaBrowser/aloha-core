@@ -1,6 +1,9 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
 
 import("//build/cipd/cipd.gni")
 import("//build/config/buildflags_paint_preview.gni")
@@ -1766,6 +1769,7 @@ if (is_android) {
       "//chrome/test/data/webui:browser_tests",
       "//chrome/test/data/webui:interactive_ui_tests",
       "//chrome/test/data/webui:resources",
+      "//components/adblock/content:browser",
       "//components/autofill/content/browser:test_support",
       "//components/autofill/content/renderer:test_support",
       "//components/autofill/core/common:common",
@@ -2390,6 +2394,7 @@ if (!is_android) {
       "//chrome/test/media_router/access_code_cast:access_code_cast_integration_base",
       "//chrome/test/payments:test_support",
       "//chrome/test/supervised_user:test_support",
+      "//components/adblock/content:browser",
       "//components/affiliations/core/browser:affiliation_proto",
       "//components/affiliations/core/browser:test_support",
       "//components/autofill/content/browser:autofill_shared_storage_proto",
@@ -2893,6 +2898,7 @@ if (!is_android) {
       "//chrome/renderer/resources/extensions/",
       "//chrome/test/data/cart/",
       "//components/test/data/ad_tagging/",
+      "//components/test/data/adblock/",
       "//components/test/data/ads_observer/",
       "//components/test/data/autofill/",
       "//components/test/data/custom_handlers",
@@ -2982,6 +2988,9 @@ if (!is_android) {
       "../browser/accessibility/live_translate_controller_browsertest.cc",
       "../browser/accessibility/page_colors_browsertest.cc",
       "../browser/accessibility/phrase_segmentation/dependency_parser_model_loader_browsertest.cc",
+      "../browser/adblock/test/adblock_frame_hierarchy_builder_browsertest.cc",
+      "../browser/adblock/test/adblock_multiple_tabs_browsertest.cc",
+      "../browser/adblock/test/adblock_popup_browsertest.cc",
       "../browser/ai/ai_data_keyed_service_browsertest.cc",
       "../browser/attribution_reporting/chrome_attribution_browsertest.cc",
       "../browser/autocomplete/autocomplete_browsertest.cc",
@@ -4533,6 +4542,18 @@ if (!is_android) {
         ]
       }
 
+      sources += [
+        "../browser/extensions/api/adblock_private/adblock_private_apitest.cc",
+        "../browser/extensions/api/adblock_private/adblock_private_apitest_backgroundpage.cc",
+        "../browser/extensions/api/adblock_private/adblock_private_apitest_base.cc",
+        "../browser/extensions/api/adblock_private/adblock_private_apitest_base.h",
+        "../browser/extensions/api/adblock_private/adblock_private_filter_lists_with_http_server_apitest.cc",
+        "../browser/extensions/api/eyeo_dev_tools_private/eyeo_dev_tools_private_apitest.cc",
+        "../browser/extensions/api/eyeo_filtering_private/eyeo_filtering_private_apitest.cc",
+      ]
+
+      deps += [ "//components/adblock/content/browser:browser_tests_support" ]
+
       if (is_chromeos) {
         deps +=
             [ "//chromeos/ash/components/network/portal_detector:test_support" ]
@@ -6051,6 +6072,7 @@ test("unit_tests") {
   sources = [
     # All unittests in browser, common, renderer and service.
     "../browser/about_flags_unittest.cc",
+    "../browser/adblock/adblock_chrome_content_browser_client_unittest.cc",
     "../browser/after_startup_task_utils_unittest.cc",
     "../browser/apps/icon_standardizer_unittest.cc",
     "../browser/apps/user_type_filter_unittest.cc",
@@ -6748,6 +6770,8 @@ test("unit_tests") {
     "//chrome/common/themes:unit_tests",
     "//chrome/services/file_util:unit_tests",
     "//components/account_id",
+    "//components/adblock/content/browser:test_support",
+    "//components/adblock/core:test_support",
     "//components/affiliations/core/browser:test_support",
     "//components/assist_ranker/proto",
     "//components/autofill/content/browser:test_support",
@@ -10584,6 +10608,7 @@ if (!is_android) {
       "//chrome/browser:test_support_ui",
       "//chrome/browser/ui/exclusive_access",
       "//chrome/browser/ui/views/side_panel",
+      "//components/adblock/core:test_support",
       "//components/supervised_user/core/browser",
       "//components/webui/chrome_urls",
       "//content/public/browser",

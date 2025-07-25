@@ -1,6 +1,9 @@
 # Copyright 2019 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
 
 import("//build/config/android/rules.gni")
 import("//third_party/jni_zero/jni_zero.gni")
@@ -54,6 +57,7 @@ java_cpp_strings("java_pref_names_srcjar") {
     "//chrome/browser/enterprise/reporting/prefs.cc",
     "//chrome/browser/ui/safety_hub/safety_hub_prefs.h",
     "//chrome/common/pref_names.h",
+    "//components/adblock/core/common/adblock_prefs.cc",
     "//components/autofill/core/common/autofill_prefs.h",
     "//components/bookmarks/common/bookmark_pref_names.h",
     "//components/commerce/core/pref_names.h",

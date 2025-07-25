@@ -333,9 +333,9 @@ public class SamsungSelectionActionMenuDelegate extends AutofillSelectionActionM
             return true;
         }
 
+        // ALOHA FIXED https://app.clickup.com/t/86etfrntu
         Intent intent = item.getIntent();
-
-        assert intent != null : "Samsung menu item should have Intent.";
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         return true;
     }

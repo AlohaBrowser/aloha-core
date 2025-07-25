@@ -1,6 +1,9 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
 
 import("//build/config/buildflags_paint_preview.gni")
 import("//build/config/compiler/compiler.gni")
@@ -424,6 +427,7 @@ static_library("ui") {
     "//chrome/services/media_gallery_util/public/mojom",
     "//components/access_code_cast/common:metrics",
     "//components/account_id",
+    "//components/adblock/content:browser",
     "//components/affiliations/core/browser:affiliations",
     "//components/autofill/content/browser",
     "//components/autofill/content/browser:risk_proto",
@@ -947,6 +951,11 @@ static_library("ui") {
     # TODO(b/335257259): Resolve circular deps.
     # Any circular includes must depend on the target "//chrome/browser:browser_public_dependencies".
     allow_circular_includes_from += [ "//chrome/browser/facilitated_payments" ]
+
+    deps += [
+      "//components/adblock/android:java_bindings",
+      "//components/adblock/android:jni_headers",
+    ]
 
     if (enable_extensions_core) {
       sources += [

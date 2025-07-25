@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef ANDROID_WEBVIEW_BROWSER_AW_QUOTA_MANAGER_BRIDGE_H_
 #define ANDROID_WEBVIEW_BROWSER_AW_QUOTA_MANAGER_BRIDGE_H_
 
@@ -60,6 +62,19 @@ class AwQuotaManagerBridge
       std::string& domain,
       const base::android::JavaParamRef<jobject>& callback);
 
+  // ALOHA https://app.clickup.com/t/86etj7905
+  std::string DeleteBrowsingCacheForSite(
+      JNIEnv* env,
+      std::string& domain,
+      const base::android::JavaParamRef<jobject>& callback
+  );
+
+  // ALOHA https://app.clickup.com/t/86etj7905
+  std::string DeleteBrowsingCookiesForSite(
+      JNIEnv* env,
+      std::string& domain,
+      const base::android::JavaParamRef<jobject>& callback);
+
   // http://crbug.com/373826557 does not actually delete all data, preserved for
   // Android Framework implementation.
   void DeleteAllDataFramework(JNIEnv* env);
@@ -91,6 +106,11 @@ class AwQuotaManagerBridge
   ~AwQuotaManagerBridge();
 
   content::StoragePartition* GetStoragePartition() const;
+  
+  // ALOHA https://app.clickup.com/t/86etj7905
+  std::string DeleteForSiteImpl(std::string& domain,
+      const base::android::JavaParamRef<jobject>& callback,
+      uint64_t remove_mask);
 
   storage::QuotaManager* GetQuotaManager() const;
 

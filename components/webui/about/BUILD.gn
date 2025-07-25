@@ -21,7 +21,7 @@ if (is_android) {
     deps = [
       ":about",
       "//base",
-      "//components/webui/about/android:about_ui_jni_headers",
+      #"//components/webui/about/android:about_ui_jni_headers",
     ]
   }
 }

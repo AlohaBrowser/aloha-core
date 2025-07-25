@@ -235,16 +235,6 @@ def _MergeAssets(all_assets):
   return create_list(compressed), create_list(uncompressed), locale_paks
 
 
-def _SuffixAssets(suffix_names, suffix, assets):
-  new_assets = []
-  for x in assets:
-    src_path, apk_subpath = x.split(':', 1)
-    if apk_subpath in suffix_names:
-      apk_subpath += suffix
-    new_assets.append(f'{src_path}:{apk_subpath}')
-  return new_assets
-
-
 def _ResolveGroupsAndPublicDeps(config_paths):
   """Returns a list of configs with all groups inlined."""
 

@@ -1,0 +1,44 @@
+<!--
+  This file is part of eyeo Chromium SDK,
+  Copyright (C) 2006-present eyeo GmbH
+
+  eyeo Chromium SDK is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 3 as
+  published by the Free Software Foundation.
+
+  eyeo Chromium SDK is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script>
+    // Notify the outermost frame whether subresource is visible.
+    // Since these frames have different origins, we must bypass
+    // cross-site-scripting security and send the information via window.top.
+    window.onload = function () {
+      let image = document.getElementById('subresource');
+      let subresource_visibility = {};
+      // `naturalHeight` is used to check if element is blocked. Blocked element
+      // may have `offsetWidth` !== 0 when it is not yet element hidden.
+      subresource_visibility.is_blocked = (image.naturalHeight === 0);
+      // `offsetWidth`is used to check if element is not visible when
+      // it is hidden directly or when parent is hidden.
+      subresource_visibility.is_hidden = (image.offsetWidth === 0);
+      window.top.postMessage(subresource_visibility, '*');
+    };
+  </script>
+</head>
+
+<body>
+  <img id='subresource' src='resource.png' />
+</body>
+
+</html>

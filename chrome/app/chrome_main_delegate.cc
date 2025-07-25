@@ -1,6 +1,10 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #ifdef UNSAFE_BUFFERS_BUILD
 // TODO(crbug.com/40285824): Remove this and convert code to safer constructs.
@@ -43,6 +47,7 @@
 #include "base/timer/timer.h"
 #include "base/trace_event/trace_event_impl.h"
 #include "build/build_config.h"
+#include "chrome/browser/adblock/adblock_chrome_content_browser_client.h"
 #include "chrome/browser/buildflags.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "chrome/browser/chrome_resource_bundle_helper.h"
@@ -72,6 +77,7 @@
 #include "chrome/grit/generated_resources.h"
 #include "chrome/renderer/chrome_content_renderer_client.h"
 #include "chrome/utility/chrome_content_utility_client.h"
+#include "components/adblock/content/renderer/adblock_content_renderer_client.h"
 #include "components/component_updater/component_updater_paths.h"
 #include "components/content_settings/core/common/content_settings_pattern.h"
 #include "components/crash/core/app/crash_reporter_client.h"
@@ -227,7 +233,8 @@
 
 base::LazyInstance<ChromeContentGpuClient>::DestructorAtExit
     g_chrome_content_gpu_client = LAZY_INSTANCE_INITIALIZER;
-base::LazyInstance<ChromeContentRendererClient>::DestructorAtExit
+base::LazyInstance<adblock::AdblockContentRendererClient<
+    ChromeContentRendererClient>>::DestructorAtExit
     g_chrome_content_renderer_client = LAZY_INSTANCE_INITIALIZER;
 
 extern int NaClMain(content::MainFunctionParams);
@@ -1616,7 +1623,7 @@ content::ContentClient* ChromeMainDelegate::CreateContentClient() {
 content::ContentBrowserClient*
 ChromeMainDelegate::CreateContentBrowserClient() {
   chrome_content_browser_client_ =
-      std::make_unique<ChromeContentBrowserClient>();
+      std::make_unique<AdblockChromeContentBrowserClient>();
 #if !BUILDFLAG(IS_ANDROID)
   // Android does this in `ChromeMainDelegateAndroid::PreSandboxStartup`.
   CHECK(sampling_profiler_);

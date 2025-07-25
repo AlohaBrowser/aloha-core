@@ -11,11 +11,11 @@ package com.android.webview.chromium;
  * the base class, with appropriate SDK_INT checks if needed.
  */
 class WebViewChromiumFactoryProviderForOMR1 extends WebViewChromiumFactoryProvider {
-    public static WebViewChromiumFactoryProvider create(android.webkit.WebViewDelegate delegate) {
+    public static WebViewChromiumFactoryProvider create(com.android.webview.chromium.WebViewDelegate delegate) {
         return new WebViewChromiumFactoryProviderForOMR1(delegate);
     }
 
-    protected WebViewChromiumFactoryProviderForOMR1(android.webkit.WebViewDelegate delegate) {
+    protected WebViewChromiumFactoryProviderForOMR1(com.android.webview.chromium.WebViewDelegate delegate) {
         super(delegate);
     }
 }

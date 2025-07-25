@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_BROWSER_STORAGE_PARTITION_IMPL_H_
 #define CONTENT_BROWSER_STORAGE_PARTITION_IMPL_H_
 
@@ -264,6 +266,15 @@ class CONTENT_EXPORT StoragePartitionImpl
   void ClearBluetoothAllowedDevicesMapForTesting() override;
   void AddObserver(DataRemovalObserver* observer) override;
   void RemoveObserver(DataRemovalObserver* observer) override;
+
+  // ALOHA https://app.clickup.com/t/2hcppgv
+  void ClearSessionStorage() override;
+  void ClearLocalStorage(bool for_private_mode) override;
+
+  // ALOHA https://app.clickup.com/t/86etj7905
+  // Clear private and public local storages for the given site.
+  void ClearStoragesForSite(const std::string& site) override;
+
   void FlushNetworkInterfaceForTesting() override;
   void FlushCertVerifierInterfaceForTesting() override;
   void WaitForDeletionTasksForTesting() override;

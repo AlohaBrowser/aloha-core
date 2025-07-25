@@ -1,0 +1,190 @@
+/*
+ * This file is part of eyeo Chromium SDK,
+ * Copyright (C) 2006-present eyeo GmbH
+ *
+ * eyeo Chromium SDK is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * eyeo Chromium SDK is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+ */
+namespace adblock.flat;
+file_identifier "ABP2";
+
+// Filter types
+// ============
+
+enum AbpResource: byte {
+  BlankText,
+  BlankCss,
+  BlankJs,
+  BlankHtml,
+  BlankMp3,
+  BlankMp4,
+  TransparentGif1x1,
+  TransparentPng2x2,
+  TransparentPng3x2,
+  TransparentPng32x32
+}
+
+table Rewrite {
+  replace_with: AbpResource;
+}
+
+table Header {
+  header: string (required);
+  pattern: string;
+}
+
+enum ThirdParty: byte {
+  Ignore,
+  FirstPartyOnly,
+  ThirdPartyOnly,
+}
+
+enum ResourceType: uint32 {
+  Other = 1,
+  Script = 2,
+  Image = 4,
+  Stylesheet = 8,
+  Object = 16,
+  Subdocument = 32,
+  WebSocket = 128,
+  WebRtc = 256,
+  Ping = 1024,
+  XmlHttpRequest = 2048,
+  Media = 16384,
+  Font = 32768,
+  WebBundle = 65536
+}
+
+// usage note: you figure out if this is blocking or allowing based on if
+// it's stored in a 'block' or 'allow' list.
+table UrlFilter {
+  filter_text: string;
+  pattern: string (required);
+  match_case: bool;
+  resource_type: uint32; // this is a bitset mask of ResourceTypes
+  third_party: ThirdParty = Ignore;
+  sitekeys: [string];
+  include_domains: [string];
+  exclude_domains: [string];
+  rewrite: Rewrite;
+  csp_filter: string;
+  header_filter: string;
+  header: Header;
+}
+
+// usage note: you figure out if this is blocking or allowing based on if
+// it's stored in a 'block' or 'allow' list. You also need to use
+// where it's stored to determine its domains, and whether it needs elem
+// hide emulation or not.
+table ElemHideFilter {
+  filter_text: string;
+  selector: string (required);
+  exclude_domains: [string];
+}
+
+table RemoveFilter {
+  filter_text: string;
+  selector: string (required);
+  exclude_domains: [string];
+}
+
+table InlineCssFilter {
+  filter_text: string;
+  selector: string (required);
+  css: string (required);
+  exclude_domains: [string];
+}
+
+table SnippetFunctionCall {
+  command: string (required);
+  arguments: [string];
+}
+
+table SnippetFilter {
+  filter_text: string;
+  exclude_domains: [string];
+  script: [SnippetFunctionCall];
+}
+
+
+// Indexes
+// =======
+
+table UrlFiltersByKeyword {
+  keyword: string (key);
+  filter: [UrlFilter];
+}
+
+// encoder note: the same ElemHideFilter may appear in multiple
+// domains. Ensure that the same offset is stored rather than reencoding
+// the filter multiple times.
+table ElemHideFiltersByDomain {
+  domain: string (key);
+  filter: [ElemHideFilter];
+}
+
+table RemoveFiltersByDomain {
+  domain: string (key);
+  filter: [RemoveFilter];
+}
+
+table InlineCssFiltersByDomain {
+  domain: string (key);
+  filter: [InlineCssFilter];
+}
+
+// encoder note: the same SnippetFilter may appear in multiple
+// domains. Ensure that the same offset is stored rather than reencoding
+// the filter multiple times.
+table SnippetFiltersByDomain {
+  domain: string (key);
+  filter: [SnippetFilter];
+}
+
+
+// Root
+// ====
+
+table SubscriptionMetadata {
+  flatbuffers_schema_version: string;
+  url: string;
+  homepage: string;
+  title: string;
+  version: string;
+  expires: uint64;
+}
+
+table Subscription {
+  metadata: SubscriptionMetadata;
+  url_subresource_block: [UrlFiltersByKeyword];
+  url_subresource_allow: [UrlFiltersByKeyword];
+  url_popup_block: [UrlFiltersByKeyword];
+  url_popup_allow: [UrlFiltersByKeyword];
+  url_document_allow: [UrlFiltersByKeyword];
+  url_elemhide_allow: [UrlFiltersByKeyword];
+  url_generichide_allow: [UrlFiltersByKeyword];
+  url_genericblock_allow: [UrlFiltersByKeyword];
+  url_csp_block: [UrlFiltersByKeyword];
+  url_csp_allow: [UrlFiltersByKeyword];
+  url_rewrite_block: [UrlFiltersByKeyword];
+  url_rewrite_allow: [UrlFiltersByKeyword];
+  url_header_block: [UrlFiltersByKeyword];
+  url_header_allow: [UrlFiltersByKeyword];
+  elemhide: [ElemHideFiltersByDomain];
+  elemhide_emulation: [ElemHideFiltersByDomain];
+  elemhide_exception: [ElemHideFiltersByDomain];
+  remove: [RemoveFiltersByDomain];
+  inline_css: [InlineCssFiltersByDomain];
+  snippet: [SnippetFiltersByDomain];
+}
+
+root_type Subscription;

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 module content.mojom;
 
 import "cc/mojom/browser_controls_state.mojom";
@@ -177,6 +179,9 @@ struct CreateViewParams {
   // Identifies the navigation that triggered this view creation, if any. Used
   // for collecting metrics.
   mojo_base.mojom.UnguessableToken? navigation_metrics_token;
+  
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  bool private_mode = false;
 };
 
 // A union to distinguish between parameters specific to local main frame

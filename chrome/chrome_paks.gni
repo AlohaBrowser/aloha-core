@@ -1,6 +1,9 @@
 # Copyright 2016 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
 
 import("//ash/ambient/resources/resources.gni")
 import("//build/config/chrome_build.gni")
@@ -124,6 +127,7 @@ template("chrome_extra_paks") {
       "$root_gen_dir/chrome/common_resources.pak",
       "$root_gen_dir/chrome/saved_tab_groups_unsupported_resources.pak",
       "$root_gen_dir/chrome/segmentation_internals_resources.pak",
+      "$root_gen_dir/components/adblock/core/resources/adblock_resources.pak",
       "$root_gen_dir/components/autofill/core/browser/geo/autofill_address_rewriter_resources.pak",
       "$root_gen_dir/components/autofill_and_password_manager_internals_resources.pak",
       "$root_gen_dir/components/chrome_urls_resources.pak",
@@ -158,6 +162,7 @@ template("chrome_extra_paks") {
       "//chrome/browser/resources:resources",
       "//chrome/browser/resources/saved_tab_groups_unsupported:resources",
       "//chrome/common:resources",
+      "//components/adblock/core/resources:adblock_resources",
       "//components/autofill/core/browser:autofill_address_rewriter_resources",
       "//components/metrics:server_urls_grd",
       "//components/resources",

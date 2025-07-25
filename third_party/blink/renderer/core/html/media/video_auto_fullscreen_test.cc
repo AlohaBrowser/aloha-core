@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include <memory>
 
 #include "testing/gtest/include/gtest/gtest.h"
@@ -31,8 +33,9 @@ class VideoAutoFullscreenFrameHost : public FakeLocalFrameHost {
   VideoAutoFullscreenFrameHost() = default;
 
   void EnterFullscreen(mojom::blink::FullscreenOptionsPtr options,
+                       mojom::blink::FullscreenVideoElementInfoPtr video_element, // ALOHA https://app.clickup.com/t/2hxwa9w
                        EnterFullscreenCallback callback) override {
-    std::move(callback).Run(true);
+    std::move(callback).Run(true, false);
     web_view_->MainFrameImpl()
         ->GetTaskRunner(TaskType::kInternalNavigationAssociated)
         ->PostTask(FROM_HERE, WTF::BindOnce(

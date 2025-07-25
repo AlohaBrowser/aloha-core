@@ -1,6 +1,9 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
 
 import("//build/config/chromebox_for_meetings/buildflags.gni")
 import("//build/config/chromeos/ui_mode.gni")
@@ -424,6 +427,7 @@ source_set("extensions") {
     "window_controller_list.h",
     "window_controller_list_observer.h",
   ]
+
   configs += [
     "//build/config:precompiled_headers",
     "//build/config/compiler:wexit_time_destructors",
@@ -775,6 +779,17 @@ source_set("extensions") {
         "api/safe_browsing_private/safe_browsing_private_event_router_factory.h",
       ]
     }
+
+    sources += [
+      "api/adblock_private/adblock_private_api.cc",
+      "api/adblock_private/adblock_private_api.h",
+      "api/eyeo_dev_tools_private/eyeo_dev_tools_private_api.cc",
+      "api/eyeo_dev_tools_private/eyeo_dev_tools_private_api.h",
+      "api/eyeo_filtering_private/eyeo_filtering_private_api.cc",
+      "api/eyeo_filtering_private/eyeo_filtering_private_api.h",
+    ]
+
+    deps += [ "//components/adblock/content:browser" ]
 
     # Chrome OS does not support Native Messaging policies.
     if (!is_chromeos) {

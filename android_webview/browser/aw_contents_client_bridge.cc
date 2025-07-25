@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/aw_contents_client_bridge.h"
 
 #include <memory>
@@ -366,9 +368,12 @@ bool AwContentsClientBridge::SendBrowseIntent(const std::u16string& url) {
 }
 
 void AwContentsClientBridge::NewDownload(const GURL& url,
+                                         const GURL& original_url, // ALOHA https://app.clickup.com/t/861me45jv
                                          const std::string& user_agent,
                                          const std::string& content_disposition,
                                          const std::string& mime_type,
+                                         const std::string& suggested_filename, // ALOHA https://app.clickup.com/t/mz8wrn
+                                         const std::string& post_response_filename, // ALOHA https://app.clickup.com/t/mz8wrn
                                          int64_t content_length) {
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
   JNIEnv* env = AttachCurrentThread();
@@ -376,8 +381,12 @@ void AwContentsClientBridge::NewDownload(const GURL& url,
   if (!obj)
     return;
 
-  Java_AwContentsClientBridge_newDownload(env, obj, url.spec(), user_agent,
+  Java_AwContentsClientBridge_newDownload(env, obj, url.spec(),
+										  original_url.spec(), // ALOHA https://app.clickup.com/t/861me45jv
+  										  user_agent,
                                           content_disposition, mime_type,
+                                          suggested_filename, // ALOHA https://app.clickup.com/t/mz8wrn
+                                          post_response_filename, // ALOHA https://app.clickup.com/t/mz8wrn
                                           content_length);
 }
 
@@ -509,6 +518,12 @@ void AwContentsClientBridge::CancelJsResult(JNIEnv*, int id) {
   }
   std::move(*callback).Run(false, std::u16string());
   pending_js_dialog_callbacks_.Remove(id);
+}
+
+// ALOHA https://app.clickup.com/t/2f2eyt8
+base::android::ScopedJavaLocalRef<jobject>
+  AwContentsClientBridge::get_java_ref(JNIEnv *env) {
+    return java_ref_.get(env);
 }
 
 }  // namespace android_webview

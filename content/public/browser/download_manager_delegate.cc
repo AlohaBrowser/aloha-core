@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/public/browser/download_manager_delegate.h"
 
 #include "base/functional/bind.h"
@@ -67,6 +69,8 @@ bool DownloadManagerDelegate::ShouldObfuscateDownload(
 bool DownloadManagerDelegate::InterceptDownloadIfApplicable(
     const GURL& url,
     const std::string& user_agent,
+    const std::string& method, // ALOHA https://app.clickup.com/t/mz8wrn
+    const bool is_disposable_url, // ALOHA https://app.clickup.com/t/861md9r6t
     const std::string& content_disposition,
     const std::string& mime_type,
     const std::string& request_origin,

@@ -1,6 +1,9 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
 
 import("//build/config/android/config.gni")
 import("//build/config/cronet/config.gni")
@@ -291,6 +294,8 @@ if (_is_default_toolchain) {
     if (enable_screen_capture) {
       deps += [ "//chrome/browser:screen_capture_java_resources" ]
     }
+
+    deps += [ "//chrome/browser/adblock/android:java_ui_resources" ]
   }
 
   android_resources("java_overlay_resources") {
@@ -554,6 +559,7 @@ if (_is_default_toolchain) {
       "//chrome/browser/xsurface:java",
       "//chrome/browser/xsurface_provider:dependency_provider_impl_java",
       "//chrome/browser/xsurface_provider:java",
+      "//components/adblock/android:adblock_controller_java",
       "//components/android_autofill/browser:java",
       "//components/autofill/android:autofill_features_java",
       "//components/autofill/android:autofill_java",
@@ -785,6 +791,8 @@ if (_is_default_toolchain) {
       "//url/mojom:url_mojom_gurl_java",
       "//url/mojom:url_mojom_origin_java",
     ]
+
+    deps += [ "//chrome/browser/adblock/android:adblock_ui_java" ]
 
     deps += feed_deps
 
@@ -1356,6 +1364,7 @@ if (_is_default_toolchain) {
       "javatests:chrome_test_java_org.chromium.chrome.browser.toolbar",
       "javatests:chrome_test_java_org.chromium.chrome.browser.webapps",
       "javatests:chrome_test_java_various",
+      "//chrome/browser/adblock/android:adblock_java_tests",
       "//chrome/browser/android/browserservices/verification:javatests",
       "//chrome/browser/android/httpclient:javatests",
       "//chrome/browser/android/metrics:ukm_javatests",
@@ -1427,6 +1436,7 @@ if (_is_default_toolchain) {
       "//chrome/test/data/translate/",
       "//chrome/test/data/webauthn/",
       "//chrome/test/media_router/resources/",
+      "//components/test/data/adblock/",
       "//components/test/data/autofill/",
       "//components/test/data/payments/",
       "//content/test/data/browsing_data/",
@@ -3244,6 +3254,9 @@ if (_is_default_toolchain) {
       sources += [ "java/src/org/chromium/chrome/browser/offlinepages/evaluation/OfflinePageEvaluationBridge.java" ]
     }
 
+    sources +=
+        [ "java/src/org/chromium/chrome/browser/adblock/TabIdTranslator.java" ]
+
     public_deps = [
       ":base_module_jni",
       "//chrome/browser/bookmarks/android:jni_headers",
@@ -3334,6 +3347,7 @@ if (_is_default_toolchain) {
       "//chrome/browser/ui/plus_addresses/android:jni_headers",
       "//chrome/browser/util:jni_headers",
       "//chrome/browser/webauthn/android:jni_headers",
+      "//components/adblock/android:jni_headers",
       "//components/browser_ui/device_lock/android:device_lock_bridge_jni_headers",
       "//components/content_relationship_verification/android:jni_headers",
       "//components/image_fetcher:jni_headers",

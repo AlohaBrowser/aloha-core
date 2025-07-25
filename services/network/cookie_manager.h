@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef SERVICES_NETWORK_COOKIE_MANAGER_H_
 #define SERVICES_NETWORK_COOKIE_MANAGER_H_
 
@@ -48,7 +50,9 @@ class COMPONENT_EXPORT(NETWORK_SERVICE) CookieManager
   // cookie store.  |url_request_context->cookie_store()| must outlive this
   // object. `*first_party_sets_access_delegate` must outlive
   // `url_request_context->cookie_store()`.
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
   CookieManager(
+      int inst_num,
       net::URLRequestContext* url_request_context,
       FirstPartySetsAccessDelegate* const first_party_sets_access_delegate,
       scoped_refptr<SessionCleanupCookieStore> session_cleanup_cookie_store,
