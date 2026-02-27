@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview;
 
 import androidx.annotation.NonNull;
@@ -115,6 +117,55 @@ public class AwQuotaManagerBridge {
                 .deleteBrowsingDataForSite(mNativeAwQuotaManagerBridge, domain, resultCallback);
     }
 
+     /**
+     * ALOHA method
+     * Delete all browsing cache for the eTLD+1 of the passed-in hostname.
+     *
+     * <p>Any subdomain in the {@code domain} parameter will be ignored.
+     *
+     * @param urlOrDomain Host to delete data for.
+     * @param resultCallback Callback executed when the deletion completes.
+     * @return The actual hostname used for deletion. This may differ from the {@code domain}
+     *     parameter if the former contained a subdomain.
+     *
+     */
+    // ALOHA https://app.clickup.com/t/86etj7905
+    public String deleteBrowsingCacheForSite(
+            @NonNull String urlOrDomain, @NonNull Callback<Boolean> resultCallback) {
+        ThreadUtils.assertOnUiThread();
+        // Attempt to parse the hostname as part of a HTTP url.
+        String domain = getDomainName(urlOrDomain);
+        if (domain == null) {
+            throw new IllegalArgumentException("Invalid domain name: " + urlOrDomain);
+        }
+        return AwQuotaManagerBridgeJni.get()
+                .deleteBrowsingCacheForSite(mNativeAwQuotaManagerBridge, domain, resultCallback);
+    }
+
+    /**
+     * ALOHA method
+     * Delete all browsing cookies for the eTLD+1 of the passed-in hostname.
+     *
+     * <p>Any subdomain in the {@code domain} parameter will be ignored.
+     *
+     * @param urlOrDomain Host to delete data for.
+     * @param resultCallback Callback executed when the deletion completes.
+     * @return The actual hostname used for deletion. This may differ from the {@code domain}
+     *     parameter if the former contained a subdomain.
+     */
+    // ALOHA https://app.clickup.com/t/86etj7905
+    public String deleteBrowsingCookiesForSite(
+            @NonNull String urlOrDomain, @NonNull Callback<Boolean> resultCallback) {
+        ThreadUtils.assertOnUiThread();
+        // Attempt to parse the hostname as part of a HTTP url.
+        String domain = getDomainName(urlOrDomain);
+        if (domain == null) {
+            throw new IllegalArgumentException("Invalid domain name: " + urlOrDomain);
+        }
+        return AwQuotaManagerBridgeJni.get()
+                .deleteBrowsingCookiesForSite(mNativeAwQuotaManagerBridge, domain, resultCallback);
+    }
+
     /**
      * Attempt to extract the domain name from the passed-in URL or domain name.
      *
@@ -198,6 +249,21 @@ public class AwQuotaManagerBridge {
         @NonNull
         @JniType("std::string")
         String deleteBrowsingDataForSite(
+                long nativeAwQuotaManagerBridge,
+                @JniType("std::string") String domain,
+                Callback<Boolean> callback);
+
+        // ALOHA https://app.clickup.com/t/86etj7905
+        @NonNull
+        @JniType("std::string")
+        String deleteBrowsingCacheForSite(
+                long nativeAwQuotaManagerBridge,
+                @JniType("std::string") String domain,
+                Callback<Boolean> callback);
+        // ALOHA https://app.clickup.com/t/86etj7905
+        @NonNull
+        @JniType("std::string")
+        String deleteBrowsingCookiesForSite(
                 long nativeAwQuotaManagerBridge,
                 @JniType("std::string") String domain,
                 Callback<Boolean> callback);

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/platform/media/web_media_player_impl.h"
 
 #include <algorithm>
@@ -1966,6 +1968,11 @@ void WebMediaPlayerImpl::OnError(media::PipelineStatus status) {
   if (watch_time_reporter_)
     watch_time_reporter_->OnError(status);
 
+  // ALOHA https://app.clickup.com/t/2rqdtxz
+  if (client_ != nullptr) {
+    client_->OnMediaError(status);
+  }
+
   if (ready_state_ == WebMediaPlayer::kReadyStateHaveNothing) {
     // Any error that occurs before reaching ReadyStateHaveMetadata should
     // be considered a format error.
@@ -3756,6 +3763,11 @@ void WebMediaPlayerImpl::UpdateBackgroundVideoOptimizationState() {
   }
 }
 
+// ALOHA https://app.clickup.com/t/86epnk66e
+void WebMediaPlayerImpl::SetShouldPlayBackground(bool should_play_background) {
+  should_play_background_ = should_play_background;
+}
+
 void WebMediaPlayerImpl::PauseVideoIfNeeded(PauseReason pause_reason) {
   DCHECK(IsPageHidden() || IsFrameHidden());
 
@@ -3763,6 +3775,9 @@ void WebMediaPlayerImpl::PauseVideoIfNeeded(PauseReason pause_reason) {
   // Also if the video is paused already.
   if (!pipeline_controller_->IsPipelineRunning() || is_pipeline_resuming_ ||
       seeking_ || paused_)
+    return;
+
+  if(IsPageHidden() && should_play_background_) // ALOHA https://app.clickup.com/t/86epnk66e
     return;
 
   visibility_pause_reason_ = pause_reason;

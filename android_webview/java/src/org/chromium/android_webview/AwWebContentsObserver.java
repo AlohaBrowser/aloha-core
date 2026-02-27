@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview;
 
 import org.chromium.android_webview.AwContents.VisualStateCallback;
@@ -17,7 +19,10 @@ import org.chromium.content_public.browser.WebContentsObserver;
 import org.chromium.content_public.common.ContentUrlConstants;
 import org.chromium.net.NetError;
 import org.chromium.ui.base.PageTransition;
+import org.chromium.ui.OverscrollRefreshHandler; //ALOHA https://app.clickup.com/t/86epwk67q 
 import org.chromium.url.GURL;
+
+import com.alohamobile.bromium.SwipeRefreshHandler; //ALOHA https://app.clickup.com/t/86epwk67q 
 
 import java.lang.ref.WeakReference;
 
@@ -64,13 +69,29 @@ public class AwWebContentsObserver extends WebContentsObserver {
             @LifecycleState int rfhLifecycleState) {
         if (rfhLifecycleState != LifecycleState.ACTIVE) return;
         String validatedUrl = isKnownValid ? url.getSpec() : url.getPossiblyInvalidSpec();
+        // ALOHA https://app.clickup.com/t/2f2f3we
+        boolean error = true;
         if (getClientIfNeedToFireCallback(validatedUrl) != null) {
+            error = false;
             mLastDidFinishLoadUrl = validatedUrl;
+        }
+
+		// ALOHA https://app.clickup.com/t/2f2f3we
+        AwContentsClient client = mAwContentsClient.get();
+        if (client != null) {
+            client.getCallbackHelper().postOnPageLoaded(validatedUrl, error);
         }
 
         AwContents awContents = mAwContents.get();
         if (awContents != null) {
             awContents.getNavigationClient().onPageLoadEventFired(page);
+            
+            // ALOHA https://app.clickup.com/t/86eucaeaf
+            SwipeRefreshHandler swipeRefreshHandler = awContents.getSwipeRefreshHandler();
+            if (swipeRefreshHandler != null) {
+                swipeRefreshHandler.didStopRefreshing();
+            }
+
         }
     }
 

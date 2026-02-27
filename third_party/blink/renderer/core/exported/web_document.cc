@@ -28,6 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
 #include "third_party/blink/public/web/web_document.h"
 
 #include "base/containers/to_vector.h"
@@ -272,6 +276,62 @@ WebStyleSheetKey WebDocument::InsertStyleSheet(
   auto* parsed_sheet = MakeGarbageCollected<StyleSheetContents>(
       MakeGarbageCollected<CSSParserContext>(*document));
   parsed_sheet->ParseString(source_code);
+  const WebStyleSheetKey& injection_key =
+      key && !key->IsNull() ? *key : GenerateStyleSheetKey();
+  DCHECK(!injection_key.IsEmpty());
+  document->GetStyleEngine().InjectSheet(injection_key, parsed_sheet, origin);
+  return injection_key;
+}
+
+bool IsValidAbpRule(StyleRuleBase* rule) {
+  if (!rule->IsStyleRule()) {
+    return false;
+  }
+  const auto& props = blink::To<StyleRule>(rule)->Properties();
+  if (props.PropertyCount() != 2) {
+    return false;
+  }
+  const auto& hide = props.PropertyAt(0);
+  const auto& mark = props.PropertyAt(1);
+  return hide.PropertyID() == CSSPropertyID::kDisplay && hide.IsImportant() &&
+         mark.PropertyID() == CSSPropertyID::kContent && mark.IsImportant();
+}
+
+// Should be same as WebDocument::InsertStyleSheet, excluding content
+// validation.
+WebStyleSheetKey WebDocument::InsertAbpElemhideStylesheet(
+    const WebString& source_code,
+    const WebStyleSheetKey* key,
+    WebCssOrigin origin,
+    BackForwardCacheAware back_forward_cache_aware) {
+  Document* document = Unwrap<Document>();
+  DCHECK(document);
+
+  auto* parsed_sheet = MakeGarbageCollected<StyleSheetContents>(
+      MakeGarbageCollected<CSSParserContext>(*document));
+  parsed_sheet->ParseString(source_code);
+  if (parsed_sheet->RuleCount() == 0) {
+    LOG(WARNING) << "[eyeo] Empty or invalid stylesheet";
+    return GenerateStyleSheetKey();
+  }
+  // Rule count is not validated because some selectors can be malformed for
+  // third-party lists. Checking body is valid for all the rules is enough.
+  for (unsigned n = 0; n < parsed_sheet->RuleCount();) {
+    if (IsValidAbpRule(parsed_sheet->RuleAt(n))) {
+      ++n;
+    } else {
+      parsed_sheet->StartMutation();
+      parsed_sheet->WrapperDeleteRule(n);
+      LOG(WARNING) << "[eyeo] Broken rule";
+    }
+  }
+
+  if (back_forward_cache_aware == BackForwardCacheAware::kPossiblyDisallow) {
+    document->GetFrame()->GetFrameScheduler()->RegisterStickyFeature(
+        SchedulingPolicy::Feature::kInjectedStyleSheet,
+        {SchedulingPolicy::DisableBackForwardCache()});
+  }
+
   const WebStyleSheetKey& injection_key =
       key && !key->IsNull() ? *key : GenerateStyleSheetKey();
   DCHECK(!injection_key.IsEmpty());

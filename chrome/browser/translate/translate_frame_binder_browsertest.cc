@@ -1,12 +1,17 @@
 // Copyright 2021 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "chrome/browser/translate/translate_frame_binder.h"
 
 #include "base/functional/bind.h"
 #include "base/run_loop.h"
 #include "build/chromeos_buildflags.h"
+#include "chrome/browser/adblock/adblock_chrome_content_browser_client.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/test/base/in_process_browser_test.h"
@@ -27,7 +32,7 @@ namespace translate {
 namespace {
 
 class TestTranslateDriverBindingContentBrowserClient
-    : public ChromeContentBrowserClient {
+    : public AdblockChromeContentBrowserClient {
  public:
   TestTranslateDriverBindingContentBrowserClient() = default;
   ~TestTranslateDriverBindingContentBrowserClient() override = default;
@@ -35,7 +40,7 @@ class TestTranslateDriverBindingContentBrowserClient
   void RegisterBrowserInterfaceBindersForFrame(
       content::RenderFrameHost* render_frame_host,
       mojo::BinderMapWithContext<content::RenderFrameHost*>* map) override {
-    ChromeContentBrowserClient::RegisterBrowserInterfaceBindersForFrame(
+    AdblockChromeContentBrowserClient::RegisterBrowserInterfaceBindersForFrame(
         render_frame_host, map);
     // Override binding for translate::mojom::ContentTranslateDriver.
     map->Add<translate::mojom::ContentTranslateDriver>(base::BindRepeating(

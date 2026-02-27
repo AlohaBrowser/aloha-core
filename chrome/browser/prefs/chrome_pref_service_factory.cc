@@ -1,6 +1,10 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "chrome/browser/prefs/chrome_pref_service_factory.h"
 
@@ -44,6 +48,7 @@
 #include "chrome/grit/branded_strings.h"
 #include "chrome/grit/browser_resources.h"
 #include "chrome/grit/generated_resources.h"
+#include "components/adblock/core/common/adblock_prefs.h"
 #include "components/component_updater/pref_names.h"
 #include "components/policy/core/browser/configuration_policy_pref_store.h"
 #include "components/pref_registry/pref_registry_syncable.h"
@@ -190,6 +195,12 @@ const auto kTrackedPrefs = std::to_array<prefs::TrackedPreferenceMetadata>({
      EnforcementLevel::ENFORCE_ON_LOAD, PrefTrackingStrategy::ATOMIC,
      ValueType::IMPERSONAL},
 #endif
+    {100, adblock::common::prefs::kSubscriptionSignatures,
+     EnforcementLevel::ENFORCE_ON_LOAD, PrefTrackingStrategy::SPLIT,
+     ValueType::IMPERSONAL},
+    {101, adblock::common::prefs::kLastUsedSchemaVersion,
+     EnforcementLevel::ENFORCE_ON_LOAD, PrefTrackingStrategy::ATOMIC,
+     ValueType::IMPERSONAL}
 
     // See note at top, new items added here also need to be added to
     // histograms.xml's TrackedPreference enum.

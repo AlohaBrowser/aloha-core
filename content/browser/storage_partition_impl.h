@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_BROWSER_STORAGE_PARTITION_IMPL_H_
 #define CONTENT_BROWSER_STORAGE_PARTITION_IMPL_H_
 
@@ -266,6 +268,15 @@ class CONTENT_EXPORT StoragePartitionImpl
   void ClearBluetoothAllowedDevicesMapForTesting() override;
   void AddObserver(DataRemovalObserver* observer) override;
   void RemoveObserver(DataRemovalObserver* observer) override;
+
+  // ALOHA https://app.clickup.com/t/2hcppgv
+  void ClearSessionStorage() override;
+  void ClearLocalStorage(bool for_private_mode) override;
+
+  // ALOHA https://app.clickup.com/t/86etj7905
+  // Clear private and public local storages for the given site.
+  void ClearStoragesForSite(const std::string& site) override;
+
   void FlushNetworkInterfaceForTesting() override;
   void FlushCertVerifierInterfaceForTesting() override;
   void WaitForDeletionTasksForTesting() override;
@@ -400,6 +411,13 @@ class CONTENT_EXPORT StoragePartitionImpl
   void OnAdAuctionEventRecordHeaderReceived(
       network::AdAuctionEventRecord event_record,
       const std::optional<url::Origin>& top_frame_origin) override;
+
+  // ALOHA: https://app.clickup.com/t/86ewr2k2q 
+  void OnHlsDetected(const GURL& hls_url,
+                     int32_t render_process_id,
+                     int32_t request_id,
+                     const std::optional<base::UnguessableToken>& top_frame_id,
+                     const std::string& request_headers) override;
 
   // performance_scenarios::MatchingScenarioObserver overrides:
   void OnScenarioMatchChanged(performance_scenarios::ScenarioScope scope,

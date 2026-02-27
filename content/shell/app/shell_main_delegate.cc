@@ -1,6 +1,10 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "content/shell/app/shell_main_delegate.h"
 
@@ -24,6 +28,7 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/trace_event/trace_log.h"
 #include "build/build_config.h"
+#include "components/adblock/content/renderer/adblock_content_renderer_client.h"
 #include "components/crash/core/common/crash_key.h"
 #include "components/memory_system/initializer.h"
 #include "components/memory_system/parameters.h"
@@ -34,7 +39,7 @@
 #include "content/public/common/main_function_params.h"
 #include "content/public/common/url_constants.h"
 #include "content/shell/app/shell_crash_reporter_client.h"
-#include "content/shell/browser/shell_content_browser_client.h"
+#include "content/shell/browser/adblock/adblock_shell_content_browser_client.h"
 #include "content/shell/common/shell_content_client.h"
 #include "content/shell/common/shell_paths.h"
 #include "content/shell/common/shell_switches.h"
@@ -477,7 +482,7 @@ ContentBrowserClient* ShellMainDelegate::CreateContentBrowserClient() {
     return browser_client_.get();
   }
 #endif
-  browser_client_ = std::make_unique<ShellContentBrowserClient>();
+  browser_client_ = std::make_unique<AdblockShellContentBrowserClient>();
   return browser_client_.get();
 }
 
@@ -493,7 +498,8 @@ ContentRendererClient* ShellMainDelegate::CreateContentRendererClient() {
     return renderer_client_.get();
   }
 #endif
-  renderer_client_ = std::make_unique<ShellContentRendererClient>();
+  renderer_client_ = std::make_unique<
+      adblock::AdblockContentRendererClient<ShellContentRendererClient>>();
   return renderer_client_.get();
 }
 

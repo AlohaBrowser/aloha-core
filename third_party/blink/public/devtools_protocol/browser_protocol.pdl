@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 #
+# This source code is a part of eyeo Chromium SDK.',
+# Use of this source code is governed by the GPLv3 that can be found in the',
+# components/adblock/LICENSE file.'
+
 # Contributing to Chrome DevTools Protocol: https://goo.gle/devtools-contribution-guide-cdp
 
 version
@@ -27,6 +31,7 @@ include domains/DeviceOrientation.pdl
 include domains/Emulation.pdl
 include domains/EventBreakpoints.pdl
 include domains/Extensions.pdl
+include domains/Eyeo.pdl
 include domains/FedCm.pdl
 include domains/Fetch.pdl
 include domains/FileSystem.pdl

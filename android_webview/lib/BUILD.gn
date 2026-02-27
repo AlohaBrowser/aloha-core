@@ -25,6 +25,7 @@ source_set("lib") {
     "//android_webview/renderer",
     "//base",
     "//cc/base",
+    "//components/adblock/content/renderer",
     "//components/autofill/core/common",
     "//components/crash/core/common",
     "//components/embedder_support",

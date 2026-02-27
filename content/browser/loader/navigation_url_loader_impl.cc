@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
 #include "content/browser/loader/navigation_url_loader_impl.h"
 
 #include <algorithm>
@@ -1572,7 +1576,7 @@ void NavigationURLLoaderImpl::OnReceiveRedirect(
           ? head->bypass_redirect_checks
           : bypass_redirect_checks_;
 
-  if (!bypass_redirect_checks &&
+  if (!bypass_redirect_checks && !redirect_info.bypass_redirect_checks &&
       !IsSafeRedirectTarget(url_, redirect_info.new_url)) {
     error = net::ERR_UNSAFE_REDIRECT;
   } else if (--redirect_limit_ == 0) {

@@ -1095,6 +1095,7 @@ bool LocalFrame::CanAccessEvent(
 }
 
 void LocalFrame::Reload(WebFrameLoadType load_type) {
+  
   DCHECK(IsReloadLoadType(load_type));
   if (!loader_.GetDocumentLoader()->GetHistoryItem())
     return;

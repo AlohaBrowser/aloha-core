@@ -223,6 +223,7 @@ class CORE_EXPORT HTMLVideoElement final
   void RequestMediaRemoting() final;
   void RequestVisibility(
       HTMLMediaElement::RequestVisibilityCallback request_visibility_cb) final;
+  void RequestFullScreenForElement() final; // ALOHA https://app.clickup.com/t/86eqvfpwg
 
   void DidMoveToNewDocument(Document& old_document) override;
 

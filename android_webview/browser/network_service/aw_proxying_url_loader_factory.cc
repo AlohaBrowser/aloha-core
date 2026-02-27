@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/network_service/aw_proxying_url_loader_factory.h"
 
 #include <algorithm>
@@ -72,6 +74,9 @@
 #include "third_party/blink/public/mojom/origin_trials/origin_trial_feature.mojom-shared.h"
 #include "url/gurl.h"
 #include "url/origin.h"
+
+// ALOHA https://app.clickup.com/t/2e5vz5u
+#include "aloha/src/native/aloha_consts.h"
 
 namespace android_webview {
 
@@ -464,7 +469,7 @@ void InterceptedRequest::InterceptResponseReceived(
   // Only overwrite if the header hasn't already been set
   if (!request_.headers.HasHeader(header)) {
     request_.cors_exempt_headers.SetHeader(
-        header, base::android::apk_info::host_package_name());
+        header, aloha::kAlohaBrowser);
   }
 
   JNIEnv* env = base::android::AttachCurrentThread();

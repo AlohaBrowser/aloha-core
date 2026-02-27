@@ -37,7 +37,11 @@ public abstract class AwWebContentsDelegate extends WebContentsDelegateAndroid {
 
     // See //android_webview/docs/how-does-on-create-window-work.md for more details.
     @CalledByNative
-    public abstract boolean addNewContents(boolean isDialog, boolean isUserGesture);
+    public abstract boolean addNewContents(
+            boolean isDialog,
+            boolean isUserGesture,
+            String targetUrl, // ALOHA https://app.clickup.com/t/86epgj787 provide targetUrl
+            boolean isGoogleAuth3PCookiesRequired); // ALOHA https://app.clickup.com/t/86ev1nrnd
 
     @Override
     @CalledByNative

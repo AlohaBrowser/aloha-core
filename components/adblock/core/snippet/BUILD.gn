@@ -1,0 +1,82 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+source_set("snippet") {
+  sources = [
+    "snippet_downloader.h",
+    "snippet_downloader_impl.cc",
+    "snippet_downloader_impl.h",
+    "snippet_service.h",
+    "snippet_service_impl.cc",
+    "snippet_service_impl.h",
+    "snippet_storage.h",
+    "snippet_storage_impl.cc",
+    "snippet_storage_impl.h",
+  ]
+
+  deps = [
+    "//components/adblock/core/converter/parser:parser",
+    "//components/adblock/core/net:net",
+    "//components/adblock/core/subscription:subscription",
+    "//components/keyed_service/core:core",
+    "//components/prefs:prefs",
+  ]
+
+  public_deps = [
+    "//base",
+    "//components/adblock/core/common:common",
+    "//components/adblock/core/resources:adblock_resources",
+    "//ui/base:base",
+    "//url:url",
+  ]
+}
+
+source_set("test_support") {
+  testonly = true
+  sources = [
+    "test/mock_snippet_downloader.cc",
+    "test/mock_snippet_downloader.h",
+    "test/mock_snippet_service.cc",
+    "test/mock_snippet_service.h",
+    "test/mock_snippet_storage.cc",
+    "test/mock_snippet_storage.h",
+  ]
+
+  public_deps = [
+    ":snippet",
+    "//testing/gmock",
+    "//testing/gtest",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "test/snippet_downloader_impl_test.cc",
+    "test/snippet_service_impl_test.cc",
+    "test/snippet_storage_impl_test.cc",
+  ]
+
+  deps = [
+    ":test_support",
+    "//base/test:test_support",
+    "//components/adblock/core/common:test_support",
+    "//components/adblock/core/net:test_support",
+    "//components/adblock/core/subscription:subscription",
+    "//components/prefs:test_support",
+    "//ui/base:test_support",
+  ]
+}

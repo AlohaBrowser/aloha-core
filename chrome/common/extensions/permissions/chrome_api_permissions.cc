@@ -1,6 +1,10 @@
 // Copyright 2013 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "chrome/common/extensions/permissions/chrome_api_permissions.h"
 
@@ -32,6 +36,8 @@ std::unique_ptr<APIPermission> CreateAPIPermission(
 // ChromePermissionMessageProvider::GetPermissionMessages as well.
 constexpr APIPermissionInfo::InitInfo permissions_to_register[] = {
     // Register permissions for all extension types.
+    {APIPermissionID::kAdblockPrivate, "adblockPrivate",
+     APIPermissionInfo::kFlagCannotBeOptional},
     {APIPermissionID::kBackground, "background",
      APIPermissionInfo::kFlagDoesNotRequireManagedSessionFullLoginWarning},
     {APIPermissionID::kDeclarativeContent, "declarativeContent"},
@@ -87,6 +93,10 @@ constexpr APIPermissionInfo::InitInfo permissions_to_register[] = {
     {APIPermissionID::kEnterpriseNetworkingAttributes,
      "enterprise.networkingAttributes",
      APIPermissionInfo::kFlagDoesNotRequireManagedSessionFullLoginWarning},
+    {APIPermissionID::kEyeoDevToolsPrivate, "eyeoDevToolsPrivate",
+     APIPermissionInfo::kFlagCannotBeOptional},
+    {APIPermissionID::kEyeoFilteringPrivate, "eyeoFilteringPrivate",
+     APIPermissionInfo::kFlagCannotBeOptional},
     {APIPermissionID::kEnterprisePlatformKeys, "enterprise.platformKeys",
      APIPermissionInfo::kFlagDoesNotRequireManagedSessionFullLoginWarning},
     {APIPermissionID::kFavicon, "favicon"},

@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
 #include "extensions/browser/api/web_request/web_request_proxying_url_loader_factory.h"
 
 #include <memory>
@@ -469,7 +473,8 @@ void WebRequestProxyingURLLoaderFactory::InProgressRequest::OnReceiveRedirect(
     head->bypass_redirect_checks = true;
   }
 
-  if (!redirect_url_comes_from_extension &&
+  if (redirect_url_ != redirect_info.new_url &&
+      !redirect_info.bypass_redirect_checks &&
       !IsRedirectSafe(request_.url, redirect_info.new_url,
                       info_->is_navigation_request)) {
     OnNetworkError(CreateURLLoaderCompletionStatus(net::ERR_UNSAFE_REDIRECT));

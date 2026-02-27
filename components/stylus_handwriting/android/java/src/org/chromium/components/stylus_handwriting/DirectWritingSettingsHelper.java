@@ -107,9 +107,14 @@ public class DirectWritingSettingsHelper {
                 // On some devices, the DirectWritingServiceCallback constructor is not available
                 // so this throws a NoSuchMethodException.
                 dwCallbackClass.getConstructor().isAccessible();
-                sDirectWritingServiceCallbackAvailable = true;
+
+                // ALOHA https://app.clickup.com/t/86etyfp1m fixed startup crash on Android 13 and Samsung with stylus
+                DirectWritingServiceCallback tryDirectWritingServiceCallback = new DirectWritingServiceCallback();
+                final int skipOptimizationValue = -42;  // ALOHA Just skip optimization ref 'The Hitchhiker’s Guide to the Galaxy'
+                sDirectWritingServiceCallbackAvailable = tryDirectWritingServiceCallback.getSelectionEnd() != skipOptimizationValue;
+
                 logDwServiceCallbackFailed(false);
-            } catch (ClassNotFoundException | NoSuchMethodException e) {
+            } catch (Throwable t) {
                 logDwServiceCallbackFailed(true);
                 sDirectWritingServiceCallbackAvailable = false;
             }

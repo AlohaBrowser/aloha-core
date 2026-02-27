@@ -61,6 +61,8 @@
 #include "third_party/blink/renderer/platform/wtf/text/strcat.h"
 #include "third_party/blink/renderer/platform/wtf/text/string_builder.h"
 
+#include "aloha/src/native/bromium_client_bridge.h" // ALOHA
+
 #if DEBUG_AUDIONODE_REFERENCES
 #include <stdio.h>
 #endif
@@ -1446,8 +1448,14 @@ void AudioContext::NotifyAudibleAudioStarted() {
     media_player_observer_->OnMediaMetadataChanged(
         /*has_audio=*/true, /*has_video=*/false,
         media::MediaContentType::kAmbient);
-    media_player_observer_->OnMediaPlaying();
+    media_player_observer_->OnMediaPlaying(blink::KURL(), blink::KURL(), 0.0f,
+    BindOnce(&AudioContext::OnMediaPlayingCallback,
+      WrapWeakPersistent(this)));
   }
+}
+
+void AudioContext::OnMediaPlayingCallback(bool should_background_play) {
+
 }
 
 void AudioContext::HandlePostRenderTasks() {
@@ -2002,13 +2010,16 @@ void AudioContext::EnsureMediaPlayerConnection() {
   media_player_host_.set_disconnect_handler(blink::BindOnce(
       &AudioContext::OnMediaPlayerDisconnect, WrapWeakPersistent(this)));
 
+  Vector<String> ids;
+  AtomicString attr;
+  aloha_id_ = media::mojom::blink::MediaPlayerId::New(attr, std::move(ids));
   media_player_host_->OnMediaPlayerAdded(
       media_player_receiver_.BindNewEndpointAndPassRemote(
           GetWindow()->GetTaskRunner(TaskType::kInternalMedia)),
       media_player_observer_.BindNewEndpointAndPassReceiver(
           GetWindow()->GetTaskRunner(TaskType::kInternalMedia)),
-      player_id_);
-  media_player_observer_.set_disconnect_handler(blink::BindOnce(
+      player_id_, aloha_id_.Clone()); // ALOHA
+  media_player_observer_.set_disconnect_handler(BindOnce(
       &AudioContext::OnMediaPlayerDisconnect, WrapWeakPersistent(this)));
 }
 

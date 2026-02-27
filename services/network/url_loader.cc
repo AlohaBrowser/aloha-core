@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "services/network/url_loader.h"
 
 #include <algorithm>
@@ -435,7 +437,8 @@ URLLoader::URLLoader(
               ? request.trusted_params
                     ->expected_response_headers_for_synthetic_response
               : nullptr),
-      durable_message_writer_(std::move(maybe_durable_message_writer)) {
+      durable_message_writer_(std::move(maybe_durable_message_writer)),
+      hls_detector_(std::make_unique<HLSDetector>()) { // ALOHA: https://app.clickup.com/t/86ewr2k2qs
   DCHECK(delete_callback_);
 
   if (options_ & mojom::kURLLoadOptionReadAndDiscardBody) {
@@ -1146,6 +1149,25 @@ void URLLoader::OnResponseStarted(net::URLRequest* url_request, int net_error) {
   DCHECK(url_request == url_request_.get());
   has_received_response_ = true;
 
+  // ALOHA: https://app.clickup.com/t/86ewr2k2q 
+  auto result = hls_detector_->CheckHeaders(url_request);
+  if (result.is_hls && (result.confidence == HLSDetector::DetectionConfidence::HIGH ||
+                        result.confidence == HLSDetector::DetectionConfidence::MEDIUM)) {
+     
+     url_loader_network_observer_->OnHlsDetected(
+          GURL(result.playlist_url),
+          factory_params_->process_id.GetUnsafeValue(),
+          request_id_,
+          factory_params_->top_frame_id,
+          url_request_->extra_request_headers().ToString());
+      checking_for_hls_ = false;      
+  } else {
+      // ALOHA: https://app.clickup.com/t/86ewr2k2q 
+      // Need to find HLS with resource content
+      checking_for_hls_ = true;
+      pending_url_ = url_request->url().spec();
+  }
+
   if (keepalive_) {
     base::UmaHistogramEnumeration(
         "FetchKeepAlive.Requests2.Network",
@@ -1694,6 +1716,28 @@ void URLLoader::DidRead(int num_bytes,
           (num_bytes <= 0 ||
            pending_write_buffer_offset_ >= net::kMaxBytesToSniff);
 
+      // ALOHA: https://app.clickup.com/t/86ewr2k2q 
+      // If Checking for HLS, try to detect HLS content with the data read so far. 
+      if (checking_for_hls_) {
+          auto result = hls_detector_->CheckContent(
+              pending_url_,
+              data.data(),
+              data.length()
+          );          
+          if (result.is_hls) {
+              url_loader_network_observer_->OnHlsDetected(
+                  GURL(result.playlist_url),
+                  factory_params_->process_id.GetUnsafeValue(),
+                  request_id_,
+                  factory_params_->top_frame_id,
+                  url_request_->extra_request_headers().ToString());
+              checking_for_hls_ = false;                          
+          } else if (stop_sniffing_after_processing_current_data) {
+              // Read enough or end of stream, this is not HLS
+              checking_for_hls_ = false;
+          }
+      }
+
       if (is_more_mime_sniffing_needed_) {
         CHECK(mime_type_before_sniffing_.has_value());
         std::string new_type;
@@ -1731,7 +1775,9 @@ void URLLoader::DidRead(int num_bytes,
       }
     }
 
-    if (!is_more_mime_sniffing_needed_ && !is_more_orb_sniffing_needed_) {
+    if (!is_more_mime_sniffing_needed_ && 
+        !is_more_orb_sniffing_needed_ &&
+        !checking_for_hls_) { // ALOHA: https://app.clickup.com/t/86ewr2k2q 
       SendResponseToClient();
     } else {
       complete_read = false;
@@ -2531,7 +2577,9 @@ void URLLoader::ReportFlaggedResponseCookies(bool call_cookie_observer) {
 }
 
 void URLLoader::StartReading() {
-  if (!is_more_mime_sniffing_needed_ && !is_more_orb_sniffing_needed_) {
+  if (!is_more_mime_sniffing_needed_ &&
+     !is_more_orb_sniffing_needed_ &&
+     !checking_for_hls_) { // ALOHA: https://app.clickup.com/t/86ewr2k2q 
     // Treat feed types as text/plain.
     if (response_->mime_type == "application/rss+xml" ||
         response_->mime_type == "application/atom+xml") {

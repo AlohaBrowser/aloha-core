@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_BROWSER_RENDERER_HOST_FRAME_TREE_H_
 #define CONTENT_BROWSER_RENDERER_HOST_FRAME_TREE_H_
 
@@ -606,6 +608,10 @@ class CONTENT_EXPORT FrameTree {
   // to reload when activated.
   void Discard(base::OnceClosure on_discarded_cb = base::NullCallback());
 
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  void SetPrivateMode(bool enabled) { private_mode_ = enabled; }
+  bool IsPrivateMode() const { return private_mode_; }
+
  private:
   friend class FrameTreeTest;
   FRIEND_TEST_ALL_PREFIXES(RenderFrameHostImplBrowserTest, RemoveFocusedFrame);
@@ -704,6 +710,9 @@ class CONTENT_EXPORT FrameTree {
   // `root()` method, even while `root_` is running its destructor.
   // For that reason, we want to destroy |root_| before any other fields.
   FrameTreeNode root_;
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  bool private_mode_ = false;
 
   base::WeakPtrFactory<FrameTree> weak_ptr_factory_{this};
 };

@@ -308,8 +308,11 @@ public class SamsungSelectionActionMenuDelegate extends AutofillSelectionActionM
             return true;
         }
 
-        // This may be an autofill menu item.
-        return super.handleMenuItemClick(item, webContents, containerView);
+        // ALOHA FIXED https://app.clickup.com/t/86etfrntu
+        Intent intent = item.intent;
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        return true;
     }
 
     private static boolean isWritingToolKitMenuItem(SelectionMenuItem item) {

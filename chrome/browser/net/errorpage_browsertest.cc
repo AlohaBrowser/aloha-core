@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
 #include <algorithm>
 #include <memory>
 #include <string_view>
@@ -41,6 +45,7 @@
 #include "chrome/common/pref_names.h"
 #include "chrome/test/base/in_process_browser_test.h"
 #include "chrome/test/base/ui_test_utils.h"
+#include "components/adblock/core/common/adblock_switches.h"
 #include "components/browsing_data/content/browsing_data_helper.h"
 #include "components/error_page/content/browser/net_error_auto_reloader.h"
 #include "components/google/core/common/google_util.h"
@@ -788,6 +793,9 @@ class ErrorPageAutoReloadTest : public InProcessBrowserTest {
 
   void SetUpCommandLine(base::CommandLine* command_line) override {
     command_line->AppendSwitch(switches::kEnableAutoReload);
+    // The URLLoaderInterceptor is not resilient to the browser making
+    // adblock-related requests, they confuse this test.
+    command_line->AppendSwitch(adblock::switches::kDisableAdblock);
   }
 
   void NavigateToURLAndWaitForTitle(const GURL& url,

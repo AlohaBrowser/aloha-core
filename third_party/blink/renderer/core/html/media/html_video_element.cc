@@ -23,6 +23,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/html/media/html_video_element.h"
 
 #include <memory>
@@ -73,6 +75,9 @@
 #include "third_party/blink/renderer/platform/instrumentation/use_counter.h"
 #include "third_party/blink/renderer/platform/runtime_enabled_features.h"
 #include "third_party/blink/renderer/platform/web_test_support.h"
+
+// ALOHA https://app.clickup.com/t/2hxwa9w
+#include "aloha/src/native/find_video_url.h"
 
 namespace blink {
 
@@ -466,6 +471,15 @@ void HTMLVideoElement::RequestMediaRemoting() {
   GetWebMediaPlayer()->RequestMediaRemoting();
 }
 
+// ALOHA https://app.clickup.com/t/86eqvfpwg
+void HTMLVideoElement::RequestFullScreenForElement() {
+  LocalFrame::NotifyUserActivation(
+          GetDocument().GetFrame(),
+          mojom::UserActivationNotificationType::kInteraction); // ALOHA: simulate user gesture
+  force_unmute_autoplay_ = true;
+  Fullscreen::RequestFullscreen(*this);
+}
+
 void HTMLVideoElement::RequestVisibility(
     RequestVisibilityCallback request_visibility_cb) {
   if (!visibility_tracker_) {
@@ -810,8 +824,16 @@ void HTMLVideoElement::SetIsEffectivelyFullscreen(
   is_effectively_fullscreen_ =
       status != blink::WebFullscreenVideoStatus::kNotEffectivelyFullscreen;
   if (auto* wmp = GetWebMediaPlayer()) {
+
+    // ALOH https://app.clickup.com/t/2v1qh1q
+    // Allow unmuting for autoplay_video when we use AlohaPlayer
+    force_unmute_autoplay_  = media_controls_is_hidden_; 
+
+    // ALOHA https://app.clickup.com/t/2hxwa9w
+    auto video_url = GetSourceUrl();
     for (auto& observer : GetMediaPlayerObserverRemoteSet())
-      observer->OnMediaEffectivelyFullscreenChanged(status);
+      observer->OnMediaEffectivelyFullscreenChanged( // ALOHA https://app.clickup.com/t/2hxwa9w
+        status, video_url, media_controls_is_hidden_);
 
     wmp->SetIsEffectivelyFullscreen(status);
     wmp->OnDisplayTypeChanged(GetDisplayType());

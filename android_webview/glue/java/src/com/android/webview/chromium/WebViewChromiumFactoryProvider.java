@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package com.android.webview.chromium;
 
 import android.app.Application;
@@ -29,7 +31,7 @@ import android.webkit.ValueCallback;
 import android.webkit.WebStorage;
 import android.webkit.WebView;
 import android.webkit.WebViewDatabase;
-import android.webkit.WebViewDelegate;
+import com.android.webview.chromium.WebViewDelegate;
 import android.webkit.WebViewFactory;
 import android.webkit.WebViewFactoryProvider;
 import android.webkit.WebViewProvider;
@@ -950,7 +952,7 @@ public class WebViewChromiumFactoryProvider implements WebViewFactoryProvider {
         try (DualTraceEvent e =
                 DualTraceEvent.scoped(
                         "WebViewChromiumFactoryProvider.insideCreateWebViewContentsClientAdapter")) {
-            return new WebViewContentsClientAdapter(webView, context, mWebViewDelegate);
+            return null; /* ALOHATODO: consider removal of this class ; new WebViewContentsClientAdapter(webView, context, mWebViewDelegate); */
         }
     }
 

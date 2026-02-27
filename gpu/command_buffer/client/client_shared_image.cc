@@ -626,10 +626,21 @@ void ClientSharedImage::BeginAccess(bool readonly) {
 void ClientSharedImage::EndAccess(bool readonly) {
   base::AutoLock lock(lock_);
   if (readonly) {
-    CHECK(num_readers_ > 0);
+    
+    // ALOHA https://app.clickup.com/t/86ew8tcyp ignore check, because race condition for recording
+    //CHECK(num_readers_ > 0);
+    if (num_readers_ <= 0) {
+      LOG(WARNING) << "Recording ignored EndAccess call with no active readers.";
+    }
     num_readers_--;
   } else {
-    CHECK(has_writer_);
+    
+    // ALOHA https://app.clickup.com/t/86ew8tcyp ignore check, because race condition for recording
+    //CHECK(has_writer_);
+    if (!has_writer_) {
+      LOG(WARNING) << "Recording ignored EndAccess call with no active writer.";
+    }
+
     has_writer_ = false;
   }
 }

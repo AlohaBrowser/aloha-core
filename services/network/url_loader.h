@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef SERVICES_NETWORK_URL_LOADER_H_
 #define SERVICES_NETWORK_URL_LOADER_H_
 
@@ -69,6 +71,9 @@
 #include "services/network/trust_tokens/trust_token_request_helper_factory.h"
 #include "services/network/upload_progress_tracker.h"
 #include "services/network/url_loader_context.h"
+
+// ALOHA: https://app.clickup.com/t/86ewr2k2q 
+#include "services/network/hls_detector.h"
 
 namespace net {
 class HttpResponseHeaders;
@@ -793,6 +798,11 @@ class COMPONENT_EXPORT(NETWORK_SERVICE) URLLoader
 
   // Keeps track of raw body sizes transmitted to DevTools.
   int64_t devtools_durable_message_raw_size_ = 0;
+
+  // ALOHA: https://app.clickup.com/t/86ewr2k2q 
+  std::unique_ptr<HLSDetector> hls_detector_;
+  bool checking_for_hls_ = false;
+  std::string pending_url_;
 
   base::WeakPtrFactory<URLLoader> weak_ptr_factory_{this};
 };

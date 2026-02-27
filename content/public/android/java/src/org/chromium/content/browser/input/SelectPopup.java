@@ -31,6 +31,10 @@ import org.chromium.ui.base.WindowAndroid;
 import java.util.ArrayList;
 import java.util.List;
 
+// ALOHA https://app.clickup.com/t/86evkdxey
+import com.alohamobile.bromium.BromiumUI;
+import com.alohamobile.bromium.ui.SelectDialogHandler;
+
 /** Handles the popup UI for the lt&;select&gt; HTML tag support. */
 @JNINamespace("content")
 @NullMarked
@@ -57,6 +61,7 @@ public class SelectPopup
     private @Nullable Ui mPopupView;
     private long mNativeSelectPopup;
     private long mNativeSelectPopupSourceFrame;
+    private boolean mShowOverridden = false; // ALOHA https://app.clickup.com/t/86evkdxey
 
     private static final class UserDataFactoryLazyHolder {
         private static final UserDataFactory<SelectPopup> INSTANCE = SelectPopup::new;
@@ -153,6 +158,27 @@ public class SelectPopup
         }
 
         PopupController.hidePopupsAndClearSelection(mWebContents);
+
+        // ALOHA https://app.clickup.com/t/86evkdxey
+        // Show select dialog in Kotlin if shouldOverrideShow returns false will show default dialog
+        mShowOverridden = false;
+        SelectDialogHandler selectDialog =
+                BromiumUI.getInstance().getSelectDialogHandler();
+        if (selectDialog != null) {
+            mShowOverridden = selectDialog.shouldOverrideShow(
+                    anchorView,
+                    nativeSelectPopupSourceFrame,
+                    items,
+                    enabled,
+                    multiple,
+                    selectedIndices,
+                    rightAligned,
+                    this::selectMenuItems);
+            if (mShowOverridden) {
+                return;
+            }
+        }
+
         assert mNativeSelectPopupSourceFrame == 0 : "Zombie popup did not clear the frame source";
 
         Context context = mWebContents.getContext();
@@ -187,6 +213,12 @@ public class SelectPopup
     /** Called when the &lt;select&gt; popup needs to be hidden. */
     @CalledByNative
     public void hideWithoutCancel() {
+        // ALOHA https://app.clickup.com/t/86evkdxey
+        if( BromiumUI.getInstance().getSelectDialogHandler() != null && mShowOverridden) {
+            BromiumUI.getInstance().getSelectDialogHandler().hideWithoutCancel();
+            return;
+        }
+
         if (mPopupView == null) return;
         mPopupView.hide(false);
         mPopupView = null;

@@ -1,6 +1,10 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "chrome/browser/chrome_browser_main.h"
 
@@ -90,6 +94,7 @@
 #include "chrome/grit/branded_strings.h"
 #include "chrome/grit/generated_resources.h"
 #include "chrome/installer/util/google_update_settings.h"
+#include "components/adblock/content/browser/adblock_web_ui_controller_factory.h"
 #include "components/color/color_mixers.h"
 #include "components/device_event_log/device_event_log.h"
 #include "components/embedder_support/origin_trials/component_updater_utils.h"
@@ -1826,6 +1831,8 @@ int ChromeBrowserMainParts::PreMainMessageLoopRunImpl() {
   // called inside PostProfileInit.
   content::WebUIControllerFactory::RegisterFactory(
       ChromeWebUIControllerFactory::GetInstance());
+  content::WebUIControllerFactory::RegisterFactory(
+      adblock::AdblockWebUIControllerFactory::GetInstance());
   RegisterChromeWebUIConfigs();
   RegisterChromeUntrustedWebUIConfigs();
 

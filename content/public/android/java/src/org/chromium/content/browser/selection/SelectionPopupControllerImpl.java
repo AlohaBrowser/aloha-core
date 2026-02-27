@@ -98,6 +98,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
+// ALOHA https://app.clickup.com/t/86et68rp5
+import com.alohamobile.bromium.BromiumUI;
+import com.alohamobile.bromium.SelectionPopupHandler;
+
 /** Implementation of the interface {@link SelectionPopupController}. */
 @JNINamespace("content")
 @NullMarked
@@ -1291,6 +1295,13 @@ public class SelectionPopupControllerImpl extends ActionModeCallbackHelper
         String query = sanitizeQuery(getSelectedText(), MAX_SHARE_QUERY_LENGTH);
         if (TextUtils.isEmpty(query)) return;
 
+        // ALOHA https://app.clickup.com/t/86et68rp5
+        // If share is handled in Kotlin side, do not proceed with default implementation.
+        if (BromiumUI.getInstance().getSelectionPopupHandler() != null
+            && BromiumUI.getInstance().getSelectionPopupHandler().shouldOverrideShare(query)) {
+            return;
+        }
+
         Intent send = new Intent(Intent.ACTION_SEND);
         send.setType("text/plain");
         send.putExtra(Intent.EXTRA_TEXT, query);
@@ -1342,6 +1353,13 @@ public class SelectionPopupControllerImpl extends ActionModeCallbackHelper
         RecordUserAction.record("MobileActionMode.WebSearch");
         String query = sanitizeQuery(getSelectedText(), MAX_SEARCH_QUERY_LENGTH);
         if (TextUtils.isEmpty(query)) return;
+
+        // ALOHA https://app.clickup.com/t/86et68rp5
+        // If web search is handled in Kotlin side, do not proceed with default implementation.
+        if (BromiumUI.getInstance().getSelectionPopupHandler() != null
+            && BromiumUI.getInstance().getSelectionPopupHandler().shouldOverrideSearchInWeb(query)) {
+            return;
+        }
 
         Intent i = new Intent(Intent.ACTION_WEB_SEARCH);
         i.putExtra(SearchManager.EXTRA_NEW_SEARCH, true);

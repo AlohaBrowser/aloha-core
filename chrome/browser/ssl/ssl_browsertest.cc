@@ -1,6 +1,10 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include <algorithm>
 #include <array>
@@ -44,6 +48,7 @@
 #include "base/time/time.h"
 #include "build/build_config.h"
 #include "chrome/app/chrome_command_ids.h"
+#include "chrome/browser/adblock/adblock_chrome_content_browser_client.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
@@ -318,7 +323,7 @@ class SSLInterstitialTimerObserver {
 };
 
 class ChromeContentBrowserClientForMixedContentTest
-    : public ChromeContentBrowserClient {
+    : public AdblockChromeContentBrowserClient {
  public:
   ChromeContentBrowserClientForMixedContentTest() = default;
 

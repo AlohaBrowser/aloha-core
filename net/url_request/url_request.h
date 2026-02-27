@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef NET_URL_REQUEST_URL_REQUEST_H_
 #define NET_URL_REQUEST_URL_REQUEST_H_
 
@@ -238,7 +240,9 @@ class NET_EXPORT URLRequest : public base::SupportsUserData {
              const URLRequestContext* context,
              NetworkTrafficAnnotationTag traffic_annotation,
              bool is_for_websockets,
-             std::optional<net::NetLogSource> net_log_source);
+             std::optional<net::NetLogSource> net_log_source,
+             bool send_dnt_header); // ALOHA https://app.clickup.com/t/2f29z75
+
 
   URLRequest(const URLRequest&) = delete;
   URLRequest& operator=(const URLRequest&) = delete;
@@ -947,6 +951,11 @@ class NET_EXPORT URLRequest : public base::SupportsUserData {
 
   base::WeakPtr<URLRequest> GetWeakPtr();
 
+  // ALOHA https://app.clickup.com/t/2f29z75
+  bool get_send_dnt_header() const {
+    return send_dnt_header_;
+  }
+  
   // Whether device-bound session registration and challenge are allowed
   // for this request (e.g. by Origin Trial)
   bool allows_device_bound_session_registration() const {
@@ -1265,6 +1274,9 @@ class NET_EXPORT URLRequest : public base::SupportsUserData {
 
   // Idempotency of the request.
   Idempotency idempotency_ = DEFAULT_IDEMPOTENCY;
+
+  // ALOHA https://app.clickup.com/t/2f29z75
+  const bool send_dnt_header_;
 
   SharedDictionaryGetter shared_dictionary_getter_;
 

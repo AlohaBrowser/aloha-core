@@ -1,6 +1,10 @@
 // Copyright 2019 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
@@ -9,6 +13,7 @@
 #include "base/run_loop.h"
 #include "base/test/bind.h"
 #include "base/test/test_file_util.h"
+#include "chrome/browser/adblock/adblock_chrome_content_browser_client.h"
 #include "chrome/browser/bad_message.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "chrome/browser/ui/browser.h"
@@ -185,7 +190,7 @@ class MojoFileSystemAccessBrowserTest : public InProcessBrowserTest {
   }
 
  private:
-  class TestContentBrowserClient : public ChromeContentBrowserClient {
+  class TestContentBrowserClient : public AdblockChromeContentBrowserClient {
    public:
     TestContentBrowserClient() = default;
     TestContentBrowserClient(const TestContentBrowserClient&) = delete;
@@ -196,8 +201,8 @@ class MojoFileSystemAccessBrowserTest : public InProcessBrowserTest {
     void RegisterBrowserInterfaceBindersForFrame(
         content::RenderFrameHost* render_frame_host,
         mojo::BinderMapWithContext<content::RenderFrameHost*>* map) override {
-      ChromeContentBrowserClient::RegisterBrowserInterfaceBindersForFrame(
-          render_frame_host, map);
+      AdblockChromeContentBrowserClient::
+          RegisterBrowserInterfaceBindersForFrame(render_frame_host, map);
       content::RegisterWebUIControllerInterfaceBinder<
           ::test::mojom::MojoFileSystemAccessTest, MojoFileSystemAccessUI>(map);
     }

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 module content.mojom;
 
 import "cc/mojom/browser_controls_state.mojom";
@@ -175,6 +177,9 @@ struct CreateViewParams {
   // A snapshot of the history information when this view was created.
   int32 history_index = -1;
   int32 history_length = 0;
+  
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  bool private_mode = false;
 };
 
 // A union to distinguish between parameters specific to local main frame

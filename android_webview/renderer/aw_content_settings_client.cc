@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/renderer/aw_content_settings_client.h"
 
 #include "content/public/common/url_constants.h"
@@ -10,6 +12,9 @@
 #include "third_party/blink/public/platform/web_url.h"
 #include "third_party/blink/public/web/web_local_frame.h"
 #include "url/gurl.h"
+
+// ALOHA https://app.clickup.com/t/2dmrud4
+#include "third_party/blink/public/web/web_view.h"
 
 namespace android_webview {
 
@@ -47,6 +52,12 @@ bool AwContentSettingsClient::ShouldAutoupgradeMixedContent() {
 
 void AwContentSettingsClient::OnDestruct() {
   delete this;
+}
+
+
+// ALOHA https://app.clickup.com/t/2dmrud4
+bool AwContentSettingsClient::IsPrivateMode() {
+  return render_frame()->GetWebView()->IsPrivateMode();
 }
 
 }  // namespace android_webview

@@ -1,6 +1,10 @@
 // Copyright 2023 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "chrome/browser/picture_in_picture/auto_picture_in_picture_tab_helper.h"
 
@@ -12,6 +16,7 @@
 #include "base/test/simple_test_tick_clock.h"
 #include "base/test/test_future.h"
 #include "build/build_config.h"
+#include "chrome/browser/adblock/adblock_chrome_content_browser_client.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
 #include "chrome/browser/media/media_engagement_service.h"
@@ -179,7 +184,7 @@ class MockAutoBlocker : public permissions::PermissionDecisionAutoBlockerBase {
               (override));
 };
 
-class MockContentBrowserClient : public ChromeContentBrowserClient {
+class MockContentBrowserClient : public AdblockChromeContentBrowserClient {
  public:
   MOCK_METHOD(media::PictureInPictureEventsInfo::AutoPipInfo,
               GetAutoPipInfo,

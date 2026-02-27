@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  This file is part of eyeo Chromium SDK,
+  Copyright (C) 2006-present eyeo GmbH
+  eyeo Chromium SDK is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 3 as
+  published by the Free Software Foundation.
+  eyeo Chromium SDK is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  You should have received a copy of the GNU General Public License
+  along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<androidx.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.preference.Preference
+        android:fragment="org.chromium.chrome.browser.adblock.settings.AdblockCustomFilterListsFragment"
+        android:key="fragment_adblock_more_options_custom_filter_lists_key"
+        android:title="@string/fragment_adblock_more_options_custom_filter_lists_title"
+        app:iconSpaceReserved="false"
+        android:summary="@string/fragment_adblock_more_options_custom_filter_lists_summary" />
+
+    <androidx.preference.Preference
+        android:fragment="org.chromium.chrome.browser.adblock.settings.AdblockCustomFiltersFragment"
+        android:key="fragment_adblock_more_options_custom_filter_key"
+        android:title="@string/fragment_adblock_more_options_custom_filters_title"
+        app:iconSpaceReserved="false"
+        android:summary="@string/fragment_adblock_more_options_custom_filters_summary" />
+
+</androidx.preference.PreferenceScreen>

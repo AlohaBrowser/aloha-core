@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef NET_HTTP_HTTP_REQUEST_INFO_H__
 #define NET_HTTP_HTTP_REQUEST_INFO_H__
 
@@ -142,6 +144,9 @@ struct NET_EXPORT HttpRequestInfo {
 
   // True if the request is for a pervasive, shared third-party resource.
   bool is_shared_resource = false;
+
+  // ALOHA https://app.clickup.com/t/2f29z75
+  bool send_dnt_header;
 };
 
 }  // namespace net

@@ -1,6 +1,9 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
 
 import("//build/config/android/config.gni")
 import("//build/config/android/rules.gni")
@@ -16,6 +19,7 @@ generate_jni("content_shell_jni_headers") {
   sources = [
     "java/src/org/chromium/content_shell/Shell.java",
     "java/src/org/chromium/content_shell/ShellManager.java",
+    "java/src/org/chromium/content_shell/adblock/ShellBrowserContext.java",
   ]
 }
 
@@ -108,6 +112,7 @@ android_library("content_shell_java") {
     "java/src/org/chromium/content_shell/Shell.java",
     "java/src/org/chromium/content_shell/ShellManager.java",
     "java/src/org/chromium/content_shell/ShellViewAndroidDelegate.java",
+    "java/src/org/chromium/content_shell/adblock/ShellBrowserContext.java",
   ]
 }
 
@@ -263,6 +268,8 @@ android_library("content_shell_test_java") {
     ":content_shell_java",
     "//base:base_java",
     "//base:base_java_test_support",
+    "//components/adblock/android:adblock_controller_java",
+    "//components/adblock/android:adblock_java_tests_base",
     "//content/public/android:content_java",
     "//content/public/test/android:content_java_test_support",
     "//content/shell/android:content_shell_java",
@@ -279,6 +286,24 @@ android_library("content_shell_test_java") {
     "javatests/src/org/chromium/content_shell_apk/ContentShellPreconditionsTest.java",
     "javatests/src/org/chromium/content_shell_apk/ContentShellShellManagementTest.java",
     "javatests/src/org/chromium/content_shell_apk/ContentShellUrlTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/AdblockControllerTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/DefaultSettingsTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesCircumventionTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesCspTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesElemhideEmuInvTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesElemhideEmuTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesElemhideTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesExceptionTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesFilterTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesHeaderFilterTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesHelper.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesInlineCssTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesRemoveTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesRewriteTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesSiteKeyTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesSnippetsTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesWebsocketTest.java",
+    "javatests/src/org/chromium/content_shell_apk/adblock/TestPagesWildcardDomainTest.java",
   ]
 }
 

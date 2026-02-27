@@ -1,6 +1,10 @@
 // Copyright 2025 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "chrome/browser/actor/execution_engine.h"
 
@@ -27,6 +31,7 @@
 #include "chrome/browser/actor/tools/click_tool_request.h"
 #include "chrome/browser/actor/tools/tab_management_tool_request.h"
 #include "chrome/browser/actor/ui/event_dispatcher.h"
+#include "chrome/browser/adblock/adblock_chrome_content_browser_client.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "chrome/browser/download/download_test_file_activity_observer.h"
 #include "chrome/browser/glic/public/glic_keyed_service.h"
@@ -92,7 +97,8 @@ using ::testing::_;
 namespace actor {
 
 namespace {
-class FakeChromeContentBrowserClient : public ChromeContentBrowserClient {
+class FakeChromeContentBrowserClient
+    : public AdblockChromeContentBrowserClient {
  public:
   bool HandleExternalProtocol(
       const GURL& url,

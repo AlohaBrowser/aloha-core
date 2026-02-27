@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/modules/storage/cached_storage_area.h"
 
 #include <inttypes.h>
@@ -110,7 +112,8 @@ bool CachedStorageArea::SetItem(const String& key,
   String source_id = areas_->at(source);
   String source_string = PackSource(page_url, source_id);
 
-  if (!is_session_storage_for_prerendering_) {
+  if (!is_session_storage_for_prerendering_ &&
+      !private_mode_) { // ALOHA https://app.clickup.com/t/2dmrud4
     remote_area_->Put(
         StringToUint8Vector(key, GetKeyFormat()),
         StringToUint8Vector(value, value_format), optional_old_value,
@@ -138,7 +141,8 @@ void CachedStorageArea::RemoveItem(const String& key, Source* source) {
   KURL page_url = source->GetPageUrl();
   String source_id = areas_->at(source);
   String source_string = PackSource(page_url, source_id);
-  if (!is_session_storage_for_prerendering_) {
+  if (!is_session_storage_for_prerendering_ &&
+      !private_mode_) { // ALOHA https://app.clickup.com/t/2dmrud4
     remote_area_->Delete(StringToUint8Vector(key, GetKeyFormat()),
                          optional_old_value, source_string,
                          MakeVirtualTimePauserCallback(source));
@@ -151,6 +155,10 @@ void CachedStorageArea::RemoveItem(const String& key, Source* source) {
 
 void CachedStorageArea::Clear(Source* source) {
   DCHECK(areas_->Contains(source));
+  if (!areas_->Contains(source)) {
+    LOG(ERROR) << "[CachedStorageArea] Source not found: " << source->GetPageUrl();
+    return;
+  }
 
   mojo::PendingRemote<mojom::blink::StorageAreaObserver> new_observer;
   bool already_empty = false;
@@ -177,7 +185,8 @@ void CachedStorageArea::Clear(Source* source) {
   KURL page_url = source->GetPageUrl();
   String source_id = areas_->at(source);
   String source_string = PackSource(page_url, source_id);
-  if (!is_session_storage_for_prerendering_) {
+  if (!is_session_storage_for_prerendering_ &&
+      !private_mode_) { // ALOHA https://app.clickup.com/t/2dmrud4
     remote_area_->DeleteAll(source_string, std::move(new_observer),
                             MakeVirtualTimePauserCallback(source));
   }
@@ -185,6 +194,33 @@ void CachedStorageArea::Clear(Source* source) {
     EnqueuePendingMutation(String(), String(), String(), source_string);
   else if (!already_empty)
     EnqueueStorageEvent(String(), String(), String(), page_url, source_id);
+}
+
+// ALOHA https://app.clickup.com/t/2hcppgv
+void CachedStorageArea::ClearAll() {
+  HeapVector <Member<Source>> sources;
+  for (Source *source : areas_->Keys()) {
+    sources.push_back(source);
+    //Clear(source);
+  }
+  // Clear() remove elements from areas_.
+  for (Source *source : sources) {
+    Clear(source);
+  }
+}
+
+// ALOHA https://app.clickup.com/t/86etj7905
+void CachedStorageArea::ClearStoragesForSite(const String& site) {
+  // Clear all sources that match the site.
+  HeapVector<Member<Source>> sources_to_clear;
+  for (auto& entry : *areas_) {
+    if (entry.key->GetPageUrl().GetString().Contains(site)) {
+      sources_to_clear.push_back(entry.key);
+    }
+  }
+  for (Source* source : sources_to_clear) {
+    Clear(source);
+  }
 }
 
 String CachedStorageArea::RegisterSource(Source* source) {
@@ -195,6 +231,7 @@ String CachedStorageArea::RegisterSource(Source* source) {
 
 CachedStorageArea::CachedStorageArea(
     AreaType type,
+    bool private_mode, // ALOHA https://app.clickup.com/t/2dmrud4
     const BlinkStorageKey& storage_key,
     LocalDOMWindow* local_dom_window,
     StorageNamespace* storage_namespace,
@@ -205,7 +242,8 @@ CachedStorageArea::CachedStorageArea(
       storage_namespace_(storage_namespace),
       is_session_storage_for_prerendering_(is_session_storage_for_prerendering),
       areas_(
-          MakeGarbageCollected<GCedHeapHashMap<WeakMember<Source>, String>>()) {
+          MakeGarbageCollected<GCedHeapHashMap<WeakMember<Source>, String>>()),
+      private_mode_(private_mode) { // ALOHA https://app.clickup.com/t/2dmrud4
   BindStorageArea(std::move(storage_area), local_dom_window);
   base::trace_event::MemoryDumpManager::GetInstance()->RegisterDumpProvider(
       this, "DOMStorage",
@@ -241,6 +279,9 @@ void CachedStorageArea::BindStorageArea(
     pending_mutations_by_key_.clear();
     pending_mutations_by_source_.clear();
     return;
+  } else if (private_mode_) {
+    // ALOHA https://app.clickup.com/t/2dmrud4
+    return;
   }
 
   // Because the storage area is keyed by the BlinkStorageKey it could be
@@ -267,6 +308,10 @@ void CachedStorageArea::BindStorageArea(
 void CachedStorageArea::ResetConnection(
     mojo::PendingRemote<mojom::blink::StorageArea> new_area) {
   DCHECK(!is_session_storage_for_prerendering_);
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  if (private_mode_) {
+    return;
+  }
   remote_area_.reset();
   BindStorageArea(std::move(new_area));
 
@@ -629,12 +674,15 @@ void CachedStorageArea::EnsureLoaded() {
   base::TimeTicks before = base::TimeTicks::Now();
   Vector<mojom::blink::KeyValuePtr> data;
 
-  // We had no cached |map_|, which means |receiver_| was bound to the original
-  // StorageAreaObserver pipe created upon CachedStorageArea construction. We
-  // replace it with a new receiver whose event sequence is synchronized against
-  // the result of |GetAll()| for consistency.
-  receiver_.reset();
-  remote_area_->GetAll(receiver_.BindNewPipeAndPassRemote(), &data);
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  if (!private_mode_) {
+    // We had no cached |map_|, which means |receiver_| was bound to the original
+    // StorageAreaObserver pipe created upon CachedStorageArea construction. We
+    // replace it with a new receiver whose event sequence is synchronized against
+    // the result of |GetAll()| for consistency.
+    receiver_.reset();
+    remote_area_->GetAll(receiver_.BindNewPipeAndPassRemote(), &data);
+  }
 
   // Determine data formats.
   const FormatOption key_format = GetKeyFormat();

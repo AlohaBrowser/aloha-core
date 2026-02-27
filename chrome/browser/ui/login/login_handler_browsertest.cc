@@ -1,6 +1,10 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "chrome/browser/ui/login/login_handler.h"
 
@@ -22,6 +26,7 @@
 #include "base/test/run_until.h"
 #include "base/test/scoped_feature_list.h"
 #include "build/build_config.h"
+#include "chrome/browser/adblock/adblock_chrome_content_browser_client.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "chrome/browser/extensions/extension_browsertest.h"
@@ -212,7 +217,7 @@ class HttpAuthCoordinatorFake : public HttpAuthCoordinator {
   const raw_ptr<BrowserClientFake> browser_client_;
 };
 
-class BrowserClientFake : public ChromeContentBrowserClient {
+class BrowserClientFake : public AdblockChromeContentBrowserClient {
  public:
   std::unique_ptr<HttpAuthCoordinator> CreateHttpAuthCoordinator() override {
     return std::make_unique<HttpAuthCoordinatorFake>(this);

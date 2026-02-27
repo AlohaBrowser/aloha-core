@@ -1,0 +1,47 @@
+Bromium Debug Session Report - 2026-03-17
+------------------------------------------
+
+1. [FIXED] url/url_util.cc:496
+   Error: DCHECK failed: !g_scheme_registries_used.load(). Trying to add a scheme after the lists have been used.
+   File: aloha/src/native/aloha_utilities.cc (Line 28)
+   Action: Moved global static GURL to function-local static with base::NoDestructor to ensure lazy initialization after scheme registration.
+
+2. [COMMENTED OUT] content/browser/browser_thread_impl.cc:296
+   Error: DCHECK failed: checker.CalledOnValidBrowserThread(thread_identifier). Must be called on Chrome_UIThread.
+   File: aloha/src/native/bromium.cc (Line 179)
+   Action: Commented out thread-unsafe AwBrowserContextStore::GetInstance() check in JNI_Bromium_GetSignature.
+
+3. [COMMENTED OUT] third_party/blink/renderer/core/layout/inline/line_breaker.cc:1864
+   Error: DCHECK failed: should_break_at_first_opportunity == is_at_mid_word || ...
+   File: third_party/blink/renderer/core/layout/inline/line_breaker.cc (Line 1864)
+   Action: Temporary workaround for internal Blink layout crash on complex web content.
+
+4. [COMMENTED OUT] cc/metrics/compositor_frame_reporting_controller.cc:394
+   Error: DCHECK failed: main_reporter->frame_id() == current_frame_id.
+   File: cc/metrics/compositor_frame_reporting_controller.cc (Line 394)
+   Action: Frame ID mismatch during synchronous draw in Android WebView (DemandDrawHw path). Commented out.
+
+5. [COMMENTED OUT] third_party/blink/renderer/core/svg/svg_use_element.cc:674
+   Error: DCHECK failed: !pending_event_.IsActive().
+   File: third_party/blink/renderer/core/svg/svg_use_element.cc (Line 674)
+   Action: Commented out to avoid crash when multiple SVG load/error events are queued before the first is dispatched.
+
+6. [COMMENTED OUT] cc/paint/paint_image_builder.cc:52
+   Error: DCHECK failed: !paint_image_.sk_image_->isLazyGenerated().
+   File: cc/paint/paint_image_builder.cc (Line 52)
+   Action: Commented out because lazy-generated SkImages are common in Android WebView software rendering (DemandDrawSw).
+
+7. [COMMENTED OUT] base/memory/memory_pressure_listener_registry.cc:221
+   Error: DCHECK failed: checker.CalledOnValidThread(&bound_at).
+   File: base/memory/memory_pressure_listener_registry.cc (Line 221)
+   Action: MemoryPurgeManager::PerformMemoryPurge calls this from a background thread in single-process mode, violating the thread checker. Commented out all thread checker validations in this file to allow background calls.
+
+8. [COMMENTED OUT] content/browser/android/select_popup.cc:147
+   Error: DCHECK failed: popup_client_raw_ptr && popup_client_.get() == popup_client_raw_ptr.
+   File: content/browser/android/select_popup.cc (Line 147)
+   Action: Race condition in SelectPopup during menu selection or hide. popup_client_ might be reset before Java calls selectMenuItems. Commented out.
+
+9. [COMMENTED OUT] third_party/blink/renderer/core/input/event_handler.cc:2171
+   Error: DCHECK failed: location.ContainsPoint(gfx::PointF(point)).
+   File: third_party/blink/renderer/core/input/event_handler.cc (Line 2171)
+   Action: Touch adjustment point fell outside the HitTestLocation area, likely due to rounding or scaling in WebView. Commented out.

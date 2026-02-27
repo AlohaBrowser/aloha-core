@@ -15,6 +15,8 @@
 # -O2 optimization. If there is common inlined implementations, put this in
 # foo-inl.h and include that in both foo.cc and foo-hot.cc.
 
+# Modified by Aloha Mobile Ltd.
+
 blink_core_hot_sources_layout = [
   "layout_block_flow_hot.cc",
   "layout_box_hot.cc",
@@ -672,6 +674,29 @@ blink_core_sources_layout = [
   "tree_traversal_utils.cc",
   "tree_traversal_utils.h",
   "unpositioned_float.h",
+
+  # ALOHA https://app.clickup.com/t/2f2ey18
+  "//aloha/src/native/find_video_url.h",
+  "//aloha/src/native/find_video_url.cc",
+  "//aloha/src/native/fullscreen_video_element.h",
+  "//aloha/src/native/fullscreen_video_element.cc",
+
+  # ALOHA https://app.clickup.com/t/86eppm2e8 JwPlayer
+  "//aloha//src/native/fullscreen_state_handler.h",
+  "//aloha//src/native/fullscreen_state_handler.cc",
+  "//aloha/src/native/attribute_style_observer.h",
+  "//aloha/src/native/attribute_style_observer.cc",
+
+  # ALOHA https://app.clickup.com/t/86eudpn1m
+  "//aloha/src/native/player/player_base.cc",
+  "//aloha/src/native/player/player_base.h",
+  "//aloha/src/native/player/player_base_impl.cc",
+  "//aloha/src/native/player/player_base_impl.h",
+  "//aloha/src/native/player/player_jw.cc",
+  "//aloha/src/native/player/player_jw.h",
+  "//aloha/src/native/player/player_youtube.cc",
+  "//aloha/src/native/player/player_youtube.h",
+  "//aloha/src/native/player/type_name.h",
 ]
 
 if (is_mac) {

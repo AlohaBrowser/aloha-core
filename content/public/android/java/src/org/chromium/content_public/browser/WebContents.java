@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.content_public.browser;
 
 import android.graphics.Bitmap;
@@ -373,6 +375,9 @@ public interface WebContents extends Parcelable {
      */
     void evaluateJavaScript(String script, @Nullable JavaScriptCallback callback);
 
+    // ALOHA https://app.clickup.com/t/861m7r8nk
+    void evaluateJavaScriptUnchecked(String script, @Nullable JavaScriptCallback callback);
+
     /**
      * Injects the passed Javascript code in the current page and evaluates it.
      * If a result is required, pass in a callback.
@@ -480,6 +485,13 @@ public interface WebContents extends Parcelable {
      * @param handler The handler to install.
      */
     void setOverscrollRefreshHandler(OverscrollRefreshHandler handler);
+
+    // ALOHA https://app.clickup.com/t/86epwk67q
+    /**
+     * @return The handler that handles swipe to refresh events.
+     */
+    @Nullable
+    OverscrollRefreshHandler getOverscrollRefreshHandler();
 
     /**
      * Controls use of spatial-navigation mode.

@@ -460,5 +460,7 @@ if (is_android) {
     # For system_webview_no_weblayer_apk.
     true_false_false_false = "1"
     false_false_false_false = "1"
+    # ALOHA DCHECK build fix
+    # true_false_true_false = "1"
   }
 }

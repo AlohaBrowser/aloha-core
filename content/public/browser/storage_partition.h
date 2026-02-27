@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_PUBLIC_BROWSER_STORAGE_PARTITION_H_
 #define CONTENT_PUBLIC_BROWSER_STORAGE_PARTITION_H_
 
@@ -356,6 +358,14 @@ class CONTENT_EXPORT StoragePartition {
   virtual void AddObserver(DataRemovalObserver* observer) = 0;
 
   virtual void RemoveObserver(DataRemovalObserver* observer) = 0;
+
+  // ALOHA https://app.clickup.com/t/2hcppgv
+  virtual void ClearSessionStorage() = 0;
+  virtual void ClearLocalStorage(bool for_private_mode) = 0;
+
+  // ALOHA https://app.clickup.com/t/86etj7905
+  // Clear private and public local storages for the given site.
+  virtual void ClearStoragesForSite(const std::string& site) = 0;
 
   // Clear the bluetooth allowed devices map. For test use only.
   virtual void ClearBluetoothAllowedDevicesMapForTesting() = 0;

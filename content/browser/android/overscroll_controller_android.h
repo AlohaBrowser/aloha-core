@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_BROWSER_ANDROID_OVERSCROLL_CONTROLLER_ANDROID_H_
 #define CONTENT_BROWSER_ANDROID_OVERSCROLL_CONTROLLER_ANDROID_H_
 
@@ -45,12 +47,11 @@ class CONTENT_EXPORT OverscrollControllerAndroid
  public:
   OverscrollControllerAndroid(
       ui::OverscrollRefreshHandler* overscroll_refresh_handler,
-      ui::WindowAndroidCompositor* compositor,
       float dpi_scale,
       RenderWidgetHost* host);
 
   static std::unique_ptr<OverscrollControllerAndroid> CreateForTests(
-      ui::WindowAndroidCompositor* compositor,
+      // ALOHA https://app.clickup.com/t/86epwk67q compositor was removed for pull to refresh
       float dpi_scale,
       std::unique_ptr<ui::OverscrollGlow> glow_effect,
       std::unique_ptr<ui::OverscrollRefresh> refresh_effect);
@@ -115,7 +116,7 @@ class CONTENT_EXPORT OverscrollControllerAndroid
 
   // This method should only be called from CreateForTests.
   OverscrollControllerAndroid(
-      ui::WindowAndroidCompositor* compositor,
+      // ALOHA https://app.clickup.com/t/86epwk67q compositor was removed for pull to refresh
       float dpi_scale,
       std::unique_ptr<ui::OverscrollGlow> glow_effect,
       std::unique_ptr<ui::OverscrollRefresh> refresh_effect);
@@ -125,7 +126,9 @@ class CONTENT_EXPORT OverscrollControllerAndroid
 
   void SetNeedsAnimate();
 
-  const raw_ptr<ui::WindowAndroidCompositor, DanglingUntriaged> compositor_;
+  // ALOHA: Compositor was removed because we implemented pull to refresh handler
+  // ALOHA https://app.clickup.com/t/86epwk67q
+
   const float dpi_scale_;
 
   bool enabled_;
