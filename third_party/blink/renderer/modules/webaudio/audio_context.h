@@ -36,6 +36,9 @@
 #include "third_party/blink/renderer/platform/mojo/heap_mojo_remote.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 
+// ALOHA https://app.clickup.com/t/2uat2t4
+#include "third_party/blink/public/mojom/frame/frame.mojom-forward.h"
+
 namespace gfx {
 class Size;
 }
@@ -204,6 +207,13 @@ class MODULES_EXPORT AudioContext final
       const media::PictureInPictureEventsInfo::AutoPipInfo&
           auto_picture_in_picture_info) override {}
   void RequestSaveVideoFrame() override {}
+
+  void RequestFullScreenForElement() override {} // ALOHA https://app.clickup.com/t/86eqvfpwg
+
+  // ALOHA: subtitles — not applicable to WebAudio.
+  void SetTextTrackMode(int32_t track_index,
+                        media::mojom::blink::TextTrackMode mode) override {}
+  void SetMediaControlsBottomInset(int32_t bottom_inset_px) override {}
 
   // BaseAudioContext override to enable UseCounter.
   // https://webaudio.github.io/web-audio-api/#BaseAudioContext
@@ -450,6 +460,7 @@ class MODULES_EXPORT AudioContext final
   // Returns whether the media-playback-while-not-visible permission policy
   // allows this audio context to play while not visible.
   bool CanPlayWhileHidden() const;
+  void OnMediaPlayingCallback(bool should_background_play); // ALOHA according interface
 
   // The audio thread relies on the main thread to perform resume operations
   // over the objects that it owns and controls; this method posts the task to
@@ -660,6 +671,7 @@ class MODULES_EXPORT AudioContext final
 
   std::unique_ptr<StatsUpdateRestrictor> stats_update_restrictor_;
 
+  media::mojom::blink::MediaPlayerIdPtr aloha_id_; // ALOHA
   SEQUENCE_CHECKER(main_thread_sequence_checker_);
 };
 

@@ -1,6 +1,9 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
+
 #ifndef EXTENSIONS_COMMON_URL_PATTERN_H_
 #define EXTENSIONS_COMMON_URL_PATTERN_H_
 
@@ -63,6 +66,8 @@ class URLPattern {
     SCHEME_WSS = 1 << 8,
     SCHEME_DATA = 1 << 9,
     SCHEME_UUID_IN_PACKAGE = 1 << 10,
+
+    SCHEME_ALOHA = 1 << 12, // ALOHA https://app.clickup.com/t/2e5wpe6
 
     // IMPORTANT!
     // SCHEME_ALL will match every scheme, including chrome://, chrome-

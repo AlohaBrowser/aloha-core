@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/network_service/aw_proxying_url_loader_factory.h"
 
 #include <algorithm>
@@ -75,6 +77,12 @@
 #include "third_party/blink/public/mojom/origin_trials/origin_trial_feature.mojom-shared.h"
 #include "url/gurl.h"
 #include "url/origin.h"
+
+// ALOHA https://app.clickup.com/t/2e5vz5u
+#include "aloha/src/native/aloha_consts.h"
+
+// ALOHA https://app.clickup.com/t/86ev1nrnd
+#include "aloha/src/native/webid/aloha_storage_access.h"
 
 namespace android_webview {
 
@@ -519,6 +527,18 @@ void InterceptedRequest::InterceptWithCookieHeader(std::string cookie) {
 
 void InterceptedRequest::InterceptResponseReceived(
     AwContentsIoThreadClient::InterceptResponseData async_result) {
+  // We send the application's package name in the X-Requested-With header for
+  // compatibility with previous WebView versions. This should not be visible to
+  // shouldInterceptRequest. It should also not trigger CORS prefetch if
+  // OOR-CORS is enabled.
+  std::string header = content::GetCorsExemptRequestedWithHeaderName();
+
+  // Only overwrite if the header hasn't already been set
+  if (!request_.headers.HasHeader(header)) {
+    request_.cors_exempt_headers.SetHeader(
+        header, aloha::kAlohaBrowser);
+  }
+  
   AwProxyingURLLoaderFactory::SetRequestedWithHeader(
       request_, request_.cors_exempt_headers);
 
@@ -1206,9 +1226,27 @@ void AwProxyingURLLoaderFactory::CreateLoaderAndStart(
       cookie_manager_.is_bound() && global_cookie_policy &&
       io_thread_client->ShouldIncludeCookiesOnIntercept();
 
+  // WebView treats cookie access on a per request basis and so we have to
+  // essentially let the rest of the network stack know if we want to allow
+  // unpartitioned cookie access or not.
+  // We can handle this by allowing 3PCs in the case where we have given access
+  // to storage access.
+  // ALOHA https://app.clickup.com/t/86ev1nrnd: the status is renderer-supplied
+  // — sanitize it IN PLACE before it is used for load options here and before
+  // the request (including this field) is forwarded to the network stack.
+  if (request.storage_access_api_status !=
+      net::StorageAccessApiStatus::kNone) {
+    request.storage_access_api_status = aloha::ValidateStorageAccessStatus(
+        request.storage_access_api_status, cookie_access_policy_,
+        GetIsolationInfo(request).top_frame_origin(), request.url);
+  }
+  bool hasStorageAccess = request.storage_access_api_status ==
+                          net::StorageAccessApiStatus::kAccessViaAPI;
+
   if (!global_cookie_policy) {
     options |= network::mojom::kURLLoadOptionBlockAllCookies;
-  } else if (!third_party_cookie_policy && !request.url.SchemeIsFile()) {
+  } else if (!third_party_cookie_policy && !request.url.SchemeIsFile() &&
+             !hasStorageAccess) { // ALOHA https://app.clickup.com/t/86ev1nrnd
     // Special case: if the application has asked that we allow file:// scheme
     // URLs to set cookies, we need to avoid setting a cookie policy (as file://
     // scheme URLs are third-party to everything).
@@ -1290,8 +1328,15 @@ void AwProxyingURLLoaderFactory::GetCookieHeader(
             /*force_ignore_site_for_cookies=*/false));
   }
 
+  // ALOHA https://app.clickup.com/t/86ev1nrnd: validate the renderer-supplied
+  // status against the issued-grant registry; `isolation_info` is
+  // browser-owned (WillCreateURLLoaderFactory / trusted factories only).
   PrivacySetting privacy_setting = cookie_access_policy_->CanAccessCookies(
-      request.url, isolation_info.site_for_cookies(), is_3pc_allowed);
+      request.url, isolation_info.site_for_cookies(), is_3pc_allowed,
+      aloha::ValidateStorageAccessStatus(request.storage_access_api_status,
+                                         cookie_access_policy_,
+                                         isolation_info.top_frame_origin(),
+                                         request.url)); // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
 
   // We should not bother retrieving the cookie list if cookies are not enabled.
   if (privacy_setting == PrivacySetting::kStateDisallowed) {

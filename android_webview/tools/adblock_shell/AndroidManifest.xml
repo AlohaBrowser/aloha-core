@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  This file is part of eyeo Chromium SDK,
+  Copyright (C) 2006-present eyeo GmbH
+  eyeo Chromium SDK is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 3 as
+  published by the Free Software Foundation.
+  eyeo Chromium SDK is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  You should have received a copy of the GNU General Public License
+  along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.chromium.adblock.shell">
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+  <uses-permission android:name="android.permission.WAKE_LOCK"/>
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+  <uses-permission android:name="android.permission.RECORD_AUDIO" />
+  <uses-permission android:name="android.permission.RECORD_VIDEO" />
+  <uses-permission android:name="android.permission.CAMERA" />
+
+  <!-- Kerberos authentication -->
+  <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+  <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+
+  <!-- Features related to permissions we request. -->
+  <!-- android.permission.CAMERA -->
+  <uses-feature android:name="android.hardware.camera" android:required="false" />
+  <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+  <!-- android.permission.RECORD_AUDIO -->
+  <uses-feature android:name="android.hardware.microphone" android:required="false" />
+
+  <application android:name="org.chromium.adblock.shell.AdblockShellApplication"
+      android:label="Adblock WebView"
+      android:hardwareAccelerated="true">
+    <activity android:name="org.chromium.adblock.shell.AdblockShellActivity"
+        android:configChanges="orientation|keyboardHidden|keyboard|screenSize"
+        android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+      <intent-filter>
+          <action android:name="android.intent.action.VIEW" />
+          <category android:name="android.intent.category.DEFAULT" />
+          <category android:name="android.intent.category.BROWSABLE" />
+          <data android:scheme="http" />
+          <data android:scheme="https" />
+      </intent-filter>
+    </activity>
+
+    <!-- Digital Asset Links statement list -->
+    <meta-data android:name="asset_statements" android:resource="@string/asset_statements" />
+  </application>
+</manifest>

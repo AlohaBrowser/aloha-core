@@ -6,7 +6,7 @@ package com.android.webview.chromium;
 
 import org.chromium.build.annotations.UsedByReflection;
 
-abstract class GraphicsUtils {
+/*ALOHA*/ public abstract class GraphicsUtils {
     public static long getDrawSWFunctionTable() {
         return nativeGetDrawSWFunctionTable();
     }

@@ -1,0 +1,296 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.chromium.android_view"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="26"
+        android:targetSdkVersion="33" />
+
+    <!-- ALOHA MultiProcess CU-86eqe7rd2: everything required for sandboxed
+         renderers is declared here and merged into the application manifest
+         by the manifest merger; ${applicationId} is substituted automatically.
+         The host application needs no additional changes. -->
+    <permission
+        android:name="${applicationId}.permission.CHILD_SERVICE"
+        android:protectionLevel="signature" />
+
+    <application>
+        <meta-data
+            android:name="org.chromium.content.browser.NUM_SANDBOXED_SERVICES"
+            android:value="40" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService0"
+            android:process=":sandboxed_process0"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService1"
+            android:process=":sandboxed_process1"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService2"
+            android:process=":sandboxed_process2"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService3"
+            android:process=":sandboxed_process3"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService4"
+            android:process=":sandboxed_process4"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService5"
+            android:process=":sandboxed_process5"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService6"
+            android:process=":sandboxed_process6"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService7"
+            android:process=":sandboxed_process7"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService8"
+            android:process=":sandboxed_process8"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService9"
+            android:process=":sandboxed_process9"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService10"
+            android:process=":sandboxed_process10"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService11"
+            android:process=":sandboxed_process11"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService12"
+            android:process=":sandboxed_process12"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService13"
+            android:process=":sandboxed_process13"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService14"
+            android:process=":sandboxed_process14"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService15"
+            android:process=":sandboxed_process15"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService16"
+            android:process=":sandboxed_process16"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService17"
+            android:process=":sandboxed_process17"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService18"
+            android:process=":sandboxed_process18"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService19"
+            android:process=":sandboxed_process19"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService20"
+            android:process=":sandboxed_process20"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService21"
+            android:process=":sandboxed_process21"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService22"
+            android:process=":sandboxed_process22"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService23"
+            android:process=":sandboxed_process23"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService24"
+            android:process=":sandboxed_process24"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService25"
+            android:process=":sandboxed_process25"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService26"
+            android:process=":sandboxed_process26"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService27"
+            android:process=":sandboxed_process27"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService28"
+            android:process=":sandboxed_process28"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService29"
+            android:process=":sandboxed_process29"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService30"
+            android:process=":sandboxed_process30"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService31"
+            android:process=":sandboxed_process31"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService32"
+            android:process=":sandboxed_process32"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService33"
+            android:process=":sandboxed_process33"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService34"
+            android:process=":sandboxed_process34"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService35"
+            android:process=":sandboxed_process35"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService36"
+            android:process=":sandboxed_process36"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService37"
+            android:process=":sandboxed_process37"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService38"
+            android:process=":sandboxed_process38"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.SandboxedProcessService39"
+            android:process=":sandboxed_process39"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="true"
+            android:exported="false" />
+        <meta-data
+            android:name="org.chromium.content.browser.NUM_PRIVILEGED_SERVICES"
+            android:value="5" />
+        <service
+            android:name="org.chromium.content.app.PrivilegedProcessService0"
+            android:process=":privileged_process0"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="false"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.PrivilegedProcessService1"
+            android:process=":privileged_process1"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="false"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.PrivilegedProcessService2"
+            android:process=":privileged_process2"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="false"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.PrivilegedProcessService3"
+            android:process=":privileged_process3"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="false"
+            android:exported="false" />
+        <service
+            android:name="org.chromium.content.app.PrivilegedProcessService4"
+            android:process=":privileged_process4"
+            android:permission="${applicationId}.permission.CHILD_SERVICE"
+            android:isolatedProcess="false"
+            android:exported="false" />
+    </application>
+</manifest>

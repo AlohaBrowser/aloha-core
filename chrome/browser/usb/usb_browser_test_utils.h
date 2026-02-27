@@ -1,6 +1,10 @@
 // Copyright 2023 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #ifndef CHROME_BROWSER_USB_USB_BROWSER_TEST_UTILS_H_
 #define CHROME_BROWSER_USB_USB_BROWSER_TEST_UTILS_H_
@@ -8,6 +12,7 @@
 #include <memory>
 
 #include "base/memory/raw_ptr.h"
+#include "chrome/browser/adblock/adblock_chrome_content_browser_client.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "chrome/browser/usb/chrome_usb_delegate.h"
 
@@ -29,7 +34,7 @@ class TestUsbDelegate : public ChromeUsbDelegate {
   bool use_fake_chooser_ = false;
 };
 
-class TestUsbContentBrowserClient : public ChromeContentBrowserClient {
+class TestUsbContentBrowserClient : public AdblockChromeContentBrowserClient {
  public:
   TestUsbContentBrowserClient();
   TestUsbContentBrowserClient(const TestUsbContentBrowserClient&) = delete;

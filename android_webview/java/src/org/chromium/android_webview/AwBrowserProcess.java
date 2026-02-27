@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview;
 
 import android.os.StrictMode;
@@ -23,7 +25,7 @@ import org.chromium.content_public.browser.ChildProcessCreationParams;
 @JNINamespace("android_webview")
 @Lifetime.Singleton
 public final class AwBrowserProcess {
-    private static final String WEBVIEW_DIR_BASENAME = "webview";
+    private static final String WEBVIEW_DIR_BASENAME = "br_webview";
 
     private static String sWebViewPackageName;
     private static @Nullable String sProcessDataDirSuffix;

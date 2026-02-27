@@ -13,6 +13,7 @@
 #include "components/favicon_base/select_favicon_frames.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/navigation_handle.h"
+#include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/web_contents.h"
 #include "third_party/blink/public/mojom/favicon/favicon_url.mojom.h"
 #include "third_party/skia/include/core/SkBitmap.h"
@@ -41,18 +42,37 @@ void IconHelper::SetListener(Listener* listener) {
   listener_ = listener;
 }
 
+// static
 void IconHelper::DownloadFaviconCallback(
+    base::WeakPtr<IconHelper> document_scoped,
+    base::WeakPtr<IconHelper> lifetime,
     int id,
     int http_status_code,
     const GURL& image_url,
     const std::vector<SkBitmap>& bitmaps,
     const std::vector<gfx::Size>& original_bitmap_sizes) {
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
-  if (http_status_code == 404) {
-    MarkUnableToDownloadFavicon(image_url);
+  if (!lifetime) {
     return;
   }
+  if (http_status_code == 404) {
+    // ALOHA https://app.clickup.com/t/86exgxd2t : recorded even if the
+    // requesting document is gone, so the icon is not re-requested per page.
+    lifetime->MarkUnableToDownloadFavicon(image_url);
+    return;
+  }
+  if (!document_scoped) {
+    // A different document has committed since the download started.
+    return;
+  }
+  document_scoped->OnFaviconDownloaded(image_url, bitmaps,
+                                       original_bitmap_sizes);
+}
 
+void IconHelper::OnFaviconDownloaded(
+    const GURL& image_url,
+    const std::vector<SkBitmap>& bitmaps,
+    const std::vector<gfx::Size>& original_bitmap_sizes) {
   if (bitmaps.size() == 0) {
     return;
   }
@@ -97,8 +117,11 @@ void IconHelper::DidUpdateFaviconURL(
             gfx::Size(),       // No preferred size
             kLargestIconSize,  // Max bitmap size
             false,             // Normal cache policy
+            // ALOHA https://app.clickup.com/t/86exgxd2t : WeakPtrs instead of
+            // Unretained, see DidFinishNavigation().
             base::BindOnce(&IconHelper::DownloadFaviconCallback,
-                           base::Unretained(this)));
+                           weak_factory_.GetWeakPtr(),
+                           lifetime_weak_factory_.GetWeakPtr()));
         break;
       case blink::mojom::FaviconIconType::kTouchIcon:
         if (listener_)
@@ -121,6 +144,23 @@ void IconHelper::DidStartNavigation(content::NavigationHandle* navigation) {
   if (navigation->IsInPrimaryMainFrame() &&
       navigation->GetReloadType() == content::ReloadType::BYPASSING_CACHE) {
     ClearUnableToDownloadFavicons();
+  }
+}
+
+// ALOHA https://app.clickup.com/t/86exgxd2t : drop favicon downloads started
+// for the previous document (as Chrome's FaviconHandler::FetchFavicon() does).
+void IconHelper::DidFinishNavigation(content::NavigationHandle* navigation) {
+  if (!navigation->IsInPrimaryMainFrame() || !navigation->HasCommitted() ||
+      navigation->IsSameDocument()) {
+    return;
+  }
+  weak_factory_.InvalidateWeakPtrs();
+  // ALOHA https://app.clickup.com/t/86exgxd2t : a page restored from BFCache
+  // does not report its icon candidates again, so re-run them here.
+  if (navigation->IsServedFromBackForwardCache()) {
+    content::RenderFrameHost* rfh = navigation->GetRenderFrameHost();
+    DidUpdateFaviconURL(rfh, rfh->FaviconURLs(),
+                        blink::mojom::FaviconUpdateReason::kPageLoad);
   }
 }
 

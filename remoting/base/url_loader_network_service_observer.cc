@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "remoting/base/url_loader_network_service_observer.h"
 
 #include "base/functional/bind.h"
@@ -165,6 +167,29 @@ void UrlLoaderNetworkServiceObserver::OnCertificatesSelected(
                      weak_factory_.GetWeakPtr(),
                      std::move(client_cert_responder), std::move(cert)));
 }
+
+// ALOHA: https://app.clickup.com/t/86ewr2k2q 
+void UrlLoaderNetworkServiceObserver::OnHlsDetected(
+    const GURL& url,
+    int32_t render_process_id,
+    int32_t request_id,
+    const std::optional<base::UnguessableToken>& top_frame_id,
+    const std::string& request_headers) {  
+}
+
+// ALOHA https://app.clickup.com/t/z93epaa335
+void UrlLoaderNetworkServiceObserver::OnHlsManifestLoaded(
+    const GURL& manifest_url,
+    const GURL& original_url,
+    int32_t render_process_id,
+    const std::optional<base::UnguessableToken>& top_frame_id,
+    const std::string& content) {}
+
+// ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+void UrlLoaderNetworkServiceObserver::OnSubtitleResourceDetected(
+    const std::string& kind,
+    int32_t render_process_id,
+    const std::optional<base::UnguessableToken>& top_frame_id) {}
 
 void UrlLoaderNetworkServiceObserver::ContinueWithCertificate(
     mojo::PendingRemote<network::mojom::ClientCertificateResponder>

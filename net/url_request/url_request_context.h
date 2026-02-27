@@ -5,6 +5,8 @@
 // This class represents contextual information (cookies, cache, etc.)
 // that's necessary when processing resource requests.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef NET_URL_REQUEST_URL_REQUEST_CONTEXT_H_
 #define NET_URL_REQUEST_URL_REQUEST_CONTEXT_H_
 
@@ -27,6 +29,7 @@
 #include "net/net_buildflags.h"
 #include "net/traffic_annotation/network_traffic_annotation.h"
 #include "net/url_request/url_request.h"
+
 
 namespace unexportable_keys {
 class UnexportableKeyService;
@@ -270,6 +273,11 @@ class NET_EXPORT URLRequestContext final {
     job_factory_ = job_factory;
   }
 
+  // ALOHA https://app.clickup.com/t/2f29z75
+  void set_send_dnt_header(bool send) {
+    send_dnt_header_ = send;    
+  }
+
  private:
   friend class URLRequestContextBuilder;
 
@@ -419,6 +427,9 @@ class NET_EXPORT URLRequestContext final {
   bool require_network_anonymization_key_ = false;
 
   handles::NetworkHandle bound_network_;
+
+  // ALOHA https://app.clickup.com/t/2f29z75
+  bool send_dnt_header_ = false;
 
   THREAD_CHECKER(thread_checker_);
 };

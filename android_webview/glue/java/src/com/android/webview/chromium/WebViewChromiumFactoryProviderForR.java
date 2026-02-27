@@ -4,8 +4,6 @@
 
 package com.android.webview.chromium;
 
-import android.webkit.WebViewDelegate;
-
 /**
  * On Android R, the process of loading WebView expects to find a class with this name.
  *
@@ -13,11 +11,11 @@ import android.webkit.WebViewDelegate;
  * the base class, with appropriate SDK_INT checks if needed.
  */
 class WebViewChromiumFactoryProviderForR extends WebViewChromiumFactoryProvider {
-    public static WebViewChromiumFactoryProvider create(WebViewDelegate delegate) {
+    public static WebViewChromiumFactoryProvider create(com.android.webview.chromium.WebViewDelegate delegate) {
         return WebViewChromiumFactoryProvider.create(delegate);
     }
 
-    protected WebViewChromiumFactoryProviderForR(WebViewDelegate delegate) {
+    protected WebViewChromiumFactoryProviderForR(com.android.webview.chromium.WebViewDelegate delegate) {
         super(delegate);
     }
 }

@@ -178,6 +178,7 @@ static_library("chrome_test_launcher") {
     "//chrome/browser:chrome_content_browser_client",
     "//chrome/browser:main_extra_parts",
     "//chrome/test:test_support",
+    "//components/adblock/content/renderer",
     "//testing/libfuzzer:fuzztest_init_support",
   ]
   if (is_mac) {

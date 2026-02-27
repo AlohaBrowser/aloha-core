@@ -1,6 +1,10 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #ifndef BASE_THREADING_THREAD_RESTRICTIONS_H_
 #define BASE_THREADING_THREAD_RESTRICTIONS_H_
@@ -176,6 +180,9 @@ class OverlayProcessorWebView;
 class ScopedAllowInitGLBindings;
 class VizCompositorThreadRunnerWebView;
 }  // namespace android_webview
+namespace adblock {
+class SubscriptionServiceFactory;
+}  // namespace adblock
 namespace ash {
 class LoginEventRecorder;
 class StartupCustomizationDocument;
@@ -678,6 +685,8 @@ class BASE_EXPORT ScopedAllowBlocking {
   friend class ::ProfileIOSDirectoryBuilder;
 #endif
 
+  friend class adblock::SubscriptionServiceFactory;
+
   // Sorted by function name (with namespace), ignoring the return type.
   friend Profile* ::GetLastProfileMac();  // http://crbug.com/1176734
   // Note: This function return syntax is required so the "::" doesn't get
@@ -1037,6 +1046,7 @@ class BASE_EXPORT PermanentThreadAllowance {
   friend class content::ContentMainRunnerImpl;
 #endif  // BUILDFLAG(IS_IOS)
   friend class web::WebMainLoop;
+  friend class android_webview::CookieManager;
 
   static void AllowBlocking();
   static void AllowBaseSyncPrimitives();

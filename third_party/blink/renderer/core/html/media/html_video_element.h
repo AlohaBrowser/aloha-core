@@ -250,6 +250,7 @@ class CORE_EXPORT HTMLVideoElement final
       const std::optional<gfx::Size>& min_size) final;
   void RequestMediaRemoting() final;
   void RequestVisibility(RequestVisibilityCallback request_visibility_cb) final;
+  void RequestFullScreenForElement() final; // ALOHA https://app.clickup.com/t/86eqvfpwg
 
   void DidMoveToNewDocument(Document& old_document) override;
   void DidChangeIsInCanvasSubtree() override;

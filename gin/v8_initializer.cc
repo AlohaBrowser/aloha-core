@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "gin/v8_initializer.h"
 
 #include <stddef.h>
@@ -89,12 +91,39 @@ void GetMappedFileData(base::MemoryMappedFile* mapped_file,
 #if defined(V8_USE_EXTERNAL_STARTUP_DATA)
 
 #if BUILDFLAG(IS_ANDROID)
-const char kV8ContextSnapshotFileName64[] = "v8_context_snapshot_64.bin";
-const char kV8ContextSnapshotFileName32[] = "v8_context_snapshot_32.bin";
-const char kSnapshotFileName64[] = "snapshot_blob_64.bin";
-const char kSnapshotFileName32[] = "snapshot_blob_32.bin";
 
+/*+++ ALOHA +++*/
+// make_aar.py suffixes the APK asset names with the build ABI directory, and
+// the suffix is applied to ALL snapshots of the ABI dir (both the 32- and
+// 64-bit blob, and the context snapshot): the arm64-v8a APK contains
+// snapshot_blob_{32,64}-arm64-v8a.bin and v8_context_snapshot_64-arm64-v8a.bin.
+// The suffix is chosen by the compilation ABI. CU-86eqe7rd2: these names are
+// the single source also for the child-launcher (content/browser/v8_snapshot_files.cc).
+#ifdef __ARM_ARCH
 #if defined(__LP64__)
+#define ALOHA_SNAPSHOT_ABI_SUFFIX "-arm64-v8a"
+#else
+#define ALOHA_SNAPSHOT_ABI_SUFFIX "-armeabi-v7a"
+#endif
+#else
+#if defined(__LP64__)
+#define ALOHA_SNAPSHOT_ABI_SUFFIX "-x86_64"
+#else
+#define ALOHA_SNAPSHOT_ABI_SUFFIX "-x86"
+#endif
+#endif
+const char kV8ContextSnapshotFileName64[] =
+    "v8_context_snapshot_64" ALOHA_SNAPSHOT_ABI_SUFFIX ".bin";
+const char kV8ContextSnapshotFileName32[] =
+    "v8_context_snapshot_32" ALOHA_SNAPSHOT_ABI_SUFFIX ".bin";
+const char kSnapshotFileName64[] =
+    "snapshot_blob_64" ALOHA_SNAPSHOT_ABI_SUFFIX ".bin";
+const char kSnapshotFileName32[] =
+    "snapshot_blob_32" ALOHA_SNAPSHOT_ABI_SUFFIX ".bin";
+/*--- ALOHA ---*/
+
+// ALOHA: support x86_64 build
+#if __LP64__ || __x86_64__
 #define kV8ContextSnapshotFileName kV8ContextSnapshotFileName64
 #define kSnapshotFileName kSnapshotFileName64
 #else

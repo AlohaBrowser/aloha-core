@@ -2,10 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/cookie_manager.h"
 
 #include <stdint.h>
 
+#include <atomic>
 #include <memory>
 #include <optional>
 #include <utility>
@@ -57,9 +60,14 @@
 #include "third_party/jni_zero/default_conversions.h"
 #include "url/url_constants.h"
 
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+#include "services/network/public/mojom/network_context.mojom.h"
+#include "content/browser/storage_partition_impl.h"
+
 // Must come after all headers that specialize FromJniType() / ToJniType().
 #include "android_webview/browser_jni_headers/AwCookieManager_jni.h"
 
+using namespace std::literals::string_literals;
 using base::WaitableEvent;
 using content::BrowserThread;
 using net::CookieList;
@@ -176,14 +184,11 @@ static base::OnceCallback<void(int)> IntCallbackAdapter(base::OnceClosure f) {
 // Are cookies allowed for file:// URLs by default?
 const bool kDefaultFileSchemeAllowed = false;
 
+// ALOHA CU-86eqe7rd2 (U2): see CookieManager::AnyCookieStoreCreatedForMigration.
+// atomic: set on the CookieMonsterClient thread, read on the UI thread.
+std::atomic<bool> g_any_cookie_store_created{false};
+
 }  // namespace
-
-// static
-CookieManager* CookieManager::GetDefaultInstance() {
-  static base::NoDestructor<CookieManager> instance(nullptr);
-  return instance.get();
-}
-
 
 CookieManager::CookieManager(AwBrowserContext* const parent_context)
     : parent_context_(parent_context),
@@ -204,6 +209,108 @@ CookieManager::CookieManager(AwBrowserContext* const parent_context)
   cookie_store_task_runner_ = cookie_store_client_thread_.task_runner();
   cookie_store_path_ = GetContextPath().Append(FILE_PATH_LITERAL("Cookies"));
 }
+
+// static
+CookieManager* CookieManager::GetDefaultInstance() {
+  static base::NoDestructor<CookieManager> instance(nullptr);
+  return instance.get();
+}
+
+// static
+// ALOHA CU-86eqe7rd2 (U2): see the header.
+bool CookieManager::AnyCookieStoreCreatedForMigration() {
+  return g_any_cookie_store_created.load(std::memory_order_relaxed);
+}
+
+// ALOHA https://app.clickup.com/t/2f2f49x
+void CookieManager::AddCookieFromMigration(
+    JNIEnv* env,
+    const std::string& name,
+    const std::string& value,
+    const std::string& domain,
+    const std::string& path,
+    int64_t creation,
+    int64_t expiration,
+    int64_t last_access,
+    bool secure,
+    bool httponly,
+    int32_t same_site,
+    int32_t priority,
+    int32_t source_scheme,
+    base::RepeatingCallback<void(std::string)> error_callback) {
+
+  DCHECK(error_callback);
+
+  // ALOHA: Copy-paste from //chrome/browser/android/cookies/cookies_fetcher_util.cc
+
+  std::string domain_str(domain);
+  std::string path_str(path);
+  auto creation_date = base::Time::FromDeltaSinceWindowsEpoch(base::Microseconds(creation));
+  auto expiration_date = base::Time::FromDeltaSinceWindowsEpoch(base::Microseconds(expiration));
+
+  auto source_url = net::cookie_util::CookieDomainAndPathToURL(
+      domain_str, path_str,
+      static_cast<net::CookieSourceScheme>(source_scheme));
+
+  std::unique_ptr<net::CanonicalCookie> cookie =
+      net::CanonicalCookie::FromStorage(
+          name,
+          value, domain_str,
+          path_str,
+          creation_date,
+          net::CanonicalCookie::ValidateAndAdjustExpiryDate(expiration_date, creation_date, net::CookieSourceScheme::kNonSecure), // ALOHA https://app.clickup.com/t/2ttwk4z
+          base::Time::FromDeltaSinceWindowsEpoch(
+              base::Microseconds(last_access)),
+          /*last_update=*/base::Time::Now(),
+          secure, httponly, static_cast<net::CookieSameSite>(same_site),
+          static_cast<net::CookiePriority>(priority), absl::nullopt,
+          static_cast<net::CookieSourceScheme>(source_scheme),
+          url::PORT_UNSPECIFIED, net::CookieSourceType::kOther, net::CanonicalCookieFromStorageCallSite::kCookieManager); // ALOHA https://app.clickup.com/t/86eqcg80j
+  // FromStorage() uses a less strict version of IsCanonical(), we need to check
+  // the stricter version as well here. This is safe because this function is
+  // only used for incognito cookies which don't survive Chrome updates and
+  // therefore should never be the "older" less strict variety.
+  if (!cookie || !cookie->IsCanonical()) {
+    error_callback.Run("Failed to construct cookie: "s
+        + (cookie == nullptr ? "null" : "non-canonical")
+        + ". Url='" + source_url.possibly_invalid_spec() + "'.");
+    return;
+  }
+
+  ExecCookieTask(base::BindOnce(
+    &CookieManager::AddCookieFromMigrationImpl, base::Unretained(this), std::move(cookie),
+    std::move(source_url), std::move(error_callback)));
+}
+
+// ALOHA https://app.clickup.com/t/2f2f49x
+void CookieManager::AddCookieFromMigrationImpl(
+  std::unique_ptr<net::CanonicalCookie> cookie, GURL source_url,
+  base::RepeatingCallback<void(std::string)> error_callback) {
+
+  network::mojom::CookieManager::SetCanonicalCookieCallback callback =
+    base::BindOnce(&CookieManager::OnSetCanonicalCookieForMigration, base::Unretained(this),
+      std::move(error_callback), source_url);
+
+  if (auto* mojo_manager = GetMojoCookieManager()) {
+    mojo_manager->SetCanonicalCookie(*cookie, source_url,
+      net::CookieOptions::MakeAllInclusive(), std::move(callback));
+  } else {
+    GetCookieStore()->SetCanonicalCookieAsync(std::move(cookie), source_url,
+      net::CookieOptions::MakeAllInclusive(), std::move(callback), /*cookie_access_result=*/std::nullopt);
+  }
+}
+
+// ALOHA https://app.clickup.com/t/2f2f49x
+void CookieManager::OnSetCanonicalCookieForMigration(
+  base::RepeatingCallback<void(std::string)> error_callback,
+  GURL source_url, net::CookieAccessResult result) {
+
+  if (!result.status.IsInclude()) {
+    error_callback.Run("Failed to set cookie for migration: status='" + result.status.GetDebugString()
+      + "' url='" + source_url.possibly_invalid_spec() + "'.");
+  }
+}
+//}  // namespace
 
 CookieManager::~CookieManager() = default;
 
@@ -320,6 +427,8 @@ net::CookieStore* CookieManager::GetCookieStore() {
         cookie_config.cookieable_schemes.emplace_back(url::kFileScheme);
       }
       cookie_store_created_ = true;
+      // ALOHA CU-86eqe7rd2 (U2): guard for the cookie-file migration to profiles.
+      g_any_cookie_store_created.store(true, std::memory_order_relaxed);
     }
 
     cookie_store_ =

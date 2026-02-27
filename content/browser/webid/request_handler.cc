@@ -1,6 +1,8 @@
 // Copyright 2020 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
 #include "content/browser/webid/request_handler.h"
 
 #include <algorithm>
@@ -504,6 +506,9 @@ void RequestHandler::FetchEndpointsForIdps(
   fetch_data_ = FetchData();
   fetch_data_.pending_idps = std::move(pending_idps);
 
+  // Bump generation so any in-flight callback from the old fetcher is ignored.
+  int current_generation = ++fetch_generation_; /* ALOHA: FedCM stale-callback guard */
+
   std::vector<ConfigFetcher::FetchRequest> idps;
   for (const auto& idp : idp_config_urls) {
     auto idp_get = token_request_get_infos_.find(idp);
@@ -519,7 +524,7 @@ void RequestHandler::FetchEndpointsForIdps(
                                            icon_minimum_size,
                                            spec_->mediation_requirement()),
       base::BindOnce(&RequestHandler::OnAccountsResultsReceived,
-                     weak_ptr_factory_.GetWeakPtr()));
+                     weak_ptr_factory_.GetWeakPtr(), current_generation)); // ALOHA: https://app.clickup.com/t/86ewz0pbr
 
   // When retrying (e.g. after IDP sign-in failure popup), there is only 1 IDP
   // requested and its .well-known and config endpoints/metadata are already
@@ -576,8 +581,12 @@ void RequestHandler::FilterAccounts(
 }
 
 void RequestHandler::OnAccountsResultsReceived(
+    int generation, /* ALOHA: FedCM stale-callback guard */
     base::TimeTicks well_known_and_config_fetched_time,
     std::vector<AccountsFetcher::Result> results) {
+  if (generation != fetch_generation_) { /* ALOHA: FedCM stale-callback guard */
+    return;
+  }
   if (!well_known_and_config_fetched_time.is_null()) {
     SetWellKnownAndConfigFetchedTime(well_known_and_config_fetched_time);
   }
@@ -596,6 +605,9 @@ void RequestHandler::OnAccountsResultsReceived(
     }
 
     if (result.show_active_mode_modal_dialog) {
+      // ALOHA: https://app.clickup.com/t/86ewz0pbr
+      // Remove from pending so it doesn't block OnClose checks. /* ALOHA: FedCM */
+      fetch_data_.pending_idps.erase(result.idp_config_url);
       MaybeShowActiveModeModalDialog(result.idp_config_url,
                                      result.idp_info->metadata.idp_login_url);
       continue;
@@ -2071,6 +2083,21 @@ void RequestHandler::OnClose() {
        (fetch_data_.pending_idps.empty() &&
         !fetch_data_.did_succeed_for_at_least_one_idp)) &&
       dialog_type_ == DialogType::kLoginToIdpPopup) {
+#if BUILDFLAG(IS_ANDROID)
+    // ALOHA https://app.clickup.com/t/86ewz0pbr : WebView IdP may not send
+    // Set-Login, so treat popup close as sign-in for the single popup IdP
+    // (config_url_).
+    if (idps_user_tried_to_signin_to_.empty() &&
+        token_request_get_infos_.find(config_url_) !=
+            token_request_get_infos_.end()) {
+      idps_user_tried_to_signin_to_.insert(config_url_);
+      permission_delegate()->SetIdpSigninStatus(
+          url::Origin::Create(config_url_), /*idp_signin_status=*/true,
+          /*options=*/std::nullopt);
+      FetchEndpointsForIdps({config_url_});
+      return;
+    }
+#endif  // BUILDFLAG(IS_ANDROID)
     CompleteRequestWithError(FederatedRequestResult::kError,
                              TokenStatus::kLoginPopupClosedWithoutSignin,
                              /*should_delay_callback=*/false);

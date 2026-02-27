@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef SERVICES_NETWORK_URL_LOADER_H_
 #define SERVICES_NETWORK_URL_LOADER_H_
 
@@ -68,6 +70,10 @@
 #include "services/network/trust_tokens/trust_token_request_helper_factory.h"
 #include "services/network/upload_progress_tracker.h"
 #include "services/network/url_loader_context.h"
+
+// ALOHA: https://app.clickup.com/t/86ewr2k2q 
+#include "services/network/hls_detector.h"
+#include "services/network/subtitle_detector.h"  // ALOHA https://app.clickup.com/t/2558578/z93epac4kc
 
 namespace net {
 class HttpResponseHeaders;
@@ -719,6 +725,23 @@ class COMPONENT_EXPORT(NETWORK_SERVICE) URLLoader
   // Whether Sec-Private-Verification-Token was removed from this request
   // because cookies were included.
   bool pvt_token_removed_due_to_cookies_ = false;
+
+  // ALOHA: https://app.clickup.com/t/86ewr2k2q 
+  std::unique_ptr<HLSDetector> hls_detector_;
+  bool checking_for_hls_ = false;
+  std::string pending_url_;
+  // ALOHA https://app.clickup.com/t/z93epaa335 Body of a detected HLS manifest:
+  // accumulated in CompletePendingWrite(), handed to the browser in
+  // NotifyCompleted().
+  bool capturing_hls_body_ = false;
+  std::string hls_body_;
+  // ALOHA https://app.clickup.com/t/z93epaa335 Headers as they go on the wire: Referer
+  // and User-Agent are not in extra_request_headers(), URLRequestHttpJob adds
+  // them to its own copy only. Rebuilt on demand, no per-request state.
+  std::string HlsRequestHeaders() const;
+  // ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+  SubtitleDetector subtitle_detector_;
+  void ReportSubtitleKind(const std::string& kind);
 
   base::WeakPtrFactory<URLLoader> weak_ptr_factory_{this};
 };

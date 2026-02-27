@@ -109,6 +109,12 @@ BrowserContext::~BrowserContext() {
   impl_.reset();
 }
 
+// ALOHA CU-86eqe7rd2: default — the embedder/UI incognito notion coincides with
+// off-the-record. See the header.
+bool BrowserContext::IsIncognito() {
+  return IsOffTheRecord();
+}
+
 DownloadManager* BrowserContext::GetDownloadManager() {
   CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M159);
   return impl()->GetDownloadManager();

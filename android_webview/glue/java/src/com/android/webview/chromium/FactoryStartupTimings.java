@@ -7,7 +7,7 @@ package com.android.webview.chromium;
 import android.os.Build;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.webkit.WebViewDelegate;
+import com.android.webview.chromium.WebViewDelegate;  // ALOHA
 import android.webkit.WebViewFactory;
 
 import org.chromium.base.TraceEvent;

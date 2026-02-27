@@ -35,6 +35,7 @@
 
 #if BUILDFLAG(IS_ANDROID)
 #include "base/android/input_hint_checker.h"
+#include "base/message_loop/message_pump_android.h"
 #endif
 
 #if BUILDFLAG(IS_WIN)
@@ -291,6 +292,7 @@ void Init() {
 
 #if BUILDFLAG(IS_ANDROID)
   android::InputHintChecker::InitializeFeatures();
+  MessagePumpAndroid::InitializeFeatures();  // ALOHA
 #endif
 
 #if BUILDFLAG(IS_WIN)

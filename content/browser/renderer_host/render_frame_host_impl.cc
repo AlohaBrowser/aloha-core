@@ -1,6 +1,12 @@
 // Copyright 2013 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
 
 #include "content/browser/renderer_host/render_frame_host_impl.h"
 
@@ -387,6 +393,8 @@
 #include "content/public/browser/ax_inspect_factory.h"
 #include "ui/accessibility/accessibility_switches.h"
 #endif
+// ALOHA https://app.clickup.com/t/2hxwa9w
+#include "aloha/src/native/bromium_client_bridge.h"
 
 namespace features {
 
@@ -3868,6 +3876,12 @@ void RenderFrameHostImpl::ExecuteJavaScriptMethod(
       std::move(callback));
 }
 
+// https://gitlab.com/eyeo/adblockplus/chromium/issues/35
+void RenderFrameHostImpl::InsertAbpElemhideStylesheet(
+    const std::string& stylesheet) {
+  GetAssociatedLocalFrame()->InsertAbpElemhideStylesheet(stylesheet);
+}
+
 void RenderFrameHostImpl::ExecuteJavaScript(const std::u16string& javascript,
                                             JavaScriptResultCallback callback) {
   CHECK_CURRENTLY_ON(BrowserThread::UI);
@@ -3877,6 +3891,18 @@ void RenderFrameHostImpl::ExecuteJavaScript(const std::u16string& javascript,
   const bool wants_result = !callback.is_null();
   GetAssociatedLocalFrame()->JavaScriptExecuteRequest(javascript, wants_result,
                                                       std::move(callback));
+}
+
+// ALOHA https://app.clickup.com/t/861m7r8nk
+void RenderFrameHostImpl::ExecuteJavaScriptUnchecked(const std::u16string& javascript,
+                                            JavaScriptResultCallback callback) {
+  DCHECK_CURRENTLY_ON(BrowserThread::UI);
+  CHECK(CanExecuteJavaScript());
+  AssertFrameWasCommitted();
+
+  const bool wants_result = !callback.is_null();
+  GetAssociatedLocalFrame()->JavaScriptExecuteRequestUnchecked(javascript, wants_result,
+                                                                std::move(callback));
 }
 
 void RenderFrameHostImpl::ExecuteJavaScriptInIsolatedWorld(
@@ -9496,8 +9522,15 @@ void RenderFrameHostImpl::SetIsXrOverlaySetup() {
 
 void RenderFrameHostImpl::EnterFullscreen(
     blink::mojom::FullscreenOptionsPtr options,
+    blink::mojom::FullscreenVideoElementInfoPtr video_element, // ALOHA https://app.clickup.com/t/2hxwa9w
+    const std::string& pending_elem_class, // ALOHA https://app.clickup.com/t/861m7a4e2
     EnterFullscreenCallback callback) {
   const bool had_fullscreen_token = fullscreen_request_token_.IsActive();
+  // ALOHA https://app.clickup.com/t/2558578/z93epafc7c one-shot: consumed by
+  // any EnterFullscreen() call, whether or not it is granted.
+  const bool aloha_browser_initiated =
+      base::TimeTicks::Now() <= aloha_browser_fullscreen_expiry_;
+  aloha_browser_fullscreen_expiry_ = base::TimeTicks();
 
   // Validate the is_xr_overlay flag against browser-authoritative state.
   if (options->is_xr_overlay) {
@@ -9512,7 +9545,8 @@ void RenderFrameHostImpl::EnterFullscreen(
   // Frames (possibly a subframe) that are not active nor belonging to a primary
   // page should not enter fullscreen.
   if (!IsActive() || !GetPage().IsPrimary()) {
-    std::move(callback).Run(/*granted=*/false);
+    // ALOHA https://app.clickup.com/t/2hxwa9w
+    std::move(callback).Run(/*granted=*/false, false);
     return;
   }
 
@@ -9541,19 +9575,23 @@ void RenderFrameHostImpl::EnterFullscreen(
         blink::mojom::UserActivationNotificationType::kNone);
     const bool consumed_token = fullscreen_request_token_.ConsumeIfActive();
     const bool missing_focus =
+        !aloha_browser_initiated &&  // ALOHA z93epafc7c: browser UI request
         base::FeatureList::IsEnabled(
             blink::features::kSuppressFullscreenFromUnfocusedView) &&
         !GetView()->HasFocus();
     if ((!consumed_activation || missing_focus) && !consumed_token) {
       DLOG(ERROR) << "Cannot enter fullscreen without a transient activation, "
                   << "orientation change, XR overlay, or delegated capability.";
-      std::move(callback).Run(/*granted=*/false);
+      // ALOHA https://app.clickup.com/t/2hxwa9w
+      std::move(callback).Run(/*granted=*/false, false);
+      
       return;
     }
   }
 
   if (!delegate_->CanEnterFullscreenMode(this)) {
-    std::move(callback).Run(/*granted=*/false);
+    // ALOHA https://app.clickup.com/t/2hxwa9w
+    std::move(callback).Run(/*granted=*/false, false);
     return;
   }
 
@@ -9570,7 +9608,15 @@ void RenderFrameHostImpl::EnterFullscreen(
     transient_allow_popup_.Activate();
   }
 
-  std::move(callback).Run(/*granted=*/true);
+  // ALOHA https://app.clickup.com/t/2hxwa9w https://app.clickup.com/t/861mawmth
+  auto* bridge =
+    aloha::BromiumClientBridge::FromWebContents(WebContents::FromRenderFrameHost(this));
+  bool hide_controls = bridge && video_element &&
+    bridge->ShouldHideControlsInFullscreen(*video_element->aloha_player_id, 0, 0, 0, video_element->url.possibly_invalid_spec(),
+                                           video_element->duration_s, pending_elem_class);
+
+  // ALOHA https://app.clickup.com/t/2hxwa9w
+  std::move(callback).Run(/*granted=*/true, hide_controls);
 
   // Entering fullscreen from a cross-process subframe also affects all
   // renderers for ancestor frames, which will need to apply fullscreen CSS to
@@ -11295,6 +11341,16 @@ void RenderFrameHostImpl::ReceivedDelegatedCapability(
       blink::mojom::DelegatedCapability::kFullscreenRequest) {
     fullscreen_request_token_.Activate();
   }
+}
+
+// ALOHA https://app.clickup.com/t/2558578/z93epafc7c
+void RenderFrameHostImpl::AlohaAllowBrowserInitiatedFullscreen() {
+  if (lifecycle_state() != LifecycleStateImpl::kActive) {
+    return;
+  }
+  // Same lifespan as the transient user activation simulated in the renderer.
+  aloha_browser_fullscreen_expiry_ =
+      base::TimeTicks::Now() + blink::kActivationLifespan;
 }
 
 void RenderFrameHostImpl::AllowPopupThroughCapabilityDelegation() {

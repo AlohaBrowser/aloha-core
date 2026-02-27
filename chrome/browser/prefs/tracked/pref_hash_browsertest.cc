@@ -125,6 +125,12 @@ std::wstring GetRegistryPathForTestProfile() {
 }
 #endif
 
+// eyeo tracked pref IDs - these are added by eyeo and should be skipped
+// when validating upstream Chromium's expected histogram buckets.
+bool IsEyeoTrackedPrefId(int id) {
+  return id == 98 || id == 99;
+}
+
 // Returns the number of times |histogram_name| was reported so far; adding the
 // results of the first 100 buckets (there are only ~19 reporting IDs as of this
 // writing; varies depending on the platform). |allowed_buckets| hints at extra
@@ -143,6 +149,10 @@ int GetTrackedPrefHistogramCount(const char* histogram_name,
   std::unique_ptr<base::HistogramSamples> samples(histogram->SnapshotSamples());
   int sum = 0;
   for (int i = 0; i < 100; ++i) {
+    // Skip eyeo's tracked pref IDs when validating expected buckets.
+    if (IsEyeoTrackedPrefId(i)) {
+      continue;
+    }
     int count_for_id = samples->GetCount(i);
     EXPECT_GE(count_for_id, 0);
     sum += count_for_id;

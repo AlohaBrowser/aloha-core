@@ -2,12 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package com.android.webview.chromium;
 
 import org.chromium.build.annotations.UsedByReflection;
 
 // Remove once all supported Android versions no longer implements these native functions.
-class DrawGLFunctor {
+/* ALOHA */ public class DrawGLFunctor {
     // The Android framework performs manual JNI registration on these methods, so the method
     // signatures cannot change without updating the framework. We use @UsedByReflection, while not
     // technically true, as a way to preserve these methods and their names.

@@ -39,6 +39,7 @@
 #include "chrome/renderer/chrome_content_renderer_client.h"
 #include "chrome/test/base/chrome_test_suite.h"
 #include "chrome/utility/chrome_content_utility_client.h"
+#include "components/adblock/content/renderer/adblock_content_renderer_client.h"
 #include "components/crash/core/app/crashpad.h"
 #include "components/sampling_profiler/thread_profiler.h"
 #include "content/public/app/content_main.h"
@@ -187,11 +188,15 @@ class InternalsObjectFrameInjector : public content::RenderFrameObserver {
 // A replacement ChromeContentRendererClient for browser tests that hooks frame
 // creation to inject test-only bindings like `window.internals` without
 // linking test-only dependencies into production Chrome renderer code.
+// Derives from the eyeo wrapper so that browser tests get the same renderer
+// side ad filtering as production Chrome (see ChromeMainDelegate).
 class BrowserTestChromeContentRendererClient
-    : public ChromeContentRendererClient {
+    : public adblock::AdblockContentRendererClient<
+          ChromeContentRendererClient> {
  public:
   void RenderFrameCreated(content::RenderFrame* render_frame) override {
-    ChromeContentRendererClient::RenderFrameCreated(render_frame);
+    adblock::AdblockContentRendererClient<
+        ChromeContentRendererClient>::RenderFrameCreated(render_frame);
     if (base::CommandLine::ForCurrentProcess()->HasSwitch(
             switches::kExposeInternalsForTesting)) {
       new InternalsObjectFrameInjector(render_frame);

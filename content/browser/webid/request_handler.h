@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
 #ifndef CONTENT_BROWSER_WEBID_REQUEST_HANDLER_H_
 #define CONTENT_BROWSER_WEBID_REQUEST_HANDLER_H_
 
@@ -218,6 +219,7 @@ class CONTENT_EXPORT RequestHandler
   // for a given IDP - `idp_info`, but we do not need to show failure UI for the
   // IDP.
   void OnAccountsResultsReceived(
+      int generation,  // ALOHA: https://app.clickup.com/t/86ewz0pbr FedCM stale-callback guard
       base::TimeTicks well_known_and_config_fetched_time,
       std::vector<AccountsFetcher::Result> results);
 
@@ -532,6 +534,11 @@ class CONTENT_EXPORT RequestHandler
 
   // Data related to in-progress FetchEndpointsForIdps() fetch.
   FetchData fetch_data_;
+
+  // Incremented every time FetchEndpointsForIdps is called. Passed into the
+  // callback so stale responses from cancelled fetchers can be discarded.
+  // ALOHA: https://app.clickup.com/t/86ewz0pbr
+  int fetch_generation_{0};
 
   // The set of IDPs that the user has tried to sign in to since the start of
   // the current request.

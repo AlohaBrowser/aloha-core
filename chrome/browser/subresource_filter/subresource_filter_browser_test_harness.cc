@@ -1,6 +1,10 @@
 // Copyright 2017 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "chrome/browser/subresource_filter/subresource_filter_browser_test_harness.h"
 
@@ -23,6 +27,7 @@
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/chrome_paths.h"
 #include "chrome/test/base/chrome_test_utils.h"
+#include "components/adblock/core/features.h"
 #include "components/blocked_content/safe_browsing_triggered_popup_blocker.h"
 #include "components/content_settings/browser/page_specific_content_settings.h"
 #include "components/safe_browsing/core/browser/db/sb_protocol_manager_util.h"
@@ -175,7 +180,7 @@ SubresourceFilterBrowserTest::GetSubresourceFilterDisabledFeatures() const {
 void SubresourceFilterBrowserTest::SetUp() {
   base::flat_set<base::test::FeatureRef> enabled_features = {kAdTagging};
   base::flat_set<base::test::FeatureRef> disabled_features = {
-      features::kHttpsUpgrades};
+      features::kHttpsUpgrades, adblock::kAdblockPlusFeature};
 
   if (UseV5().has_value()) {
     if (UseV5().value()) {

@@ -104,6 +104,9 @@
 #include "ui/gfx/mac/scoped_cocoa_disable_screen_updates.h"
 #endif  // BUILDFLAG(IS_MAC)
 
+#include "aloha/src/native/bromium_client_bridge.h"
+#include "content/public/browser/web_contents.h"
+
 namespace content {
 
 using perfetto::protos::pbzero::ChromeTrackEvent;
@@ -5209,7 +5212,18 @@ bool RenderFrameHostManager::ReinitializeMainRenderFrame(
     return false;
   }
 
-  CHECK(render_frame_host->IsRenderFrameLive());
+  auto* bridge = aloha::BromiumClientBridge::FromWebContents(WebContents::FromRenderFrameHost(render_frame_host));
+  if (bridge) {
+    bridge->OnReinitializeMainRenderFrame(render_frame_host->IsRenderFrameLive());
+  }
+  // ALOHA: was DCHECK until M147 (upgraded by the 04/2026 "Upgrade DCHECKs to
+  // CHECKs in core navigation code" series). Fires in the wild when
+  // evaluateJavascript re-initializes the main frame while the RenderViewHost
+  // is still marked live but the current RenderFrameHost's frame is not
+  // (InitRenderView early-returns without recreating the frame). Reverted to
+  // DCHECK to restore the pre-M147 behavior: the JS call is silently dropped,
+  // matching upstream's own "Revert failing CHECKs to DCHECKs" pipeline.
+  DCHECK(render_frame_host->IsRenderFrameLive());
 
   if (!base::FeatureList::IsEnabled(
           features::kRemoveEnsureRFHVisibilityConsistent)) {

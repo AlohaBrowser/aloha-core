@@ -1,6 +1,10 @@
 // Copyright 2026 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "chrome/browser/ui/read_anything/read_anything_omnibox_controller.h"
 
@@ -375,6 +379,11 @@ IN_PROC_BROWSER_TEST_F(ReadAnythingOmniboxControllerBrowserTest,
   EXPECT_EQ(ReadAnythingEntryPointController::CheckCountForTesting(), 0);
 }
 
+// NOTE(eyeo): This test times out with eyeo adblock enabled.
+// ScopedMockTimeMessageLoopTaskRunner replaces the main thread task runner,
+// but eyeo's element hiding uses ThreadPool::PostTaskAndReplyWithResult()
+// during navigation. The ThreadPool replies don't work properly with the
+// mocked runner, causing the test to hang. Pass --disable-adblock to fix.
 IN_PROC_BROWSER_TEST_F(ReadAnythingOmniboxControllerBrowserTest,
                        PageChangeWithLoadingIsDebounced) {
   base::ScopedMockTimeMessageLoopTaskRunner mocked_task_runner;

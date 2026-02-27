@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  This file is part of eyeo Chromium SDK,
+  Copyright (C) 2006-present eyeo GmbH
+  eyeo Chromium SDK is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 3 as
+  published by the Free Software Foundation.
+  eyeo Chromium SDK is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  You should have received a copy of the GNU General Public License
+  along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<androidx.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Adblock: enabled/disabled -->
+    <org.chromium.components.browser_ui.settings.ChromeSwitchPreference
+        android:key="fragment_adblock_settings_enabled_key"
+        android:title="@string/adblock_settings_title"
+        app:iconSpaceReserved="false"
+        android:summary="@string/fragment_adblock_settings_enabled_summary" />
+
+    <!-- Filter lists -->
+    <androidx.preference.Preference
+        android:fragment="org.chromium.chrome.browser.adblock.settings.AdblockFilterListsFragment"
+        android:key="fragment_adblock_settings_filter_lists_key"
+        android:title="@string/fragment_adblock_settings_filter_lists_title"
+        app:iconSpaceReserved="false"
+        android:summary="@string/fragment_adblock_settings_filter_lists_summary" />
+
+    <!-- Acceptable Ads: enabled/disabled -->
+    <org.chromium.components.browser_ui.settings.ChromeSwitchPreference
+        android:key="fragment_adblock_settings_aa_enabled_key"
+        android:title="@string/fragment_adblock_settings_aa_enabled_title"
+        app:iconSpaceReserved="false"
+        android:summary="@string/fragment_adblock_settings_aa_enabled_summary" />
+
+    <!-- AutoInstall: enabled/disabled -->
+    <org.chromium.components.browser_ui.settings.ChromeSwitchPreference
+        android:key="fragment_adblock_settings_auto_install_enabled_key"
+        android:title="@string/fragment_adblock_settings_auto_install_enabled_title"
+        app:iconSpaceReserved="false"
+        android:summary="@string/fragment_adblock_settings_auto_install_enabled_summary" />
+
+    <!-- Allowed domains -->
+    <androidx.preference.Preference
+        android:fragment="org.chromium.chrome.browser.adblock.settings.AdblockAllowedDomainsFragment"
+        android:key="fragment_adblock_settings_allowed_domains_key"
+        android:title="@string/fragment_adblock_settings_allowed_domains_title"
+        app:iconSpaceReserved="false"
+        android:summary="@string/fragment_adblock_settings_allowed_domains_summary" />
+
+    <androidx.preference.Preference
+        android:fragment="org.chromium.chrome.browser.adblock.settings.AdblockMoreOptionsFragment"
+        android:key="fragment_adblock_settings_more_options_key"
+        android:title="@string/fragment_adblock_settings_more_options_title"
+        app:iconSpaceReserved="false"/>
+
+</androidx.preference.PreferenceScreen>

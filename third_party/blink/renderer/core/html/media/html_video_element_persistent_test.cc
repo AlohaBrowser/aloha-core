@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/html/media/html_video_element.h"
 
 #include <memory>
@@ -22,10 +24,12 @@ namespace {
 
 class FullscreenMockChromeClient : public EmptyChromeClient {
  public:
-  MOCK_METHOD3(EnterFullscreen,
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  MOCK_METHOD4(EnterFullscreen,
                void(LocalFrame&,
                     const FullscreenOptions*,
-                    FullscreenRequestType));
+                    FullscreenRequestType,
+                    std::optional<aloha::FullscreenVideoElement>)); // ALOHA https://app.clickup.com/t/861m4jwng
   MOCK_METHOD1(ExitFullscreen, void(LocalFrame&));
 };
 
@@ -60,7 +64,8 @@ class HTMLVideoElementPersistentTest : public PageTestBase {
 
   void SimulateDidEnterFullscreen() {
     Fullscreen::DidResolveEnterFullscreenRequest(GetDocument(),
-                                                 true /* granted */);
+                                                 true /* granted */,
+                                                 nullptr /* override_fullscreen_element */); // ALOHA https://app.clickup.com/t/861m4jwng
   }
 
   void SimulateDidExitFullscreen() {
@@ -98,7 +103,8 @@ TEST_F(HTMLVideoElementPersistentTest, nothingIsFullscreen) {
 TEST_F(HTMLVideoElementPersistentTest, videoIsFullscreen) {
   EXPECT_EQ(FullscreenElement(), nullptr);
 
-  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _)).Times(1);
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _, _)).Times(1);
   EXPECT_CALL(GetMockChromeClient(), ExitFullscreen(_)).Times(0);
 
   LocalFrame::NotifyUserActivation(
@@ -125,7 +131,8 @@ TEST_F(HTMLVideoElementPersistentTest, videoIsFullscreen) {
 TEST_F(HTMLVideoElementPersistentTest, divIsFullscreen) {
   EXPECT_EQ(FullscreenElement(), nullptr);
 
-  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _)).Times(1);
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _, _)).Times(1);
   EXPECT_CALL(GetMockChromeClient(), ExitFullscreen(_)).Times(0);
 
   LocalFrame::NotifyUserActivation(
@@ -159,7 +166,8 @@ TEST_F(HTMLVideoElementPersistentTest, divIsFullscreen) {
 TEST_F(HTMLVideoElementPersistentTest, exitFullscreenBeforePersistence) {
   EXPECT_EQ(FullscreenElement(), nullptr);
 
-  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _)).Times(1);
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _, _)).Times(1);
   EXPECT_CALL(GetMockChromeClient(), ExitFullscreen(_)).Times(1);
 
   LocalFrame::NotifyUserActivation(
@@ -189,7 +197,8 @@ TEST_F(HTMLVideoElementPersistentTest, exitFullscreenBeforePersistence) {
 TEST_F(HTMLVideoElementPersistentTest, internalPseudoClassOnlyUAStyleSheet) {
   EXPECT_EQ(FullscreenElement(), nullptr);
 
-  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _)).Times(1);
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _, _)).Times(1);
   EXPECT_CALL(GetMockChromeClient(), ExitFullscreen(_)).Times(0);
 
   EXPECT_FALSE(DivElement()->matches(AtomicString(":fullscreen")));
@@ -249,7 +258,8 @@ TEST_F(HTMLVideoElementPersistentTest, internalPseudoClassOnlyUAStyleSheet) {
 TEST_F(HTMLVideoElementPersistentTest, removeContainerWhilePersisting) {
   EXPECT_EQ(FullscreenElement(), nullptr);
 
-  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _)).Times(1);
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _, _)).Times(1);
   EXPECT_CALL(GetMockChromeClient(), ExitFullscreen(_)).Times(1);
 
   LocalFrame::NotifyUserActivation(
@@ -271,7 +281,8 @@ TEST_F(HTMLVideoElementPersistentTest, removeContainerWhilePersisting) {
 TEST_F(HTMLVideoElementPersistentTest, removeVideoWhilePersisting) {
   EXPECT_EQ(FullscreenElement(), nullptr);
 
-  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _)).Times(1);
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _, _)).Times(1);
   EXPECT_CALL(GetMockChromeClient(), ExitFullscreen(_)).Times(0);
 
   LocalFrame::NotifyUserActivation(
@@ -298,7 +309,8 @@ TEST_F(HTMLVideoElementPersistentTest, removeVideoWithLayerWhilePersisting) {
   DivElement()->AppendChild(span);
   span->AppendChild(VideoElement());
 
-  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _)).Times(1);
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _, _)).Times(1);
   EXPECT_CALL(GetMockChromeClient(), ExitFullscreen(_)).Times(0);
 
   LocalFrame::NotifyUserActivation(
@@ -320,7 +332,8 @@ TEST_F(HTMLVideoElementPersistentTest, removeVideoWithLayerWhilePersisting) {
 TEST_F(HTMLVideoElementPersistentTest, containsPersistentVideoScopedToFS) {
   EXPECT_EQ(FullscreenElement(), nullptr);
 
-  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _)).Times(1);
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  EXPECT_CALL(GetMockChromeClient(), EnterFullscreen(_, _, _, _)).Times(1);
   EXPECT_CALL(GetMockChromeClient(), ExitFullscreen(_)).Times(0);
 
   LocalFrame::NotifyUserActivation(

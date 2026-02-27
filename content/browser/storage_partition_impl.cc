@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/storage_partition_impl.h"
 
 #include <stdint.h>
@@ -2911,6 +2913,7 @@ void StoragePartitionImpl::ClearDataImpl(
   // `helper` deletes itself when done in
   // DataDeletionHelper::DecrementTaskCount().
   deletion_helpers_running_++;
+
   helper->ClearData(
       storage_key, filter_builder, std::move(storage_key_policy_matcher),
       std::move(cookie_deletion_filter), GetPath(), dom_storage_context_.get(),
@@ -2922,6 +2925,35 @@ void StoragePartitionImpl::ClearDataImpl(
       GetDeviceBoundSessionManager(), GetKeepAliveURLLoaderService(),
       declarative_performance_observer_store_.get(), perform_storage_cleanup,
       begin, end);
+}
+
+// ALOHA: https://app.clickup.com/t/86ewr2k2q 
+void StoragePartitionImpl::OnHlsDetected(const GURL& url,
+                                         int32_t render_process_id,
+                                         int32_t request_id,
+                                         const std::optional<base::UnguessableToken>& top_frame_id,
+                                         const std::string& request_headers) {
+    GetContentClient()->browser()->OnHlsDetected(url, render_process_id, request_id, top_frame_id, request_headers);
+}
+
+// ALOHA https://app.clickup.com/t/z93epaa335
+void StoragePartitionImpl::OnHlsManifestLoaded(
+    const GURL& manifest_url,
+    const GURL& original_url,
+    int32_t render_process_id,
+    const std::optional<base::UnguessableToken>& top_frame_id,
+    const std::string& content) {
+  GetContentClient()->browser()->OnHlsManifestLoaded(
+      manifest_url, original_url, render_process_id, top_frame_id, content);
+}
+
+// ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+void StoragePartitionImpl::OnSubtitleResourceDetected(
+    const std::string& kind,
+    int32_t render_process_id,
+    const std::optional<base::UnguessableToken>& top_frame_id) {
+  GetContentClient()->browser()->OnSubtitleResourceDetected(
+      kind, render_process_id, top_frame_id);
 }
 
 void StoragePartitionImpl::DeletionHelperDone(base::OnceClosure callback) {

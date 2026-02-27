@@ -28,6 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_EXPORTED_WEB_VIEW_IMPL_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_EXPORTED_WEB_VIEW_IMPL_H_
 
@@ -492,7 +494,9 @@ class CORE_EXPORT WebViewImpl final : public WebView,
 
   void EnterFullscreen(LocalFrame&,
                        const FullscreenOptions*,
-                       FullscreenRequestType);
+                       FullscreenRequestType,
+                       std::optional<aloha::FullscreenVideoElement> video_element, // ALOHA https://app.clickup.com/t/2hxwa9w
+                       const std::string& pending_elem_class); // ALOHA https://app.clickup.com/t/861m7a4e2
   void ExitFullscreen(LocalFrame&);
   void FullscreenElementChanged(Element* old_element,
                                 Element* new_element,
@@ -1031,6 +1035,7 @@ class CORE_EXPORT WebViewImpl final : public WebView,
 
   // All the registered observers.
   base::ObserverList<WebViewObserver> observers_;
+  
 };
 
 // WebView is always implemented by WebViewImpl, so explicitly allow the

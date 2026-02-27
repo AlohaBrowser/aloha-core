@@ -44,6 +44,8 @@ class AwProxyingRestrictedCookieManager
       int process_id,
       int frame_id,
       const net::SiteForCookies& site_for_cookies,
+      const std::optional<url::Origin>&
+          top_frame_origin,  // ALOHA https://app.clickup.com/t/86ev1nrnd
       mojo::PendingReceiver<network::mojom::RestrictedCookieManager> receiver,
       AwCookieAccessPolicy* aw_cookie_access_policy);
 
@@ -110,7 +112,11 @@ class AwProxyingRestrictedCookieManager
       CookiesEnabledForCallback callback) override;
 
   // This one is internal.
-  net::NetworkDelegate::PrivacySetting AllowCookies(const GURL& url) const;
+  // ALOHA https://app.clickup.com/t/86ev1nrnd: storage_access_api_status
+  // restored — Bromium auto-grants Storage Access after FedCM sign-in.
+  net::NetworkDelegate::PrivacySetting AllowCookies(
+      const GURL& url,
+      net::StorageAccessApiStatus storage_access_api_status) const;
 
  private:
   AwProxyingRestrictedCookieManager(
@@ -119,6 +125,8 @@ class AwProxyingRestrictedCookieManager
       const std::optional<const content::GlobalRenderFrameHostToken>&
           global_frame_token,
       const net::SiteForCookies& site_for_cookies,
+      const std::optional<url::Origin>&
+          top_frame_origin,  // ALOHA https://app.clickup.com/t/86ev1nrnd
       AwCookieAccessPolicy* cookie_access_policy);
 
   static void CreateAndBindOnIoThread(
@@ -127,6 +135,8 @@ class AwProxyingRestrictedCookieManager
       const std::optional<const content::GlobalRenderFrameHostToken>&
           global_frame_token,
       const net::SiteForCookies& site_for_cookies,
+      const std::optional<url::Origin>&
+          top_frame_origin,  // ALOHA https://app.clickup.com/t/86ev1nrnd
       mojo::PendingReceiver<network::mojom::RestrictedCookieManager> receiver,
       AwCookieAccessPolicy* cookie_access_policy);
 
@@ -148,6 +158,12 @@ class AwProxyingRestrictedCookieManager
   // ProxyingRestrictedCookiManager because those parameters come from the
   // renderer which we can't trust entirely.
   const net::SiteForCookies site_for_cookies_;
+
+  // ALOHA https://app.clickup.com/t/86ev1nrnd: browser-owned top frame origin
+  // (from the IsolationInfo at creation), used to validate renderer-supplied
+  // storage_access_api_status against the issued-grant registry. NOT the
+  // renderer-supplied top_frame_origin method parameter.
+  const std::optional<url::Origin> top_frame_origin_;
 
   base::WeakPtrFactory<AwProxyingRestrictedCookieManager> weak_factory_{this};
 };

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef SERVICES_NETWORK_NETWORK_CONTEXT_H_
 #define SERVICES_NETWORK_NETWORK_CONTEXT_H_
 
@@ -92,6 +94,7 @@
 #if BUILDFLAG(IS_CT_SUPPORTED)
 #include "services/network/public/mojom/ct_log_info.mojom-forward.h"
 #endif
+
 
 namespace base {
 class UnguessableToken;
@@ -843,6 +846,10 @@ class COMPONENT_EXPORT(NETWORK_SERVICE) NetworkContext
   // To be called back from CookieManager on settings change.
   void OnCookieManagerSettingsChanged();
 
+  // ALOHA https://app.clickup.com/t/2f29z75
+  void SetSendDNTHeader(bool send) override;
+
+ private:
   URLRequestContextOwner MakeURLRequestContext(
       mojo::PendingRemote<mojom::URLLoaderFactory>
           url_loader_factory_for_cert_net_fetcher,
@@ -850,6 +857,7 @@ class COMPONENT_EXPORT(NETWORK_SERVICE) NetworkContext
       OnURLRequestContextBuilderConfiguredCallback
           on_url_request_context_builder_configured,
       net::handles::NetworkHandle bound_network);
+
   scoped_refptr<SessionCleanupCookieStore> MakeSessionCleanupCookieStore()
       const;
 

@@ -1,6 +1,10 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
 
 # NOTE: Please do not add new test source files (e.g. *_unittest.cc,
 # *_browsertest.cc, *_interactive_uitest.cc, *_test.mm) to this file. Instead,
@@ -974,6 +978,7 @@ if (is_android) {
       "//chrome/test/data/webui:browser_tests",
       "//chrome/test/data/webui:interactive_ui_tests",
       "//chrome/test/data/webui:resources",
+      "//components/adblock/content:browser",
       "//components/autofill/content/browser:test_support",
       "//components/autofill/core/common",
       "//components/back_forward_cache",
@@ -1630,7 +1635,9 @@ if (!is_android) {
       "//chrome/test/payments:test_support",
       "//chrome/test/user_education:impl",
       "//chrome/test/v8:browser_tests",
+      "//components/adblock/content:browser",
       "//components/cdm/common:buildflags",
+      "//components/embedder_support",
       "//components/compose:buildflags",
       "//components/lens:buildflags",
       "//components/live_caption",
@@ -1722,6 +1729,7 @@ if (!is_android) {
       "//chrome/test/data/cart/",
       "//chrome/test/data/devtools/protocol/flash_embed_test.html",
       "//components/test/data/ad_tagging/",
+      "//components/test/data/adblock/",
       "//components/test/data/ads_observer/",
       "//components/test/data/autofill/",
       "//components/test/data/actor/",
@@ -1799,6 +1807,9 @@ if (!is_android) {
     sources = [
       "../../components/live_caption/views/caption_bubble_browsertest.cc",
       "../../components/record_replay/content/renderer/record_replay_agent_browsertest.cc",
+      "../browser/adblock/test/adblock_frame_hierarchy_builder_browsertest.cc",
+      "../browser/adblock/test/adblock_multiple_tabs_browsertest.cc",
+      "../browser/adblock/test/adblock_popup_browsertest.cc",
       "../browser/os_crypt/os_crypt_async_browsertest.cc",
     ]
     fuzztests = [ "SafeXmlParserFixture.ParseXML" ]
@@ -2657,7 +2668,8 @@ test("unit_tests") {
     ]
   }
 
-  sources = []
+  sources =
+      [ "../browser/adblock/adblock_chrome_content_browser_client_unittest.cc" ]
 
   # Support v8_unwinder_unittest on Android.
   if (is_android && enable_arm_cfi_table) {
@@ -2941,6 +2953,8 @@ test("unit_tests") {
     "//chrome/test/base:chrome_render_view_host_test_harness",
     "//chrome/test/base:testing_browser_process",
     "//chrome/test/base:testing_browser_process_impl",
+    "//components/adblock/content/browser:test_support",
+    "//components/adblock/core:test_support",
     "//components/mirroring:mirroring_tests",
     "//components/privacy_sandbox/privacy_sandbox_attestations",
     "//components/privacy_sandbox/privacy_sandbox_attestations:metrics",
@@ -4020,6 +4034,7 @@ if (!is_android) {
       "//chrome/test/base:web_ui_test_support",
       "//chrome/test/interaction",
       "//chrome/test/permissions",
+      "//components/adblock/core:test_support",
       "//components/autofill/content/browser:test_support",
       "//components/supervised_user/core/browser",
       "//components/webui/chrome_urls",

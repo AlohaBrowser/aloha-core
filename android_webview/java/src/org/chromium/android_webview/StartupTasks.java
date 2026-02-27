@@ -225,7 +225,9 @@ public final class StartupTasks {
     // TODO(crbug.com/544990736): This is only a separate package-private method because it is used
     // by AwBrowserProcess.startForTesting(). Inline this into postBrowserProcessStartStepOne once
     // test startup is migrated.
-    /* package */ static void finishBrowserProcessStart() {
+    // ALOHA: public — Bromium drives browser-process startup from BromiumInitializer
+    // (no StartupController/glue in the embedded build), see BromiumInitializer.init().
+    public static void finishBrowserProcessStart() {
         ThreadUtils.assertOnUiThread();
         try (DualTraceEvent e1 = DualTraceEvent.scoped("StartupTasks.finishBrowserProcessStart")) {
             if (!BrowserStartupController.getInstance().isFullBrowserStarted()) {

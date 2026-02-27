@@ -2,12 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/aw_permission_manager.h"
 
 #include <memory>
 #include <string>
 #include <utility>
 
+#include "aloha/src/native/webid/aloha_storage_access.h"  // ALOHA https://app.clickup.com/t/86ev1nrnd
 #include "android_webview/browser/aw_browser_permission_request_delegate.h"
 #include "android_webview/browser/aw_contents.h"
 #include "android_webview/browser/aw_context_permissions_delegate.h"
@@ -415,13 +418,24 @@ void AwPermissionManager::RequestPermissionsFromCurrentDocument(
       case PermissionType::POINTER_LOCK:
       case PermissionType::AUTOMATIC_FULLSCREEN:
       case PermissionType::WEB_APP_INSTALLATION:
-      case PermissionType::STORAGE_ACCESS_GRANT:
       case PermissionType::TOP_LEVEL_STORAGE_ACCESS:
         NOTIMPLEMENTED() << "RequestPermissions is not implemented for "
                          << static_cast<int>(permissions[i]);
         pending_request_raw->SetPermissionResult(
             permissions[i],
             content::PermissionResult(PermissionStatus::DENIED));
+        break;
+      case PermissionType::STORAGE_ACCESS_GRANT:
+        // ALOHA https://app.clickup.com/t/86ev1nrnd FedCM <-> SAA auto-grant.
+        // `render_frame_host` is the requesting (IdP iframe) frame; the loop
+        // runs synchronously within this call, so it is still alive here.
+        pending_request_raw->SetPermissionResult(
+            permissions[i],
+            content::PermissionResult(aloha::GetStorageAccessPermissionStatus(
+                render_frame_host->GetBrowserContext(), render_frame_host,
+                pending_request_raw->requesting_origin,
+                pending_request_raw->embedding_origin,
+                aloha::StorageAccessCheckReason::kPermissionRequest)));
         break;
       case PermissionType::MIDI:
       case PermissionType::SENSORS:
@@ -535,14 +549,16 @@ PermissionStatus AwPermissionManager::GetPermissionStatus(
     const GURL& embedding_origin) {
   return GetPermissionStatusInternal(permission_descriptor, requesting_origin,
                                      embedding_origin,
-                                     /*web_contents=*/nullptr);
+                                     /*web_contents=*/nullptr,
+                                     /*render_frame_host=*/nullptr);
 }
 
 PermissionStatus AwPermissionManager::GetPermissionStatusInternal(
     const blink::mojom::PermissionDescriptorPtr& permission_descriptor,
     const GURL& requesting_origin,
     const GURL& embedding_origin,
-    content::WebContents* web_contents) {
+    content::WebContents* web_contents,
+    content::RenderFrameHost* render_frame_host) {
   const blink::PermissionType permission_type =
       blink::PermissionDescriptorToPermissionType(permission_descriptor);
   switch (permission_type) {
@@ -598,9 +614,20 @@ PermissionStatus AwPermissionManager::GetPermissionStatusInternal(
     case blink::PermissionType::WEB_APP_INSTALLATION:
     case blink::PermissionType::WEB_PRINTING:
     case blink::PermissionType::WINDOW_MANAGEMENT:
-    case blink::PermissionType::STORAGE_ACCESS_GRANT:
     case blink::PermissionType::TOP_LEVEL_STORAGE_ACCESS:
       return PermissionStatus::DENIED;
+
+    case blink::PermissionType::STORAGE_ACCESS_GRANT:
+      // ALOHA https://app.clickup.com/t/86ev1nrnd FedCM <-> SAA auto-grant.
+      // `render_frame_host` is set for document-scoped queries so the
+      // permissions-policy gate applies to them too; nullptr only for
+      // origin-only / worker queries, which report DENIED (web_contents is
+      // null there as well) — matching Chrome, whose FedCM auto-grant also
+      // needs a frame.
+      return aloha::GetStorageAccessPermissionStatus(
+          web_contents ? web_contents->GetBrowserContext() : nullptr,
+          render_frame_host, requesting_origin, embedding_origin,
+          aloha::StorageAccessCheckReason::kStatusQuery);
   }
   NOTREACHED() << "Unhandled permission type: "
                << static_cast<int>(permission_type);
@@ -656,7 +683,7 @@ AwPermissionManager::GetPermissionResultForCurrentDocument(
               render_frame_host),
           permissions::PermissionUtil::GetLastCommittedOriginAsURL(
               render_frame_host->GetMainFrame()),
-          web_contents));
+          web_contents, render_frame_host));
 }
 
 content::PermissionResult AwPermissionManager::GetPermissionResultForWorker(
@@ -679,7 +706,8 @@ AwPermissionManager::GetPermissionResultForEmbeddedRequester(
           permission_descriptor, requesting_origin.GetURL(),
           permissions::PermissionUtil::GetLastCommittedOriginAsURL(
               render_frame_host->GetMainFrame()),
-          content::WebContents::FromRenderFrameHost(render_frame_host)));
+          content::WebContents::FromRenderFrameHost(render_frame_host),
+          render_frame_host));
 }
 
 void AwPermissionManager::CancelPermissionRequest(int request_id) {

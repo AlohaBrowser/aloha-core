@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/html/media/html_media_element.h"
 
 #include "base/memory/raw_ptr.h"
@@ -269,15 +271,20 @@ class TestMediaPlayerObserver final
   }
 
   // media::mojom::blink::MediaPlayerObserver implementation.
-  void OnMediaPlaying() override {
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  void OnMediaPlaying(const ::blink::KURL& media_url, const ::blink::KURL& document_url, double duration_s) override {
     received_media_playing_ = true;
     run_loop_->Quit();
   }
 
-  void OnMediaPaused(bool stream_ended) override {
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  void OnMediaPaused(bool stream_ended, const ::blink::KURL& media_url, const ::blink::KURL& document_url, double duration_s) override {
     received_media_paused_stream_ended_ = stream_ended;
     run_loop_->Quit();
   }
+
+  // ALOHA https://app.clickup.com/t/861m4jwng
+  void OnMediaError(const WTF::String& pipeline_status, const ::blink::KURL& media_url, const ::blink::KURL& document_url, double current_time_s, double duration_s) override {}
 
   void OnMutedStatusChanged(bool muted) override {
     received_muted_status_type_ = muted;
@@ -297,8 +304,9 @@ class TestMediaPlayerObserver final
   void OnMediaPositionStateChanged(
       ::media_session::mojom::blink::MediaPositionPtr) override {}
 
+  // ALOHA https://app.clickup.com/t/861m4jwng
   void OnMediaEffectivelyFullscreenChanged(
-      blink::WebFullscreenVideoStatus status) override {}
+      blink::WebFullscreenVideoStatus status, const ::blink::KURL& url, bool media_controls_is_hidden) override {}
 
   void OnMediaSizeChanged(const gfx::Size& size) override {
     received_media_size_ = size;
@@ -348,6 +356,43 @@ class TestMediaPlayerObserver final
     received_video_frame_availability_.reset();
   }
 
+  void OnVideoFrameAvailabilityChanged(bool available) override {
+    received_video_frame_availability_ = available;
+    if (run_loop_) {
+      run_loop_->Quit();
+    }
+  }
+
+  void WaitForVideoFrameAvailability() {
+    if (received_video_frame_availability_.has_value()) {
+      return;
+    }
+    run_loop_ = std::make_unique<base::RunLoop>();
+    run_loop_->Run();
+  }
+
+  const std::optional<bool>& received_video_frame_availability() const {
+    return received_video_frame_availability_;
+  }
+
+  void ClearVideoFrameAvailability() {
+    received_video_frame_availability_.reset();
+  }
+
+  // ALOHA: subtitles
+  void OnTextTracksChanged(
+      Vector<media::mojom::blink::TextTrackInfoPtr> tracks) override {}
+  // ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+  void OnSubtitleProbeReport(
+      media::mojom::blink::SubtitleProbeReportPtr report) override {}
+
+  // ALOHA: subtitles
+  void OnTextTracksChanged(
+      Vector<media::mojom::blink::TextTrackInfoPtr> tracks) override {}
+  // ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+  void OnSubtitleProbeReport(
+      media::mojom::blink::SubtitleProbeReportPtr report) override {}
+      
   // Getters used from HTMLMediaElementTest.
   bool received_media_playing() const { return received_media_playing_; }
 
@@ -399,7 +444,8 @@ class TestMediaPlayerHost final : public media::mojom::blink::MediaPlayerHost {
       /*media_player*/,
       mojo::PendingAssociatedReceiver<media::mojom::blink::MediaPlayerObserver>
           media_player_observer,
-      int32_t /*player_id*/) override {
+      int32_t /*player_id*/,
+      media::mojom::blink::MediaPlayerIdPtr aloha_player_id) override { // ALOHA https://app.clickup.com/t/861m4jwng
     receiver_.Bind(std::move(media_player_observer));
     run_loop_.Quit();
   }

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "services/network/url_loader.h"
 
 #include <algorithm>
@@ -53,6 +55,7 @@
 #include "net/base/load_timing_internal_info.h"
 #include "net/base/mime_sniffer.h"
 #include "net/base/net_error_details.h"
+#include "net/base/http_user_agent_settings.h"  // ALOHA https://app.clickup.com/t/z93epaa335
 #include "net/base/net_errors.h"
 #include "net/base/proxy_chain.h"
 #include "net/base/schemeful_site.h"
@@ -141,6 +144,40 @@
 namespace network {
 
 namespace {
+
+// ALOHA https://app.clickup.com/t/z93epaa335 Upper bound for a captured HLS
+// manifest body. Real manifests are a few KiB; a 4-hour VOD with 2 s segments
+// and signed URLs is ~2 MiB; anything larger is not a manifest we want.
+constexpr size_t kMaxHlsManifestBytes = 4 * 1024 * 1024;
+
+// ALOHA https://app.clickup.com/t/z93epaa335 The detector may fire on
+// Content-Type alone (seen: "ping.m3u8" answering JSON). Only bodies that
+// really start with the HLS magic, optionally behind a UTF-8 BOM and
+// whitespace, are worth caching.
+bool IsHlsManifestBody(std::string_view body) {
+  if (body.starts_with("\xEF\xBB\xBF")) {
+    body.remove_prefix(3);
+  }
+  while (!body.empty() && base::IsAsciiWhitespace(body.front())) {
+    body.remove_prefix(1);
+  }
+  return body.starts_with("#EXTM3U");
+}
+
+// ALOHA https://app.clickup.com/t/z93epaa335 Cheap pre-checks before allocating for
+// a body: partial responses are never a whole manifest, and a declared
+// Content-Length above the cap would be dropped anyway.
+bool ShouldCaptureHlsBody(const net::URLRequest& request) {
+  const net::HttpResponseHeaders* headers = request.response_headers();
+  if (!headers) {
+    return true;
+  }
+  if (headers->response_code() == 206) {
+    return false;
+  }
+  std::optional<base::ByteSize> length = headers->GetContentLength();
+  return !length || length->InBytes() <= static_cast<int64_t>(kMaxHlsManifestBytes);
+}
 
 BASE_FEATURE(kDelayedCookieNotification, base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -428,8 +465,12 @@ URLLoader::URLLoader(
               ? request.trusted_params
                     ->expected_response_headers_for_synthetic_response
               : nullptr),
-      durable_message_writer_(std::move(maybe_durable_message_writer)) {
+      durable_message_writer_(std::move(maybe_durable_message_writer)),
+      hls_detector_(std::make_unique<HLSDetector>()) { // ALOHA: https://app.clickup.com/t/86ewr2k2q
   DCHECK(delete_callback_);
+  // ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+  subtitle_detector_.SetReporter(base::BindRepeating(
+      &URLLoader::ReportSubtitleKind, base::Unretained(this)));
 
   // To minimize performance overhead and UMA report volume, this metric is
   // only logged for extremely long URLs, and aims to track their prevalence.
@@ -1164,6 +1205,29 @@ void URLLoader::OnResponseStarted(net::URLRequest* url_request, int net_error) {
   DCHECK(url_request == url_request_.get());
   has_received_response_ = true;
 
+  // ALOHA: https://app.clickup.com/t/86ewr2k2q 
+  auto result = hls_detector_->CheckHeaders(url_request);
+  if (result.is_hls && (result.confidence == HLSDetector::DetectionConfidence::HIGH ||
+                        result.confidence == HLSDetector::DetectionConfidence::MEDIUM)) {
+     
+     url_loader_network_observer_->OnHlsDetected(
+          GURL(result.playlist_url),
+          factory_params_->process_id.GetUnsafeValue(),
+          request_id_,
+          factory_params_->top_frame_id,
+          HlsRequestHeaders());
+      checking_for_hls_ = false;      
+      // ALOHA https://app.clickup.com/t/z93epaa335
+      capturing_hls_body_ = ShouldCaptureHlsBody(*url_request);
+  } else {
+      // ALOHA: https://app.clickup.com/t/86ewr2k2q 
+      // Need to find HLS with resource content
+      checking_for_hls_ = true;
+      pending_url_ = url_request->url().spec();
+  }
+  // ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+  subtitle_detector_.OnResponseStarted(*url_request);
+
   if (keepalive_) {
     base::UmaHistogramEnumeration(
         "FetchKeepAlive.Requests2.Network",
@@ -1721,6 +1785,34 @@ void URLLoader::DidRead(int num_bytes,
           (num_bytes <= 0 ||
            pending_write_buffer_offset_ >= net::kMaxBytesToSniff);
 
+      // ALOHA: https://app.clickup.com/t/86ewr2k2q 
+      // If Checking for HLS, try to detect HLS content with the data read so far. 
+      if (checking_for_hls_) {
+          auto result = hls_detector_->CheckContent(
+              pending_url_,
+              data.data(),
+              data.length()
+          );          
+          if (result.is_hls) {
+              url_loader_network_observer_->OnHlsDetected(
+                  GURL(result.playlist_url),
+                  factory_params_->process_id.GetUnsafeValue(),
+                  request_id_,
+                  factory_params_->top_frame_id,
+                  HlsRequestHeaders());
+              checking_for_hls_ = false;                          
+              // ALOHA https://app.clickup.com/t/z93epaa335
+              capturing_hls_body_ = ShouldCaptureHlsBody(*url_request_);
+          } else if (stop_sniffing_after_processing_current_data) {
+              // Read enough or end of stream, this is not HLS
+              checking_for_hls_ = false;
+          }
+      }
+      // ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+      if (data.size() >= 256 || stop_sniffing_after_processing_current_data) {
+        subtitle_detector_.OnFirstChunk(data);
+      }
+
       if (is_more_mime_sniffing_needed_) {
         CHECK(mime_type_before_sniffing_.has_value());
         std::string new_type;
@@ -1758,7 +1850,9 @@ void URLLoader::DidRead(int num_bytes,
       }
     }
 
-    if (!is_more_mime_sniffing_needed_ && !is_more_orb_sniffing_needed_) {
+    if (!is_more_mime_sniffing_needed_ && 
+        !is_more_orb_sniffing_needed_ &&
+        !checking_for_hls_) { // ALOHA: https://app.clickup.com/t/86ewr2k2q 
       SendResponseToClient();
     } else {
       complete_read = false;
@@ -1986,7 +2080,56 @@ void URLLoader::CancelRequest() {
   url_request_->CancelWithError(net::ERR_SSL_CLIENT_AUTH_CERT_NEEDED);
 }
 
+// ALOHA https://app.clickup.com/t/z93epaa335 What the Kotlin downloader has to replay:
+// the PH CDN checks the signature against Referer. Mirrors what
+// URLRequestHttpJob adds before StartTransaction (Referer, User-Agent).
+// Cookie is left out on purpose, the app has CookieManager.
+std::string URLLoader::HlsRequestHeaders() const {
+  net::HttpRequestHeaders headers = url_request_->extra_request_headers();
+  headers.RemoveHeader(net::HttpRequestHeaders::kCookie);
+  // Same as URLRequestHttpJob: a Referer smuggled in via extra headers never
+  // reaches the wire, only the policy-applied url_request_->referrer() does.
+  headers.RemoveHeader(net::HttpRequestHeaders::kReferer);
+  GURL referrer(url_request_->referrer());
+  if (referrer.is_valid()) {
+    headers.SetHeader(net::HttpRequestHeaders::kReferer, referrer.spec());
+  }
+  if (const net::HttpUserAgentSettings* ua_settings =
+          url_request_->context()->http_user_agent_settings()) {
+    headers.SetHeaderIfMissing(net::HttpRequestHeaders::kUserAgent,
+                               ua_settings->GetUserAgent());
+  }
+  return headers.ToString();
+}
+
+// ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+void URLLoader::ReportSubtitleKind(const std::string& kind) {
+  if (!url_loader_network_observer_) {
+    return;
+  }
+  url_loader_network_observer_->OnSubtitleResourceDetected(
+      kind, factory_params_->process_id.GetUnsafeValue(),
+      factory_params_->top_frame_id);
+}
+
 void URLLoader::NotifyCompleted(int error_code) {
+  // ALOHA https://app.clickup.com/t/z93epaa335 Hand the complete manifest to the
+  // browser. Skipped when the renderer decodes the body itself (the bytes
+  // seen here would still be Content-Encoded).
+  if (capturing_hls_body_) {
+    capturing_hls_body_ = false;
+    if (error_code == net::OK && IsHlsManifestBody(hls_body_) &&
+        url_loader_network_observer_ && response_ &&
+        response_->client_side_content_decoding_types.empty()) {
+      url_loader_network_observer_->OnHlsManifestLoaded(
+          url_request_->url(), url_request_->original_url(),
+          factory_params_->process_id.GetUnsafeValue(),
+          factory_params_->top_frame_id, hls_body_);
+    }
+    std::string().swap(hls_body_);
+  }
+  subtitle_detector_.OnComplete();  // ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+
   // Ensure sending the final upload progress message here, since
   // OnResponseCompleted can be called without OnResponseStarted on cancellation
   // or error cases.
@@ -2123,6 +2266,23 @@ void URLLoader::SendResponseToClient() {
 }
 
 void URLLoader::CompletePendingWrite(bool success) {
+  // ALOHA https://app.clickup.com/t/z93epaa335 Every body chunk (direct read,
+  // SlopBucket drain, PartialDecoder raw data) ends up here exactly once.
+  if (capturing_hls_body_ && success && pending_write_ &&
+      pending_write_buffer_offset_ > 0) {
+    std::string_view chunk(pending_write_->buffer(),
+                           pending_write_buffer_offset_);
+    // Give up early: over the cap, or the very first bytes are not a manifest
+    // (Content-Type lied), so no memory is spent on a body we would drop.
+    if (hls_body_.size() + chunk.size() > kMaxHlsManifestBytes ||
+        (hls_body_.empty() && chunk.size() >= 16 &&
+         !IsHlsManifestBody(chunk))) {
+      capturing_hls_body_ = false;
+      std::string().swap(hls_body_);
+    } else {
+      hls_body_.append(chunk);
+    }
+  }
   if (success && pending_write_) {
     // The write can only be completed immediately in case of a success, since
     // doing so invalidates memory of any attached NetToMojoIOBuffer's; but in
@@ -2588,7 +2748,9 @@ void URLLoader::ReportFlaggedResponseCookies(bool call_cookie_observer) {
 }
 
 void URLLoader::StartReading() {
-  if (!is_more_mime_sniffing_needed_ && !is_more_orb_sniffing_needed_) {
+  if (!is_more_mime_sniffing_needed_ &&
+     !is_more_orb_sniffing_needed_ &&
+     !checking_for_hls_) { // ALOHA: https://app.clickup.com/t/86ewr2k2q 
     // Treat feed types as text/plain.
     if (response_->mime_type == "application/rss+xml" ||
         response_->mime_type == "application/atom+xml") {

@@ -149,8 +149,9 @@ class AwProxyingRestrictedCookieManagerTest : public testing::Test {
     AwProxyingRestrictedCookieManager::CreateAndBind(
         std::move(underlying), is_service_worker,
         /*process_id=*/0,
-        /*frame_id=*/0, site_for_cookies, std::move(receiver),
-        &cookie_access_policy_);
+        /*frame_id=*/0, site_for_cookies,
+        /*top_frame_origin=*/std::nullopt,  // ALOHA https://app.clickup.com/t/86ev1nrnd
+        std::move(receiver), &cookie_access_policy_);
   }
 
   // Creates a proxy backed by `mock_rcm`, issues a GetAllForUrl request for

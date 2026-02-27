@@ -2,12 +2,24 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 module media.mojom;
 
 import "media/mojo/mojom/media_types.mojom";
 import "mojo/public/mojom/base/time.mojom";
 import "services/media_session/public/mojom/media_session.mojom";
 import "ui/gfx/geometry/mojom/geometry.mojom";
+
+// ALOHA https://app.clickup.com/t/2hxwa9w
+import "url/mojom/url.mojom";
+
+// ALOHA: mirrors the WebIDL TextTrack.mode values used for subtitle control.
+enum TextTrackMode {
+  kDisabled,
+  kHidden,
+  kShowing,
+};
 
 // Implemented by HTMLMediaElement in the renderer process to allow the
 // browser to control media playback.
@@ -73,10 +85,86 @@ interface MediaPlayer {
 
   // Request the media player to save the current video frame.
   RequestSaveVideoFrame();
+
+  // ALOHA https://app.clickup.com/t/86eqvfpwg
+  RequestFullScreenForElement();
+
+  // ALOHA: subtitles. Sets the mode of the text track at |track_index| (its
+  // position in HTMLMediaElement.textTracks). Enabling one track does not
+  // implicitly disable the others; the browser drives exclusivity.
+  // Always answered with an OnTextTracksChanged() snapshot, even when the
+  // request was rejected (bad index, track that can't be rendered), so the
+  // browser side can never get stuck on an optimistic state.
+  SetTextTrackMode(int32 track_index, TextTrackMode mode);
+
+  // ALOHA: subtitles. Height, in physical pixels, of the strip at the bottom of
+  // the player that the embedder's own controls overlay covers. The renderer
+  // lays cues out above that strip, the same way it avoids the built-in media
+  // controls. 0 restores the full area.
+  SetMediaControlsBottomInset(int32 bottom_inset_px);
+};
+
+// ALOHA https://app.clickup.com/t/2uat2t4
+struct MediaPlayerId {
+  // id attribute for media tag.
+  string html_id;
+  // id attributes for iframes in which is media tag.
+  array<string> iframes_ids;
+};
+
+// ALOHA: describes a single text track (subtitles/captions) of a media player.
+struct TextTrackInfo {
+  // Position in HTMLMediaElement.textTracks at the moment the snapshot was
+  // taken. Used as the key for SetTextTrackMode, but it is NOT stable across
+  // snapshots — inserting a <track> shifts every following index.
+  int32 index;
+  // TextTrack.id (may be empty).
+  string id;
+  // TextTrack.label (may be empty).
+  string label;
+  // BCP-47 language tag (may be empty).
+  string language;
+  // "subtitles" | "captions" | "descriptions" | "chapters" | "metadata".
+  string kind;
+  // Current TextTrack.mode. Note that "hidden" means the page receives cues
+  // but the UA does not render them — players that draw their own subtitles
+  // (hls.js, shaka) use it for the track the user actually selected.
+  TextTrackMode mode;
+  // False when the track can never be rendered by the UA: a non-visual kind
+  // (chapters/metadata) or a <track> whose resource failed to load. Asking for
+  // TextTrackMode.kShowing on such a track is a no-op.
+  bool can_be_rendered;
 };
 
 // Implemented by the MediaWebContentsObserver. The remote lives in the renderer
 // process and the receiver lives in the browser process.
+// ALOHA https://app.clickup.com/t/2558578/z93epac4kc. One per fullscreen session; carries no URL,
+// player name, DOM class or subtitle text.
+struct SubtitleProbeReport {
+  // "url" | "blob" | "mediastream" | "none" -- what the <video> plays from.
+  string src_kind;
+  int32 text_tracks_count;
+  int32 text_tracks_showing;
+  int32 text_tracks_hidden;
+  int32 text_tracks_renderable;
+  // The engine is drawing cues of some track right now.
+  bool engine_rendering;
+  // ForceSubtitlesVisible() took a hidden track over for this session.
+  bool forced_track;
+  // A rule for this player family exists (the family itself is not sent).
+  bool player_known;
+  // <video> had an empty box at probe time (player rewrote its style).
+  bool video_box_empty;
+  // "none" | "marker" | "heuristic" -- how the DOM probe found a caption box.
+  string dom_candidate;
+  // Distinct caption-like text changes over the video during the session.
+  int32 dom_changes;
+  int32 dom_marker_hits;
+  // "exit" | "reset" | "timebox" | "budget"
+  string observer_stop;
+  int32 duration_s;
+};
+
 interface MediaPlayerObserverClient {
   // Gets a flag indicating whether media has been played before.
   GetHasPlayedBefore() => (bool has_played_before);
@@ -86,11 +174,18 @@ interface MediaPlayerObserverClient {
 // browser process.
 interface MediaPlayerObserver {
   // Notifies that the media player started playing content.
-  OnMediaPlaying();
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  OnMediaPlaying(url.mojom.Url media_url, url.mojom.Url document_url, double duration_s) =>
+                        (bool should_background_play);
 
   // Notifies that the media player stopped playing content,
   // indicating in |stream_ended| if playback has reached the end of the stream.
-  OnMediaPaused(bool stream_ended);
+  OnMediaPaused(bool stream_ended,
+                url.mojom.Url media_url, url.mojom.Url document_url, double duration_s); // ALOHA https://app.clickup.com/t/2qfa6r7
+
+  // ALOHA https://app.clickup.com/t/2rqdtxz
+  OnMediaError(string pipeline_status, url.mojom.Url media_url, url.mojom.Url document_url,
+      double current_time_s, double duration_s);
 
   // Notifies that the muted status of the media player has changed.
   OnMutedStatusChanged(bool muted);
@@ -108,7 +203,8 @@ interface MediaPlayerObserver {
   // This does not differentiate native controls fullscreen and custom controls
   // fullscreen. |status| is used by MediaWebContentsObserver to trigger
   // automatically Picture-in-Picture for fullscreen videos.
-  OnMediaEffectivelyFullscreenChanged(FullscreenVideoStatus status);
+  OnMediaEffectivelyFullscreenChanged(FullscreenVideoStatus status,
+      url.mojom.Url url, bool media_controls_is_hidden); // ALOHA https://app.clickup.com/t/2hxwa9w
 
   // Notifies that the size of the media player has changed.
   OnMediaSizeChanged(gfx.mojom.Size size);
@@ -135,6 +231,16 @@ interface MediaPlayerObserver {
 
   // Notifies the browser process of save video frame's availability.
   OnVideoFrameAvailabilityChanged(bool available);
+
+  // ALOHA: subtitles. Notifies the browser of the current list of text tracks.
+  // Sent right after the player is added, and afterwards whenever tracks are
+  // added/removed, a track's mode changes or a <track> resource finishes
+  // loading. Coalesced to at most one message per task. Every call carries a
+  // full snapshot that replaces the previous one.
+  OnTextTracksChanged(array<TextTrackInfo> tracks);
+
+  // ALOHA https://app.clickup.com/t/2558578/z93epac4kc. End-of-fullscreen subtitle report.
+  OnSubtitleProbeReport(SubtitleProbeReport report);
 };
 
 // Implemented by MediaWebContentsObserver::MediaPlayerHostImpl in the browser
@@ -149,5 +255,6 @@ interface MediaPlayerHost {
   // the scope of the RenderFrame.
   OnMediaPlayerAdded(pending_associated_remote<MediaPlayer> player_remote,
                      pending_associated_receiver<MediaPlayerObserver> observer,
-                     int32 player_id);
+                     int32 player_id,
+                     MediaPlayerId aloha_player_id); // ALOHA https://app.clickup.com/t/2f2eyt8
 };

@@ -1,0 +1,68 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+source_set("net") {
+  sources = [
+    "adblock_request_throttle.h",
+    "adblock_request_throttle_impl.cc",
+    "adblock_request_throttle_impl.h",
+    "adblock_resource_request.h",
+    "adblock_resource_request_impl.cc",
+    "adblock_resource_request_impl.h",
+  ]
+
+  deps = [ "//components/adblock/core/common" ]
+
+  public_deps = [
+    "//base",
+    "//components/keyed_service/core",
+    "//net",
+    "//services/network/public/cpp",
+    "//url:url",
+  ]
+}
+
+source_set("test_support") {
+  testonly = true
+  sources = [
+    "test/mock_adblock_request_throttle.cc",
+    "test/mock_adblock_request_throttle.h",
+    "test/mock_adblock_resource_request.cc",
+    "test/mock_adblock_resource_request.h",
+  ]
+
+  public_deps = [
+    ":net",
+    "//testing/gmock",
+    "//testing/gtest",
+  ]
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [
+    "test/adblock_request_throttle_impl_test.cc",
+    "test/adblock_resource_request_impl_test.cc",
+  ]
+
+  deps = [
+    ":net",
+    ":test_support",
+    "//components/adblock/core/common",
+    "//net:test_support",
+    "//services/network:test_support",
+  ]
+}

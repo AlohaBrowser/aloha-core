@@ -73,6 +73,10 @@ class BASE_EXPORT MessagePumpAndroid : public MessagePump {
 
   void set_is_type_ui(bool is_type_ui) { is_type_ui_ = is_type_ui; }
 
+  // ALOHA: caches the time-based Looper yield feature (see the .cc). Called
+  // from base::features::Init() once FeatureList is available.
+  static void InitializeFeatures();
+
  protected:
   Delegate* SetDelegate(Delegate* delegate);
   bool SetQuit(bool quit);

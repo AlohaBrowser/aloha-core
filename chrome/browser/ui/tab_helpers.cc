@@ -1,6 +1,10 @@
 // Copyright 2014 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "chrome/browser/ui/tab_helpers.h"
 
@@ -29,6 +33,8 @@
 #include "chrome/common/buildflags.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/chrome_switches.h"
+#include "components/adblock/content/browser/adblock_webcontents_observer.h"
+#include "components/adblock/content/browser/factories/embedding_utils.h"
 #include "components/dom_distiller/core/dom_distiller_features.h"
 #include "components/enterprise/buildflags/buildflags.h"
 #include "components/infobars/content/content_infobar_manager.h"
@@ -100,6 +106,11 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
       Profile::FromBrowserContext(web_contents->GetBrowserContext());
 
   // --- Section 1: Common tab helpers ---
+  auto* original_profile = profile->GetOriginalProfile();
+  adblock::EnsureBackgroundServicesStarted(original_profile);
+  adblock::RegisterAdblockWebContentObserver<
+      adblock::AdblockWebContentObserver>(web_contents, original_profile);
+
   // AutofillClientProvider initializes ContentAutofillClient for web_contents,
   // which is gated by enable_browser_autofill.
   if (enable_browser_autofill) {

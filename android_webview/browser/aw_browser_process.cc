@@ -5,6 +5,7 @@
 #include "android_webview/browser/aw_browser_process.h"
 
 #include "android_webview/browser/aw_browser_context.h"
+#include "android_webview/browser/aw_browser_context_store.h"
 #include "android_webview/browser/aw_content_browser_client.h"
 #include "android_webview/browser/aw_enterprise_authentication_app_link_manager.h"
 #include "android_webview/browser/lifecycle/aw_contents_lifecycle_notifier.h"
@@ -156,6 +157,14 @@ void AwBrowserProcess::CreateLocalState() {
 void AwBrowserProcess::OnLoseForeground() {
   if (local_state_)
     local_state_->CommitPendingWrite();
+  // ALOHA CU-86eqe7rd2 (U4): flush prefs of EVERY instantiated profile, not
+  // just Default (otherwise Incognito-profile settings are lost when going to
+  // background). ForEachInstantiatedContext does not instantiate profiles from
+  // disk.
+  AwBrowserContextStore::GetInstance()->ForEachInstantiatedContext(
+      [](AwBrowserContext& context) {
+        context.GetPrefService()->CommitPendingWrite();
+      });
 }
 
 void AwBrowserProcess::OnAppStateChanged(State state) {

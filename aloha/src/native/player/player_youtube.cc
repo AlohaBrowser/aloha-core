@@ -1,0 +1,61 @@
+// Copyright 2025 Aloha Mobile Ltd.
+
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the Software
+// is furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+#include "player_youtube.h"
+
+namespace aloha::player {
+
+void PlayerYouTube::EnterFullscreen(blink::Element* element) {
+  if(!element) {
+    return;
+  }
+  element->setAttribute(blink::html_names::kStyleAttr, blink::AtomicString("object-fit: contain;")); // this style disables stretching the video to fill the entire screen
+}
+
+void PlayerYouTube::ExitFullscreen(blink::Element* element) {
+  if(!element) {
+    return;
+  }
+  element->setAttribute(blink::html_names::kStyleAttr, blink::AtomicString("object-fit: cover;"));
+}
+
+bool PlayerYouTube::IgnoreExitFullscreen(blink::ScriptState* script_state, blink::ExceptionState* exception_state) {
+  return false;
+}
+
+PlayerType PlayerYouTube::GetType() const {
+  return PlayerType::kYouTube;
+}
+
+void PlayerYouTube::Reset() {
+}
+
+std::string PlayerYouTube::GetJSFixForBackgroundVideoPlay(bool should_play_background_video) {
+  if (should_play_background_video) {
+    return "(function() {"
+      "  Object.defineProperty(document, 'visibilityState', { "
+      "    configurable: true, "
+      "    get: function() { return 'visible'; }"
+      "  });"
+      "})();";
+  }
+  return " (function() { delete document.visibilityState;})();";
+}
+
+} // namespace aloha::player

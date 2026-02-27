@@ -1,6 +1,10 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
 
 import("//base/allocator/allocator.gni")
 import("//build/buildflag_header.gni")
@@ -999,6 +1003,8 @@ source_set("process_singleton_internal") {
 source_set("core") {
   sources = [
     "about_flags.cc",
+    "adblock/adblock_chrome_content_browser_client.cc",
+    "adblock/adblock_chrome_content_browser_client.h",
     "after_startup_task_utils.cc",
     "browser_about_handler.cc",
     "browser_process_impl.cc",
@@ -1850,6 +1856,9 @@ source_set("core") {
       "platform_util_android.cc",
       "shell_integration_android.cc",
     ]
+
+    sources += [ "android/adblock/tab_id_translator_jni.cc" ]
+
     deps += [
       "//chrome/android:jni_headers",
       "//chrome/browser/android",
@@ -2578,6 +2587,7 @@ source_set("browser") {
     "//chrome/browser/visited_url_ranking:impl",
     "//chrome/browser/vr",
     "//chrome/browser/vr:impl",
+    "//components/adblock/content:browser",
     "//components/certificate_transparency",
     "//components/certificate_transparency:proto",
     "//components/collaboration/internal",
@@ -5299,6 +5309,8 @@ group("browser_public_dependencies") {
     "//chrome/common/compose:mojo_bindings",
     "//chrome/services/file_util/public/mojom",
     "//components/account_id",
+    "//components/adblock/content:browser",
+    "//components/adblock/content/renderer",
     "//components/autofill/content/browser",
     "//components/autofill/core/browser",
     "//components/compose/core/browser:mojo_bindings",

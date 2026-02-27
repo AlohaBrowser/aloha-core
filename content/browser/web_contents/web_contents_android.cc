@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/web_contents/web_contents_android.h"
 
 #include <stdint.h>
@@ -495,7 +497,11 @@ ScopedJavaLocalRef<jobject> WebContentsAndroid::GetLastCommittedURL(
 }
 
 bool WebContentsAndroid::IsIncognito(JNIEnv* env) {
-  return web_contents_->GetBrowserContext()->IsOffTheRecord();
+  // ALOHA CU-86eqe7rd2: BrowserContext::IsIncognito() (not IsOffTheRecord()) —
+  // Bromium's Incognito profile is persistent, so IsOffTheRecord() is false;
+  // IsIncognito() reports it by profile identity. Drives the keyboard's private
+  // indicator via ImeAdapterImpl.
+  return web_contents_->GetBrowserContext()->IsIncognito();
 }
 
 void WebContentsAndroid::ResumeLoadingCreatedWebContents(JNIEnv* env) {
@@ -622,6 +628,34 @@ void WebContentsAndroid::EvaluateJavaScript(JNIEnv* env,
   j_callback.Reset(env, callback);
 
   web_contents_->GetPrimaryMainFrame()->ExecuteJavaScript(
+      ConvertJavaStringToUTF16(env, script),
+      base::BindOnce(&JavaScriptResultCallback, j_callback));
+}
+
+// ALOHA https://app.clickup.com/t/861m7r8nk
+void WebContentsAndroid::EvaluateJavaScriptUnchecked(
+    JNIEnv* env,
+    const JavaRef<jstring>& script,
+    const JavaRef<jobject>& callback) {
+  RenderViewHost* rvh = web_contents_->GetRenderViewHost();
+  DCHECK(rvh);
+
+  if (!InitializeRenderFrameForJavaScript())
+    return;
+
+  if (!callback) {
+    // No callback requested.
+    web_contents_->GetPrimaryMainFrame()->ExecuteJavaScriptUnchecked(
+        ConvertJavaStringToUTF16(env, script), base::NullCallback());
+    return;
+  }
+
+  // Secure the Java callback in a scoped object and give ownership of it to the
+  // base::OnceCallback below.
+  ScopedJavaGlobalRef<jobject> j_callback;
+  j_callback.Reset(env, callback);
+
+  web_contents_->GetPrimaryMainFrame()->ExecuteJavaScriptUnchecked(
       ConvertJavaStringToUTF16(env, script),
       base::BindOnce(&JavaScriptResultCallback, j_callback));
 }

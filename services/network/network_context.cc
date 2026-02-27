@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "services/network/network_context.h"
 
 #include <algorithm>
@@ -815,6 +817,12 @@ NetworkContext::NetworkContext(
       params_->bound_network);
   url_request_context_ = url_request_context_owner_.url_request_context.get();
 
+  // ALOHA CU-86eqe7rd2 (2f29z75): apply the initial DNT state so a lazily
+  // created profile honors a DNT choice made before it existed.
+  if (params_->send_dnt_header) {
+    url_request_context_->set_send_dnt_header(true);
+  }
+
   cookie_manager_ = std::make_unique<CookieManager>(
       url_request_context_, std::move(session_cleanup_cookie_store),
       std::move(params_->cookie_manager_params));
@@ -1168,6 +1176,11 @@ void NetworkContext::GetViaObliviousHttp(
 void NetworkContext::GetCookieManager(
     mojo::PendingReceiver<mojom::CookieManager> receiver) {
   cookie_manager_->AddReceiver(std::move(receiver));
+}
+
+// ALOHA https://app.clickup.com/t/2f29z75
+void NetworkContext::SetSendDNTHeader(bool send) {
+  url_request_context_->set_send_dnt_header(send);
 }
 
 void NetworkContext::OnRCMDisconnect(
@@ -3392,6 +3405,7 @@ NetworkContext::MakeSessionCleanupCookieStore() const {
     DCHECK(!params_->persist_session_cookies);
     return nullptr;
   }
+
   scoped_refptr<base::SequencedTaskRunner> client_task_runner =
       base::SingleThreadTaskRunner::GetCurrentDefault();
   scoped_refptr<base::SequencedTaskRunner> background_task_runner =

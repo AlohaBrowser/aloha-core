@@ -255,7 +255,11 @@ public final class StartupTasksRunner {
     private void runAsyncStartupTaskAndPostNext(
             int taskNum, ArrayDeque<Runnable> queue, Runnable onCompletion) {
         assert ThreadUtils.runningOnUiThread();
-        assert !queue.isEmpty();
+        // ALOHA: a sync flush (PARTIAL_ASYNC_THEN_SYNC) drains the queue while the async
+        // BrowserStartupController callback has already posted this continuation; bail out.
+        if (queue.isEmpty()) {
+            return;
+        }
 
         Runnable task = queue.poll();
         // Defensive check: queue.poll() should not return null when the queue is non-empty,

@@ -1,0 +1,65 @@
+<!--
+  This file is part of eyeo Chromium SDK,
+  Copyright (C) 2006-present eyeo GmbH
+  eyeo Chromium SDK is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 3 as
+  published by the Free Software Foundation.
+  eyeo Chromium SDK is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  You should have received a copy of the GNU General Public License
+  along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- Add domain/URL input -->
+        <EditText
+            android:importantForAutofill="no"
+            android:id="@+id/fragment_adblock_custom_item_add_label"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            android:inputType="textUri"
+            android:hint="@strings/fragment_adblock_settings_add_domain"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <!-- Add button -->
+        <ImageView
+            android:contentDescription="@null"
+            android:id="@+id/fragment_adblock_custom_item_add_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/fragment_adblock_custom_item_add"
+            android:paddingStart="8dp" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/fragment_adblock_custom_item_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="32dp"
+        android:paddingBottom="32dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+    <!-- ListView -->
+    <ListView
+        android:id="@+id/fragment_adblock_custom_item_listview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+</LinearLayout>

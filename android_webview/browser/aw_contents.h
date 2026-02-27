@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef ANDROID_WEBVIEW_BROWSER_AW_CONTENTS_H_
 #define ANDROID_WEBVIEW_BROWSER_AW_CONTENTS_H_
 
@@ -35,6 +37,8 @@
 #include "content/public/browser/prerender_handle.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "content/public/common/child_process_id.h"
+#include "media/mojo/mojom/media_player.mojom.h"
+#include "mojo/public/cpp/bindings/associated_remote.h"
 
 class SkBitmap;
 
@@ -267,6 +271,9 @@ class AwContents : public FindHelper::Listener,
   // Per WebView Cookie Policy
   bool AllowThirdPartyCookies();
 
+  // Per WebView eyeo methods
+  bool IsContentFilteringEnabled() const;
+
   // FindHelper::Listener implementation.
   void OnFindResultReceived(int active_ordinal,
                             int match_count,
@@ -330,6 +337,31 @@ class AwContents : public FindHelper::Listener,
   void RendererUnresponsive(content::RenderProcessHost* render_process_host);
   void RendererResponsive(content::RenderProcessHost* render_process_host);
 
+  // ALOHA https://app.clickup.com/t/86epcdndk
+  void SetAdblockEnabled(JNIEnv* env, jboolean enable);
+
+  // ALOHA https://app.clickup.com/t/2u59j0h
+  void RequestDownloadUrl(JNIEnv* env, const std::string& j_url);
+
+  // ALOHA https://app.clickup.com/t/861mawmth
+  void MediaPlayerPlay(JNIEnv* env, int cid, int rid, int did);
+
+  // ALOHA https://app.clickup.com/t/861mawmth
+  void MediaPlayerPause(JNIEnv* env, int cid, int rid, int did);
+
+  // ALOHA https://app.clickup.com/t/86eqvfpwg
+  void MediaPlayerRequestFullscreen(JNIEnv* env, int cid, int rid, int did, const std::string& j_html_id);
+
+  // ALOHA: subtitles. |mode| matches media::mojom::TextTrackMode.
+  void SetTextTrackMode(JNIEnv* env, int cid, int rid, int did, int track_index, int mode);
+
+  // ALOHA: subtitles. |bottom_inset_px| is the height of the embedder's own
+  // controls overlay, in physical pixels; 0 clears it.
+  void SetMediaControlsBottomInset(JNIEnv* env, int cid, int rid, int did, int bottom_inset_px);
+
+  // ALOHA https://app.clickup.com/t/86eum0pax
+  void SetWebContentsSizeWithSyncProperties(JNIEnv* env, int width, int height);
+
   // content::WebContentsObserver overrides
   void PrimaryPageChanged(content::Page& page) override;
   void DidFinishNavigation(
@@ -358,6 +390,10 @@ class AwContents : public FindHelper::Listener,
   // Geolocation API support
   void ShowGeolocationPrompt(const GURL& origin, PermissionCallback);
   void HideGeolocationPrompt(const GURL& origin);
+
+  // ALOHA Media player support
+  mojo::AssociatedRemote<media::mojom::MediaPlayer>* GetMediaPlayerRemoteInternal(
+      int cid, int rid, int did);
 
   void SetDipScaleInternal(float dip_scale);
 

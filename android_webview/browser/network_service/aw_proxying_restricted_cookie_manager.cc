@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "aloha/src/native/webid/aloha_storage_access.h"  // ALOHA https://app.clickup.com/t/86ev1nrnd
 #include "android_webview/browser/aw_browser_context.h"
 #include "android_webview/browser/aw_cookie_access_policy.h"
 #include "android_webview/browser/cookie_manager.h"
@@ -44,18 +45,21 @@ class AwProxyingRestrictedCookieManagerListener
   AwProxyingRestrictedCookieManagerListener(
       const GURL& url,
       const net::SiteForCookies& site_for_cookies,
+      net::StorageAccessApiStatus storage_access_api_status,  // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
       base::WeakPtr<AwProxyingRestrictedCookieManager>
           aw_restricted_cookie_manager,
       mojo::PendingRemote<network::mojom::CookieChangeListener> client_listener)
       : url_(url),
         site_for_cookies_(site_for_cookies),
+        storage_access_api_status_(storage_access_api_status), // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
         aw_restricted_cookie_manager_(aw_restricted_cookie_manager),
         client_listener_(std::move(client_listener)) {}
 
   void OnCookieChange(const net::CookieChangeInfo& change) override {
     if (aw_restricted_cookie_manager_) {
       PrivacySetting cookieState =
-          aw_restricted_cookie_manager_->AllowCookies(url_);
+          aw_restricted_cookie_manager_->AllowCookies(
+              url_, storage_access_api_status_);
 
       if (cookieState == PrivacySetting::kStateAllowed ||
           (cookieState == PrivacySetting::kPartitionedStateAllowedOnly &&
@@ -68,6 +72,10 @@ class AwProxyingRestrictedCookieManagerListener
  private:
   const GURL url_;
   const net::SiteForCookies site_for_cookies_;
+  // ALOHA https://app.clickup.com/t/86ev1nrnd: captured at the time the
+  // listener is added, matching services/network RestrictedCookieManager
+  // behaviour. A grant obtained after that is not reflected here.
+  const net::StorageAccessApiStatus storage_access_api_status_;
   base::WeakPtr<AwProxyingRestrictedCookieManager>
       aw_restricted_cookie_manager_;
   mojo::Remote<network::mojom::CookieChangeListener> client_listener_;
@@ -80,6 +88,8 @@ void AwProxyingRestrictedCookieManager::CreateAndBind(
     int process_id,
     int frame_id,
     const net::SiteForCookies& site_for_cookies,
+    const std::optional<url::Origin>&
+        top_frame_origin,  // ALOHA https://app.clickup.com/t/86ev1nrnd
     mojo::PendingReceiver<network::mojom::RestrictedCookieManager> receiver,
     AwCookieAccessPolicy* aw_cookie_access_policy) {
   DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
@@ -101,7 +111,7 @@ void AwProxyingRestrictedCookieManager::CreateAndBind(
       FROM_HERE,
       base::BindOnce(
           &AwProxyingRestrictedCookieManager::CreateAndBindOnIoThread,
-          std::move(underlying_rcm), frame_token, site_for_cookies,
+          std::move(underlying_rcm), frame_token, site_for_cookies, top_frame_origin, // ALOHA FedCM
           std::move(receiver), aw_cookie_access_policy));
 }
 
@@ -113,7 +123,7 @@ void AwProxyingRestrictedCookieManager::GetAllForUrl(
     const GURL& url,
     const net::SiteForCookies& /*site_for_cookies*/,
     const url::Origin& top_frame_origin,
-    net::StorageAccessApiStatus /*storage_access_api_status*/,
+    net::StorageAccessApiStatus storage_access_api_status, // ALOHA uncommented to allow validation
     network::mojom::CookieManagerGetOptionsPtr options,
     bool is_ad_tagged,
     bool apply_devtools_overrides,
@@ -121,7 +131,15 @@ void AwProxyingRestrictedCookieManager::GetAllForUrl(
     GetAllForUrlCallback callback) {
   DCHECK_CURRENTLY_ON(content::BrowserThread::IO);
 
-  PrivacySetting cookieState = AllowCookies(url);
+  // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
+  // ALOHA https://app.clickup.com/t/86ev1nrnd: sanitize the renderer-supplied
+  // status in place — it feeds both our policy check and the forward to the
+  // underlying RestrictedCookieManager below.
+  storage_access_api_status = aloha::ValidateStorageAccessStatus(
+      storage_access_api_status, &*cookie_access_policy_, top_frame_origin_,
+      url);
+
+  PrivacySetting cookieState = AllowCookies(url, storage_access_api_status);
 
   if (cookieState == PrivacySetting::kStateDisallowed) {
     std::move(callback).Run(std::vector<net::CookieWithAccessResult>());
@@ -145,12 +163,20 @@ void AwProxyingRestrictedCookieManager::SetCanonicalCookie(
     const GURL& url,
     const net::SiteForCookies& /*site_for_cookies*/,
     const url::Origin& top_frame_origin,
-    net::StorageAccessApiStatus /*storage_access_api_status*/,
+    net::StorageAccessApiStatus storage_access_api_status, // ALOHA uncommented to allow validation
     bool is_ad_tagged,
     bool apply_devtools_overrides,
     SetCanonicalCookieCallback callback) {
   DCHECK_CURRENTLY_ON(content::BrowserThread::IO);
-  PrivacySetting cookieState = AllowCookies(url);
+  // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
+  // ALOHA https://app.clickup.com/t/86ev1nrnd: sanitize the renderer-supplied
+  // status in place — it feeds both our policy check and the forward to the
+  // underlying RestrictedCookieManager below.
+  storage_access_api_status = aloha::ValidateStorageAccessStatus(
+      storage_access_api_status, &*cookie_access_policy_, top_frame_origin_,
+      url);
+
+  PrivacySetting cookieState = AllowCookies(url, storage_access_api_status);
 
   if (cookieState == PrivacySetting::kStateDisallowed) {
     std::move(callback).Run(false);
@@ -175,17 +201,24 @@ void AwProxyingRestrictedCookieManager::AddChangeListener(
     const GURL& url,
     const net::SiteForCookies& /*site_for_cookies*/,
     const url::Origin& top_frame_origin,
-    net::StorageAccessApiStatus /*storage_access_api_status*/,
+    net::StorageAccessApiStatus storage_access_api_status, // ALOHA uncommented to allow validation 
     mojo::PendingRemote<network::mojom::CookieChangeListener> listener,
     AddChangeListenerCallback callback) {
   DCHECK_CURRENTLY_ON(content::BrowserThread::IO);
+
+  // ALOHA https://app.clickup.com/t/86ev1nrnd: sanitize the renderer-supplied
+  // status in place — it is latched by the listener and forwarded to the
+  // underlying RestrictedCookieManager.
+  storage_access_api_status = aloha::ValidateStorageAccessStatus(
+      storage_access_api_status, &*cookie_access_policy_, top_frame_origin_,
+      url);
 
   mojo::PendingRemote<network::mojom::CookieChangeListener>
       proxy_listener_remote;
   auto proxy_listener =
       std::make_unique<AwProxyingRestrictedCookieManagerListener>(
-          url, site_for_cookies_, weak_factory_.GetWeakPtr(),
-          std::move(listener));
+          url, site_for_cookies_, storage_access_api_status, // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
+          weak_factory_.GetWeakPtr(), std::move(listener));
 
   mojo::MakeSelfOwnedReceiver(
       std::move(proxy_listener),
@@ -203,13 +236,21 @@ void AwProxyingRestrictedCookieManager::SetCookieFromString(
     const GURL& url,
     const net::SiteForCookies& /*site_for_cookies*/,
     const url::Origin& top_frame_origin,
-    net::StorageAccessApiStatus /*storage_access_api_status*/,
+    net::StorageAccessApiStatus storage_access_api_status, // ALOHA uncommented to allow validation 
     bool is_ad_tagged,
     bool apply_devtools_overrides,
     const std::string& cookie) {
   DCHECK_CURRENTLY_ON(content::BrowserThread::IO);
 
-  PrivacySetting cookieState = AllowCookies(url);
+  // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
+  // ALOHA https://app.clickup.com/t/86ev1nrnd: sanitize the renderer-supplied
+  // status in place — it feeds both our policy check and the forward to the
+  // underlying RestrictedCookieManager below.
+  storage_access_api_status = aloha::ValidateStorageAccessStatus(
+      storage_access_api_status, &*cookie_access_policy_, top_frame_origin_,
+      url);
+
+  PrivacySetting cookieState = AllowCookies(url, storage_access_api_status);
 
   if (cookieState == PrivacySetting::kStateDisallowed) {
     return;
@@ -236,15 +277,23 @@ void AwProxyingRestrictedCookieManager::GetCookiesString(
     const GURL& url,
     const net::SiteForCookies& /*site_for_cookies*/,
     const url::Origin& top_frame_origin,
-    net::StorageAccessApiStatus /*storage_access_api_status*/,
+    net::StorageAccessApiStatus storage_access_api_status, // ALOHA uncommented to allow validation
     bool get_version_shared_memory,
     bool is_ad_tagged,
     bool apply_devtools_overrides,
     bool force_disable_third_party_cookies,
     GetCookiesStringCallback callback) {
   DCHECK_CURRENTLY_ON(content::BrowserThread::IO);
+  
+  // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
+  // ALOHA https://app.clickup.com/t/86ev1nrnd: sanitize the renderer-supplied
+  // status in place — it feeds both our policy check and the forward to the
+  // underlying RestrictedCookieManager below.
+  storage_access_api_status = aloha::ValidateStorageAccessStatus(
+      storage_access_api_status, &*cookie_access_policy_, top_frame_origin_,
+      url);
 
-  PrivacySetting cookieState = AllowCookies(url);
+  PrivacySetting cookieState = AllowCookies(url, storage_access_api_status);
 
   if (cookieState == PrivacySetting::kStateDisallowed) {
     std::move(callback).Run(network::mojom::kInvalidCookieVersion,
@@ -277,11 +326,17 @@ void AwProxyingRestrictedCookieManager::CookiesEnabledFor(
     const GURL& url,
     const net::SiteForCookies& /*site_for_cookies*/,
     const url::Origin& top_frame_origin,
-    net::StorageAccessApiStatus /*storage_access_api_status*/,
+    net::StorageAccessApiStatus storage_access_api_status, // ALOHA uncommented to allow validation
     bool apply_devtools_overrides,
     CookiesEnabledForCallback callback) {
   DCHECK_CURRENTLY_ON(content::BrowserThread::IO);
-  std::move(callback).Run(AllowCookies(url) == PrivacySetting::kStateAllowed);
+  // ALOHA https://app.clickup.com/t/86ev1nrnd: sanitize the renderer-supplied
+  // status before the policy check.
+  storage_access_api_status = aloha::ValidateStorageAccessStatus(
+      storage_access_api_status, &*cookie_access_policy_, top_frame_origin_,
+      url);
+  std::move(callback).Run(AllowCookies(url, storage_access_api_status) == // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
+                          PrivacySetting::kStateAllowed);
 }
 
 AwProxyingRestrictedCookieManager::AwProxyingRestrictedCookieManager(
@@ -290,12 +345,15 @@ AwProxyingRestrictedCookieManager::AwProxyingRestrictedCookieManager(
     const std::optional<const content::GlobalRenderFrameHostToken>&
         global_frame_token,
     const net::SiteForCookies& site_for_cookies,
+    const std::optional<url::Origin>&
+        top_frame_origin,  // ALOHA https://app.clickup.com/t/86ev1nrnd
     AwCookieAccessPolicy* cookie_access_policy)
     : underlying_restricted_cookie_manager_(
           std::move(underlying_restricted_cookie_manager)),
       global_frame_token_(global_frame_token),
       cookie_access_policy_(*cookie_access_policy),
-      site_for_cookies_(site_for_cookies) {
+      site_for_cookies_(site_for_cookies),
+      top_frame_origin_(top_frame_origin) {
   DCHECK_CURRENTLY_ON(content::BrowserThread::IO);
 
   // Latch cookie policy settings when feature is enabled. This allows shared
@@ -315,17 +373,25 @@ void AwProxyingRestrictedCookieManager::CreateAndBindOnIoThread(
     const std::optional<const content::GlobalRenderFrameHostToken>&
         global_frame_token,
     const net::SiteForCookies& site_for_cookies,
+    const std::optional<url::Origin>&
+        top_frame_origin,  // ALOHA https://app.clickup.com/t/86ev1nrnd
     mojo::PendingReceiver<network::mojom::RestrictedCookieManager> receiver,
     AwCookieAccessPolicy* cookie_access_policy) {
   DCHECK_CURRENTLY_ON(content::BrowserThread::IO);
   auto wrapper = base::WrapUnique(new AwProxyingRestrictedCookieManager(
-      std::move(underlying_rcm), global_frame_token, site_for_cookies,
-      cookie_access_policy));
+      std::move(underlying_rcm), global_frame_token,
+      site_for_cookies, top_frame_origin, cookie_access_policy));
   mojo::MakeSelfOwnedReceiver(std::move(wrapper), std::move(receiver));
 }
 
 PrivacySetting AwProxyingRestrictedCookieManager::AllowCookies(
-    const GURL& url) const {
+    const GURL& url,
+    net::StorageAccessApiStatus storage_access_api_status) const { // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
+  // ALOHA https://app.clickup.com/t/86ev1nrnd: `storage_access_api_status`
+  // here is already sanitized — every mojo entry point (and the change
+  // listener, which latches a sanitized value) passes it through
+  // aloha::ValidateStorageAccessStatus() before policy checks and before
+  // forwarding to the underlying RestrictedCookieManager.
   // When feature is enabled, use latched cookie policy state captured at
   // construction time. This enables shared memory cookie versioning.
   if (base::FeatureList::IsEnabled(features::kWebViewLatchedCookiePolicy)) {
@@ -338,12 +404,12 @@ PrivacySetting AwProxyingRestrictedCookieManager::AllowCookies(
     // practice.
     return AwCookieAccessPolicy::CanAccessCookies(url, site_for_cookies_,
                                                   latched_accept_cookies_,
-                                                  latched_accept_third_party_);
+                                                  latched_accept_third_party_, storage_access_api_status); // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM);
   }
 
   // Original dynamic behavior.
   return cookie_access_policy_->AllowCookies(url, site_for_cookies_,
-                                             global_frame_token_);
+                                             global_frame_token_, storage_access_api_status); // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM);
 }
 
 }  // namespace android_webview

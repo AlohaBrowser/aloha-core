@@ -33,6 +33,7 @@
 #include "content/browser/devtools/protocol/digital_credentials_handler.h"
 #include "content/browser/devtools/protocol/dom_handler.h"
 #include "content/browser/devtools/protocol/emulation_handler.h"
+#include "content/browser/devtools/protocol/eyeo_handler.h"
 #include "content/browser/devtools/protocol/fedcm_handler.h"
 #include "content/browser/devtools/protocol/fetch_handler.h"
 #include "content/browser/devtools/protocol/find_in_page_handler.h"
@@ -428,6 +429,7 @@ bool RenderFrameDevToolsAgentHost::AttachSession(DevToolsSession* session) {
       session->GetClient()->MayReadLocalFiles());
   auto* emulation_handler =
       session->CreateAndAddHandler<protocol::EmulationHandler>();
+  session->CreateAndAddHandler<protocol::EyeoHandler>();
   session->CreateAndAddHandler<protocol::InputHandler>(
       session->GetClient()->MayReadLocalFiles(),
       session->GetClient()->IsTrusted());

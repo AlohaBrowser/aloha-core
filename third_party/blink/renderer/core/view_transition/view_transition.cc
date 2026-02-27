@@ -344,11 +344,15 @@ void ViewTransition::SkipTransition(PromiseResponse response,
   }
 
   // Resume rendering, and finalize the rest of the state.
+  // ALOHA https://app.clickup.com/t/86eyrbkt4 : same-site navigations reuse
+  // the RenderWidget, delayed unpause freezes the new document (crbug 537790296).
+  /* ALOHA
   if (creation_type_ == CreationType::kForSnapshot && document_->hidden()) {
     if (rendering_paused_scope_) {
       rendering_paused_scope_->SetDelayUntilVisibilityChange();
     }
   }
+  */
   ResumeRendering();
   if (style_tracker_) {
     style_tracker_->Abort();

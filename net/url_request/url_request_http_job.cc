@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "net/url_request/url_request_http_job.h"
 
 #include <algorithm>
@@ -456,6 +458,9 @@ void URLRequestHttpJob::Start() {
   request_info_.is_shared_resource = request_->is_shared_resource();
   request_info_.target_network = request_->target_network();
 
+  // ALOHA https://app.clickup.com/t/2f29z75
+  request_info_.send_dnt_header = request()->get_send_dnt_header();
+
   // Privacy mode could still be disabled in SetCookieHeaderAndStart if we are
   // going to send previously saved cookies.
   request_info_.privacy_mode = DeterminePrivacyMode();
@@ -755,6 +760,11 @@ void URLRequestHttpJob::AddExtraHeaders() {
       request_info_.extra_headers.SetHeaderIfMissing(
           HttpRequestHeaders::kAcceptLanguage, accept_language);
     }
+  }
+
+  // ALOHA https://app.clickup.com/t/2f29z75
+  if(request_info_.send_dnt_header) {
+    request_info_.extra_headers.SetHeaderIfMissing("DNT", "1");
   }
 }
 

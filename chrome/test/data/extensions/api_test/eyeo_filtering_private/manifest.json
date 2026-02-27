@@ -1,0 +1,31 @@
+// This file is part of eyeo Chromium SDK,
+// Copyright (C) 2006-present eyeo GmbH
+//
+// eyeo Chromium SDK is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License version 3 as
+// published by the Free Software Foundation.
+//
+// eyeo Chromium SDK is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+{
+  "name": "eyeoFilteringPrivate API test",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkRxyv6tzqVnC+2gR3QxaN32fynw6GBZd9CXH8huHopx5xZ0fE1gScXnnjna7YW2sc6dhZZv326lRwmsJRwJN+RZpxBQbTD4CuCiqfUo+Xdyigh91QqyScLLRmg3SPsBBF9X/M50LO/6MD2eETiWbQQRy1TXNz52lt6NtjXKmS2lVZzR/jnGyAA96vMOmxeNIJmSYHFOHlSIphAJr/Erd0v1ZcBjJnZxqSrKZwUTHHc/FxcN1YqJkU/6O6gjMLNo3Uv33bqRAYmGUq+TTftwLg2hzEE1OllThcF9VVmQ3HZ5eTqqw/XP/tiQ/vUBflKer2mSVk708VBNpktao44kAtQIDAQAB",
+  "version": "0.1",
+  "incognito": "split",
+  "manifest_version": 3,
+  "background": {
+    "service_worker": "empty.js"
+  },
+  "description": "Test of chrome.eyeoFilteringPrivate interface",
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "permissions": [
+    "eyeoFilteringPrivate"
+  ]
+}

@@ -42,9 +42,24 @@ gfx::Rect ComputeControlsRect(const LayoutObject& container) {
   auto* media_element = To<HTMLMediaElement>(container.Parent()->GetNode());
   DCHECK(media_element);
 
+  // ALOHA: subtitles. The embedder draws its own player controls on top of the
+  // WebView, where Blink cannot see them. The browser reports the height they
+  // cover, and that strip is treated exactly like the built-in controls below:
+  // the initial position skips it, and the loop in Layout() keeps cues out of
+  // it. The inset arrives in physical pixels, which is what layout uses too.
+  gfx::Rect embedder_rect;
+  if (int inset = media_element->MediaControlsBottomInset()) {
+    const gfx::Rect box =
+        ToEnclosingRect(To<LayoutBox>(container).PhysicalBorderBoxRect());
+    if (inset > box.height())
+      inset = box.height();
+    embedder_rect =
+        gfx::Rect(box.x(), box.bottom() - inset, box.width(), inset);
+  }
+
   MediaControls* controls = media_element->GetMediaControls();
   if (!controls || !controls->ContainerLayoutObject())
-    return gfx::Rect();
+    return embedder_rect;
 
   // Only a part of the media controls is used for overlap avoidance.
   const auto* button_panel_layout_object = controls->ButtonPanelLayoutObject();
@@ -52,7 +67,7 @@ gfx::Rect ComputeControlsRect(const LayoutObject& container) {
 
   if (!button_panel_layout_object || !button_panel_layout_object->IsBox() ||
       !timeline_layout_object || !timeline_layout_object->IsBox()) {
-    return gfx::Rect();
+    return embedder_rect;
   }
 
   const auto& container_box = *To<LayoutBox>(controls->ContainerLayoutObject());
@@ -62,6 +77,7 @@ gfx::Rect ComputeControlsRect(const LayoutObject& container) {
       To<LayoutBox>(*timeline_layout_object), container_box);
 
   button_panel_box.Union(timeline_box);
+  button_panel_box.Union(embedder_rect);  // ALOHA: subtitles
   return button_panel_box;
 }
 

@@ -1,6 +1,10 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
 
 import("//build/config/chrome_build.gni")
 import("//build/config/chromeos/args.gni")
@@ -2062,6 +2066,7 @@ if (enable_separate_renderer_binary) {
     "//chrome/common",
     "//chrome/common:version_header",
     "//chrome/renderer",
+    "//components/adblock/content/renderer",
     "//components/crash/core/app",
     "//components/crash/core/common",
     "//components/heap_profiling/in_process",

@@ -103,6 +103,10 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+// ALOHA https://app.clickup.com/t/86et68rp5
+import com.alohamobile.bromium.BromiumUI;
+import com.alohamobile.bromium.SelectionPopupHandler;
+
 /** Implementation of the interface {@link SelectionPopupController}. */
 @JNINamespace("content")
 @NullMarked
@@ -1433,6 +1437,14 @@ public class SelectionPopupControllerImpl extends ActionModeCallbackHelper
     public void share() {
         assumeNonNull(mContext);
         RecordUserAction.record(UMA_MOBILE_ACTION_MODE_SHARE);
+        
+        // ALOHA https://app.clickup.com/t/86et68rp5
+        // If share is handled in Kotlin side, do not proceed with default implementation.
+        if (BromiumUI.getInstance().getSelectionPopupHandler() != null
+            && BromiumUI.getInstance().getSelectionPopupHandler().shouldOverrideShare(getSelectedText())) {
+            return;
+        }
+
         SelectionUtils.share(mContext, getSelectedText());
     }
 
@@ -1475,6 +1487,14 @@ public class SelectionPopupControllerImpl extends ActionModeCallbackHelper
     public void search() {
         assumeNonNull(mContext);
         RecordUserAction.record("MobileActionMode.WebSearch");
+        
+        // ALOHA https://app.clickup.com/t/86et68rp5
+        // If web search is handled in Kotlin side, do not proceed with default implementation.
+        if (BromiumUI.getInstance().getSelectionPopupHandler() != null
+            && BromiumUI.getInstance().getSelectionPopupHandler().shouldOverrideSearchInWeb(getSelectedText())) {
+            return;
+        }
+        
         SelectionUtils.webSearch(mContext, getSelectedText());
     }
 

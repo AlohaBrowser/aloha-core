@@ -1,6 +1,10 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
 
 import("//build/config/chromebox_for_meetings/buildflags.gni")
 import("//build/config/features.gni")
@@ -889,6 +893,17 @@ source_set("extensions") {
         "api/safe_browsing_private/safe_browsing_private_event_router_factory.h",
       ]
     }
+
+    sources += [
+      "api/adblock_private/adblock_private_api.cc",
+      "api/adblock_private/adblock_private_api.h",
+      "api/eyeo_dev_tools_private/eyeo_dev_tools_private_api.cc",
+      "api/eyeo_dev_tools_private/eyeo_dev_tools_private_api.h",
+      "api/eyeo_filtering_private/eyeo_filtering_private_api.cc",
+      "api/eyeo_filtering_private/eyeo_filtering_private_api.h",
+    ]
+
+    deps += [ "//components/adblock/content:browser" ]
 
     allow_circular_includes_from += [
       # autofill generated pref includes
@@ -3030,6 +3045,18 @@ source_set("browser_tests") {
       "//chrome/browser/ui/views/autofill/popup",
       "//chrome/browser/ui/views/extensions:extensions_toolbar_desktop",
     ]
+
+    sources += [
+      "api/adblock_private/adblock_private_apitest.cc",
+      "api/adblock_private/adblock_private_apitest_backgroundpage.cc",
+      "api/adblock_private/adblock_private_apitest_base.cc",
+      "api/adblock_private/adblock_private_apitest_base.h",
+      "api/adblock_private/adblock_private_filter_lists_with_http_server_apitest.cc",
+      "api/eyeo_dev_tools_private/eyeo_dev_tools_private_apitest.cc",
+      "api/eyeo_filtering_private/eyeo_filtering_private_apitest.cc",
+    ]
+
+    deps += [ "//components/adblock/content/browser:browser_tests_support" ]
 
     if (use_brlapi) {
       deps += [ "//third_party/libbrlapi" ]

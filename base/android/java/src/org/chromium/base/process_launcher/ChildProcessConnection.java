@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.os.Bundle;
+import android.os.DeadObjectException;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -641,14 +642,33 @@ public class ChildProcessConnection {
 
             // Validate that the child process is running the same code as the parent process.
             boolean childMatches = true;
+            String childSourceDir = null;
+            String parentSourceDir = null;
             try {
-                String childSourceDir = mService.getSourceDir();
-                String parentSourceDir =
-                        ApkInfo.getInstance().getBrowserApplicationInfo().sourceDir;
+                childSourceDir = mService.getSourceDir();
+                parentSourceDir = ApkInfo.getInstance().getBrowserApplicationInfo().sourceDir;
 
                 childMatches = TextUtils.equals(parentSourceDir, childSourceDir);
+            } catch (DeadObjectException ex) {
+                // ALOHA https://app.clickup.com/t/2558578/86eyng630 MultiProcess CU-86eqe7rd2:
+                // DeadObjectException means the child died in the window between bindToCaller()
+                // and getSourceDir() (MIUI kills isolated services of cached apps instantly).
+                // That is a child death, not a code mismatch: bail out the same way as on a
+                // RemoteException in bindToCaller() above — onServiceDisconnected() will do the
+                // cleanup (the binder IS dead here, so it is guaranteed to fire).
+                // (The "child is older than the parent and lacks the method" case is impossible
+                // in Bromium: children always spawn from the newest APK on disk.)
+                Log.e(TAG, "Failed to get child source dir; child process is dead.", ex);
+                return;
             } catch (RemoteException ex) {
                 // If the child can't handle getSourceDir then it is old and doesn't match.
+                // ALOHA: any other RemoteException (e.g. TransactionTooLargeException while the
+                // binder buffer is congested) can come from a LIVE child; returning here would
+                // strand a half-initialized connection that no onServiceDisconnected() would ever
+                // clean up. Keep upstream's behavior: treat it as a mismatch and fall through to
+                // the version guard — with an unchanged package that is the log-and-carry-on
+                // branch, and connection setup completes normally.
+                Log.e(TAG, "Failed to get child source dir from a live child.", ex);
                 childMatches = false;
             }
             if (!childMatches) {
@@ -663,7 +683,14 @@ public class ChildProcessConnection {
                     throw new ChildProcessMismatchException(
                             "Child process's classpath doesn't match, and main process's package"
                                     + " has been updated since process launch; process needs"
-                                    + " restarting!");
+                                    + " restarting! parent="
+                                    + parentSourceDir
+                                    + " child="
+                                    + childSourceDir
+                                    + " loadedVc="
+                                    + loadedVersionCode
+                                    + " latestVc="
+                                    + latestVersionCode);
                 } else {
                     // Crashing the process is unlikely to improve the situation - our classpath
                     // will probably be the same on next launch and probably still won't match.

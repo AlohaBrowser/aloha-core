@@ -1,6 +1,10 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "chrome/app/chrome_main_delegate.h"
 
@@ -60,6 +64,7 @@
 #include "chrome/common/url_constants.h"
 #include "chrome/grit/generated_resources.h"
 #include "chrome/renderer/chrome_content_renderer_client.h"
+#include "components/adblock/content/renderer/adblock_content_renderer_client.h"
 #include "components/component_updater/component_updater_paths.h"
 #include "components/content_settings/core/common/content_settings_pattern.h"
 #include "components/crash/core/app/crash_reporter_client.h"
@@ -92,7 +97,6 @@
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/base/resource/scoped_startup_resource_bundle.h"
 #include "ui/base/ui_base_switches.h"
-
 
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || \
     BUILDFLAG(IS_MAC)
@@ -186,6 +190,7 @@
 #endif
 
 #if !defined(BUILDING_CHROME_RENDERER)
+#include "chrome/browser/adblock/adblock_chrome_content_browser_client.h"  // nogncheck
 #include "chrome/browser/buildflags.h"  // nogncheck
 #include "chrome/browser/chrome_content_browser_client.h"  // nogncheck
 #include "chrome/browser/chrome_resource_bundle_helper.h"  // nogncheck
@@ -261,7 +266,8 @@
 base::LazyInstance<ChromeContentGpuClient>::DestructorAtExit
     g_chrome_content_gpu_client = LAZY_INSTANCE_INITIALIZER;
 #endif  // !defined(BUILDING_CHROME_RENDERER)
-base::LazyInstance<ChromeContentRendererClient>::DestructorAtExit
+base::LazyInstance<adblock::AdblockContentRendererClient<
+    ChromeContentRendererClient>>::DestructorAtExit
     g_chrome_content_renderer_client = LAZY_INSTANCE_INITIALIZER;
 
 // static
@@ -1890,7 +1896,7 @@ content::ContentBrowserClient*
 ChromeMainDelegate::CreateContentBrowserClient() {
 #if !defined(BUILDING_CHROME_RENDERER)
   chrome_content_browser_client_ =
-      std::make_unique<ChromeContentBrowserClient>();
+      std::make_unique<AdblockChromeContentBrowserClient>();
 #if !BUILDFLAG(IS_ANDROID)
   // Android does this in `ChromeMainDelegateAndroid::PreSandboxStartup`.
   CHECK(sampling_profiler_);

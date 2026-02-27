@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/android/select_popup.h"
 
 #include "base/android/jni_android.h"
@@ -153,8 +155,10 @@ void SelectPopup::SelectMenuItems(JNIEnv* env,
                                   const JavaRef<jintArray>& indices) {
   blink::mojom::PopupMenuClient* popup_client_raw_ptr =
       reinterpret_cast<blink::mojom::PopupMenuClient*>(selectPopupDelegate);
-  CHECK(popup_client_raw_ptr && popup_client_.get() == popup_client_raw_ptr,
-        base::NotFatalUntil::M159);
+  /* ALOHA: Kotlin select dialog replies async and may outlive HideMenu();
+     ignore a stale/zero handle instead of CHECK (CU-86evkdxey) */
+  if (!popup_client_raw_ptr || popup_client_.get() != popup_client_raw_ptr)
+    return;
 
   if (indices.is_null()) {
     popup_client_->DidCancel();

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 module network.mojom;
 
 import "components/content_settings/core/common/content_settings.mojom";
@@ -352,6 +354,12 @@ struct SocketBrokerRemotes {
 
 // Parameters for constructing a network context.
 struct NetworkContextParams {
+  // ALOHA CU-86eqe7rd2 (2f29z75): initial "send DNT header" state applied at
+  // NetworkContext construction, so lazily-created profiles honor the app's DNT
+  // choice made before they existed. Runtime changes go through
+  // NetworkContext.SetSendDNTHeader().
+  bool send_dnt_header = false;
+
   // The user agent string.
   string user_agent;
 
@@ -1051,6 +1059,9 @@ struct WildcardQuicHint {
 // network restrictions is in the comment for `RestrictNetworkForIds()` below.
 [RequireContext=sandbox.mojom.Context.kPrivilegedUtility]
 interface NetworkContext {
+  // ALOHA https://app.clickup.com/t/2f29z75
+  SetSendDNTHeader(bool send);
+
   // Sets a client for this network context.
   SetClient(pending_remote<NetworkContextClient> client);
 

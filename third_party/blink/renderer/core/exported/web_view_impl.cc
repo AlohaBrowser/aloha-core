@@ -27,6 +27,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/exported/web_view_impl.h"
 
 #include <algorithm>
@@ -498,7 +501,8 @@ WebView* WebView::Create(
       is_hidden ? mojom::blink::PageVisibilityState::kHidden
                 : mojom::blink::PageVisibilityState::kVisible,
       std::move(prerender_param), fenced_frame_mode, compositing_enabled,
-      widgets_never_composited, To<WebViewImpl>(opener), std::move(page_handle),
+      widgets_never_composited,
+      To<WebViewImpl>(opener), std::move(page_handle),
       agent_group_scheduler, session_storage_namespace_id,
       std::move(page_base_background_color), browsing_context_group_token,
       color_provider_colors, history_index, history_length);
@@ -2009,8 +2013,11 @@ void WebViewImpl::ThemeChanged() {
 
 void WebViewImpl::EnterFullscreen(LocalFrame& frame,
                                   const FullscreenOptions* options,
-                                  FullscreenRequestType request_type) {
-  fullscreen_controller_->EnterFullscreen(frame, options, request_type);
+                                  FullscreenRequestType request_type,
+                                  std::optional<aloha::FullscreenVideoElement> video_element, // ALOHA https://app.clickup.com/t/2hxwa9w
+                                  const std::string& pending_elem_class) { // ALOHA https://app.clickup.com/t/861m7a4e2
+  // ALOHA https://app.clickup.com/t/2hxwa9w
+  fullscreen_controller_->EnterFullscreen(frame, options, request_type, std::move(video_element), pending_elem_class);
 }
 
 void WebViewImpl::ExitFullscreen(LocalFrame& frame) {

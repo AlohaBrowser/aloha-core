@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview;
 
 import android.os.Handler;
@@ -29,6 +31,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+// ALOHA https://app.clickup.com/t/2f2f49x
+import androidx.annotation.MainThread;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.File;
+import org.chromium83.chrome.browser.cookies.CanonicalCookie;
+
 /**
  * AwCookieManager manages cookies according to RFC2109 spec.
  *
@@ -39,8 +48,6 @@ import java.util.regex.Pattern;
  */
 @JNINamespace("android_webview")
 public final class AwCookieManager {
-    private final long mNativeCookieManager;
-
     /**
      * The class loader will take care of synchronization as each class is only loaded once at the
      * time it is needed. Meaning that the first time {@link
@@ -65,11 +72,13 @@ public final class AwCookieManager {
         AwCookieManagerJni.get().disablePartitionedCookies();
     }
 
+    private long mNativeCookieManager;
+
     @VisibleForTesting
     public AwCookieManager() {
         this(AwCookieManagerJni.get().getDefaultCookieManager());
     }
-
+    // ALOHA - Cookies https://app.clickup.com/t/2dmr616
     public AwCookieManager(long nativeCookieManager) {
         LibraryLoader.getInstance().ensureInitialized();
         mNativeCookieManager = nativeCookieManager;
@@ -181,6 +190,8 @@ public final class AwCookieManager {
      *
      * @param callback A callback called after the cookies (if any) are removed.
      */
+    // ALOHA: Work is run asynchronously. https://app.clickup.com/t/2f2ezv7
+    @MainThread
     public void removeSessionCookies(Callback<Boolean> callback) {
         try {
             AwCookieManagerJni.get()
@@ -197,6 +208,8 @@ public final class AwCookieManager {
      *
      * @param callback A callback called after the cookies (if any) are removed.
      */
+    // ALOHA: Work is run asynchronously. https://app.clickup.com/t/2f2ezv7
+    @MainThread
     public void removeAllCookies(Callback<Boolean> callback) {
         try {
             AwCookieManagerJni.get()
@@ -240,6 +253,40 @@ public final class AwCookieManager {
         AwCookieManagerJni.get().setAllowFileSchemeCookies(mNativeCookieManager, accept);
     }
 
+    // ALOHA https://app.clickup.com/t/2f2f49x
+    public static List<CanonicalCookie> readCookiesFrom83(File inputFile) throws Exception {
+        try {
+            FileInputStream inputStream = new FileInputStream(inputFile);
+            try {
+                return CanonicalCookie.readListFromStream(new DataInputStream(inputStream));
+            } finally {
+                inputStream.close();
+            }
+        } catch (Throwable ex) {
+            throw new Exception("Failed to read cookies for migration", ex);
+        }
+    }
+
+    // ALOHA https://app.clickup.com/t/2f2f49x
+    @MainThread
+    public void addCookiesFromMigration(List<CanonicalCookie> cookies, Callback<String> errorCallback) {
+        try {
+            ErrorCallback callback = new ErrorCallback(errorCallback);
+            for (CanonicalCookie cookie : cookies) {
+                try {
+                    AwCookieManagerJni.get().addCookieFromMigration(
+                            mNativeCookieManager, cookie.getName(), cookie.getValue(), cookie.getDomain(),
+                            cookie.getPath(), cookie.getCreationDate(), cookie.getExpirationDate(),
+                            cookie.getLastAccessDate(), cookie.isSecure(), cookie.isHttpOnly(),
+                            cookie.getSameSite(), cookie.getPriority(), cookie.sourceScheme(), callback);
+                } catch(Throwable ex) {
+                }
+            }
+        } catch (Throwable ex) {
+            errorCallback.onResult("Failed to migrate cookies by exception: " + ex);
+        }
+    }
+
     /**
      * Sets whether cookies for insecure schemes (http:) are permitted to include the "Secure"
      * directive.
@@ -276,6 +323,32 @@ public final class AwCookieManager {
 
         @Override
         public void onResult(final Boolean result) {
+            if (mHandler == null) return;
+            assert mCallback != null;
+            mHandler.post(mCallback.bind(result));
+        }
+    }
+
+    // ALOHA https://app.clickup.com/t/2f2f49x
+    static class ErrorCallback implements Callback<String> {
+        @Nullable
+        Callback<String> mCallback;
+        @Nullable
+        Handler mHandler;
+
+        public ErrorCallback(@Nullable Callback<String> callback) {
+            if (callback != null) {
+                if (Looper.myLooper() == null) {
+                    throw new IllegalStateException("new ErrorCallback should be called on "
+                            + "a thread with a running Looper.");
+                }
+                mCallback = callback;
+                mHandler = new Handler();
+            }
+        }
+
+        @Override
+        public void onResult(final String result) {
             if (mHandler == null) return;
             assert mCallback != null;
             mHandler.post(mCallback.bind(result));
@@ -556,6 +629,7 @@ public final class AwCookieManager {
 
         void setShouldAcceptCookies(long nativeCookieManager, boolean accept);
 
+
         boolean getShouldAcceptCookies(long nativeCookieManager);
 
         void setCookie(
@@ -600,5 +674,16 @@ public final class AwCookieManager {
         void setWorkaroundHttpSecureCookiesForTesting(long nativeCookieManager, boolean allow);
 
         void disablePartitionedCookies();
+
+        // ALOHA https://app.clickup.com/t/2f2f49x
+        void addCookieFromMigration(
+                long nativeCookieManager,
+                @JniType("std::string") String name,
+                @JniType("std::string") String value,
+                @JniType("std::string") String domain,
+                @JniType("std::string") String path,
+                long creation, long expiration, long last_access, boolean secure, boolean httponly,
+                int same_site, int priority, int source_scheme,
+                @JniType("base::RepeatingCallback<void(std::string)>") ErrorCallback errorCallback);
     }
 }

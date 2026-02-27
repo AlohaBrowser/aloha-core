@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 module network.mojom;
 
 import "mojo/public/mojom/base/byte_size.mojom";
@@ -226,4 +228,27 @@ interface URLLoaderNetworkServiceObserver {
                                      IPAddressSpace response_address_space,
                                      IPAddressSpace client_address_space,
                                      IPAddressSpace target_address_space);
+                        
+  // ALOHA: https://app.clickup.com/t/86ewr2k2q Called when HLS stream is detected
+  OnHlsDetected(url.mojom.Url hls_url,
+                int32 render_process_id,
+                int32 request_id,
+                mojo_base.mojom.UnguessableToken? top_frame_id,
+                string request_headers);
+
+  // ALOHA https://app.clickup.com/t/z93epaa335 Complete body of an HLS manifest
+  // response previously reported via OnHlsDetected(). Sent once when the
+  // response finishes successfully; |content| is the decoded manifest text.
+  // |original_url| is the URL before redirects (what the page asked for),
+  // |manifest_url| the final one; equal when there was no redirect.
+  OnHlsManifestLoaded(url.mojom.Url manifest_url,
+                      url.mojom.Url original_url,
+                      int32 render_process_id,
+                      mojo_base.mojom.UnguessableToken? top_frame_id,
+                      string content);
+
+  // ALOHA https://app.clickup.com/t/2558578/z93epac4kc. |kind| is a category ("vtt", "json-captions", ...), never a URL.
+  OnSubtitleResourceDetected(string kind,
+                             int32 render_process_id,
+                             mojo_base.mojom.UnguessableToken? top_frame_id);
 };

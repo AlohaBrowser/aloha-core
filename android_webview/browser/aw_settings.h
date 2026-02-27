@@ -1,6 +1,10 @@
 // Copyright 2013 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #ifndef ANDROID_WEBVIEW_BROWSER_AW_SETTINGS_H_
 #define ANDROID_WEBVIEW_BROWSER_AW_SETTINGS_H_
@@ -71,6 +75,7 @@ class AwSettings : public content::WebContentsObserver {
   MixedContentMode GetMixedContentMode();
   bool IsPrerender2Allowed();
   bool IsBackForwardCacheEnabled();
+  bool IsContentFilteringEnabled();
 
   // Called from Java. Methods with "Locked" suffix require that the settings
   // access lock is held during their execution.
@@ -125,6 +130,9 @@ class AwSettings : public content::WebContentsObserver {
       JNIEnv* env,
       const base::android::JavaRef<jobject>& obj);
   void UpdateGeolocationEnabledLocked(
+      JNIEnv* env,
+      const base::android::JavaRef<jobject>& obj);
+  void UpdateContentFilteringEnabledLocked(
       JNIEnv* env,
       const base::android::JavaRef<jobject>& obj);
 
@@ -186,6 +194,8 @@ class AwSettings : public content::WebContentsObserver {
   int back_forward_cache_max_pages_in_cache_{0};
   bool back_forward_cache_keep_forward_entries_{true};
   bool geolocation_enabled_{false};
+
+  bool content_filtering_enabled_{true};
 
   JavaObjectWeakGlobalRef aw_settings_;
 

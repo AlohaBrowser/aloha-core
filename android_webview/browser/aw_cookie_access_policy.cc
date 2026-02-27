@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "aloha/src/native/webid/aloha_storage_access.h"  // ALOHA https://app.clickup.com/t/86ev1nrnd
 #include "android_webview/browser/aw_contents_io_thread_client.h"
 #include "base/check_op.h"
 #include "base/no_destructor.h"
@@ -32,7 +33,12 @@ using PrivacySetting = net::NetworkDelegate::PrivacySetting;
 
 }  // namespace
 
-AwCookieAccessPolicy::~AwCookieAccessPolicy() = default;
+AwCookieAccessPolicy::~AwCookieAccessPolicy() {
+  // ALOHA https://app.clickup.com/t/86ev1nrnd: this object doubles as the
+  // profile key of the storage-access grant registry; drop the profile's
+  // grants so a later allocation reusing this address cannot inherit them.
+  aloha::ClearStorageAccessGrantsForProfile(this);
+}
 
 AwCookieAccessPolicy::AwCookieAccessPolicy() = default;
 
@@ -68,18 +74,22 @@ PrivacySetting AwCookieAccessPolicy::AllowCookies(
     const GURL& url,
     const net::SiteForCookies& site_for_cookies,
     base::optional_ref<const content::GlobalRenderFrameHostToken>
-        global_frame_token) {
+        global_frame_token,
+    net::StorageAccessApiStatus storage_access_api_status) { // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
   DCHECK_CURRENTLY_ON(BrowserThread::IO);
   bool third_party = GetShouldAcceptThirdPartyCookies(global_frame_token);
-  return CanAccessCookies(url, site_for_cookies, third_party);
+  return CanAccessCookies(url, site_for_cookies, third_party,
+                          storage_access_api_status); // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
 }
 
 PrivacySetting AwCookieAccessPolicy::CanAccessCookies(
     const GURL& url,
     const net::SiteForCookies& site_for_cookies,
-    bool accept_third_party_cookies) {
+    bool accept_third_party_cookies,
+    net::StorageAccessApiStatus storage_access_api_status) { // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
   return CanAccessCookies(url, site_for_cookies, accept_cookies_,
-                          accept_third_party_cookies);
+                          accept_third_party_cookies,
+                          storage_access_api_status); // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
 }
 
 // static
@@ -87,12 +97,18 @@ PrivacySetting AwCookieAccessPolicy::CanAccessCookies(
     const GURL& url,
     const net::SiteForCookies& site_for_cookies,
     bool accept_cookies,
-    bool accept_third_party_cookies) {
+    bool accept_third_party_cookies,
+    net::StorageAccessApiStatus storage_access_api_status) { // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
   if (!accept_cookies) {
     return PrivacySetting::kStateDisallowed;
   }
 
   if (accept_third_party_cookies) {
+    return PrivacySetting::kStateAllowed;
+  }
+
+  // ALOHA https://app.clickup.com/t/86ev1nrnd FedCM <-> SAA auto-grant.
+  if (aloha::StatusAllowsUnpartitionedCookies(storage_access_api_status)) {
     return PrivacySetting::kStateAllowed;
   }
 

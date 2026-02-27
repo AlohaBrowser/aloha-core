@@ -44,16 +44,21 @@ class AwCookieAccessPolicy {
           global_frame_token);
 
   // Whether or not to allow cookies for requests with these parameters.
+  // ALOHA https://app.clickup.com/t/86ev1nrnd: `storage_access_api_status`
+  // restored (upstream removed it as dead code when Storage Access grants
+  // were impossible on WebView; Bromium now auto-grants them after FedCM).
   net::NetworkDelegate::PrivacySetting AllowCookies(
       const GURL& url,
       const net::SiteForCookies& site_for_cookies,
       base::optional_ref<const content::GlobalRenderFrameHostToken>
-          global_frame_token);
+          global_frame_token,
+      net::StorageAccessApiStatus storage_access_api_status); // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
 
   net::NetworkDelegate::PrivacySetting CanAccessCookies(
       const GURL& url,
       const net::SiteForCookies& site_for_cookies,
-      bool accept_third_party_cookies);
+      bool accept_third_party_cookies,
+      net::StorageAccessApiStatus storage_access_api_status); // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
 
   // Static version that takes all policy values as parameters, allowing
   // callers to use pre-captured/latched values instead of dynamic lookups.
@@ -61,7 +66,8 @@ class AwCookieAccessPolicy {
       const GURL& url,
       const net::SiteForCookies& site_for_cookies,
       bool accept_cookies,
-      bool accept_third_party_cookies);
+      bool accept_third_party_cookies,
+      net::StorageAccessApiStatus storage_access_api_status); // ALOHA https://app.clickup.com/t/2558578/86ev1nrnd fixed for FedCM
 
  private:
   friend class AwCookieAccessPolicyTest;

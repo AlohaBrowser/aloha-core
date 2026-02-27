@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/android/overscroll_controller_android.h"
 
 #include "base/command_line.h"
@@ -42,12 +44,8 @@ namespace {
 // minimizing the wait required to refresh after the glow has been triggered.
 const float kMinGlowAlphaToDisableRefresh = 0.085f;
 
-std::unique_ptr<EdgeEffect> CreateGlowEdgeEffect(
-    ui::ResourceManager* resource_manager,
-    float dpi_scale) {
-  CHECK(resource_manager, base::NotFatalUntil::M159);
-  return std::make_unique<EdgeEffect>(resource_manager);
-}
+// ALOHA https://app.clickup.com/t/86epwk67q
+// Deleted  CreateGlowEdgeEffect(ui::ResourceManager* resource_manager, float dpi_scale)
 
 std::unique_ptr<OverscrollGlow> CreateGlowEffect(OverscrollGlowClient* client) {
   if (base::CommandLine::ForCurrentProcess()->HasSwitch(
@@ -87,22 +85,24 @@ std::unique_ptr<OverscrollRefresh> CreateRefreshEffect(
 // static
 std::unique_ptr<OverscrollControllerAndroid>
 OverscrollControllerAndroid::CreateForTests(
-    ui::WindowAndroidCompositor* compositor,
+    // ALOHA https://app.clickup.com/t/86epwk67q compositor was removed for pull to refresh
     float dpi_scale,
     std::unique_ptr<ui::OverscrollGlow> glow_effect,
     std::unique_ptr<ui::OverscrollRefresh> refresh_effect) {
   return std::unique_ptr<OverscrollControllerAndroid>(
-      new OverscrollControllerAndroid(compositor, dpi_scale,
+      new OverscrollControllerAndroid(
+                                      // ALOHA https://app.clickup.com/t/86epwk67q compositor was removed for pull to refresh
+                                      dpi_scale,
                                       std::move(glow_effect),
                                       std::move(refresh_effect)));
 }
 
 OverscrollControllerAndroid::OverscrollControllerAndroid(
-    ui::WindowAndroidCompositor* compositor,
+    // ALOHA https://app.clickup.com/t/86epwk67q compositor was removed for pull to refresh
     float dpi_scale,
     std::unique_ptr<ui::OverscrollGlow> glow_effect,
     std::unique_ptr<ui::OverscrollRefresh> refresh_effect)
-    : compositor_(compositor),
+    : // ALOHA https://app.clickup.com/t/86epwk67q compositor was removed for pull to refresh
       dpi_scale_(dpi_scale),
       enabled_(true),
       glow_effect_(std::move(glow_effect)),
@@ -110,16 +110,13 @@ OverscrollControllerAndroid::OverscrollControllerAndroid(
 
 OverscrollControllerAndroid::OverscrollControllerAndroid(
     ui::OverscrollRefreshHandler* overscroll_refresh_handler,
-    ui::WindowAndroidCompositor* compositor,
     float dpi_scale,
     RenderWidgetHost* host)
-    : compositor_(compositor),
-      dpi_scale_(dpi_scale),
+    : dpi_scale_(dpi_scale),
       enabled_(true),
       glow_effect_(CreateGlowEffect(this)),
       refresh_effect_(
           CreateRefreshEffect(overscroll_refresh_handler, dpi_scale_)) {
-  CHECK(compositor_, base::NotFatalUntil::M159);
   if (host) {
     obs_.Observe(host);
   }
@@ -413,11 +410,11 @@ void OverscrollControllerAndroid::OnInputEventAck(
 }
 
 std::unique_ptr<EdgeEffect> OverscrollControllerAndroid::CreateEdgeEffect() {
-  return CreateGlowEdgeEffect(&compositor_->GetResourceManager(), dpi_scale_);
+  return nullptr; // ALOHA https://app.clickup.com/t/86epwk67q compositor was removed for pull to refresh
 }
 
 void OverscrollControllerAndroid::SetNeedsAnimate() {
-  compositor_->SetNeedsAnimate();
+  // ALOHA https://app.clickup.com/t/86epwk67q compositor was removed for pull to refresh
 }
 
 }  // namespace content

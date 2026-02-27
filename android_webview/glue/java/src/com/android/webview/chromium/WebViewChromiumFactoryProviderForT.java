@@ -4,8 +4,6 @@
 
 package com.android.webview.chromium;
 
-import android.webkit.WebViewDelegate;
-
 import org.chromium.android_webview.common.Lifetime;
 
 /**
@@ -25,11 +23,11 @@ import org.chromium.android_webview.common.Lifetime;
  */
 @Lifetime.Singleton
 class WebViewChromiumFactoryProviderForT extends WebViewChromiumFactoryProvider {
-    public static WebViewChromiumFactoryProvider create(WebViewDelegate delegate) {
+    public static WebViewChromiumFactoryProvider create(com.android.webview.chromium.WebViewDelegate delegate) {
         return WebViewChromiumFactoryProvider.create(delegate);
     }
 
-    protected WebViewChromiumFactoryProviderForT(WebViewDelegate delegate) {
+    protected WebViewChromiumFactoryProviderForT(com.android.webview.chromium.WebViewDelegate delegate) {
         super(delegate);
     }
 }

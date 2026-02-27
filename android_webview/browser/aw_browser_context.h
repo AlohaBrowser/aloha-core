@@ -2,9 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef ANDROID_WEBVIEW_BROWSER_AW_BROWSER_CONTEXT_H_
 #define ANDROID_WEBVIEW_BROWSER_AW_BROWSER_CONTEXT_H_
 
+#include <array>
 #include <map>
 #include <memory>
 #include <optional>
@@ -48,6 +51,11 @@ namespace content {
 class ClientHintsControllerDelegate;
 class SSLHostStateDelegate;
 class WebContents;
+
+// ALOHA - FedCM https://app.clickup.com/t/86ewz0pbr
+namespace webid {
+class InMemoryFederatedPermissionContext;
+}  // namespace webid
 }  // namespace content
 
 namespace download {
@@ -109,6 +117,12 @@ class AwBrowserContext : public content::BrowserContext,
   // Get the list of authentication schemes to support.
   static std::vector<std::string> GetAuthSchemes();
 
+  // ALOHA CU-86eqe7rd2 (2f29z75): global "send DNT header" preference. Applies
+  // to every profile — instantiated ones' network contexts immediately, and
+  // lazily-created ones at construction via ConfigureNetworkContextParams (so a
+  // choice made before a profile exists is still honored). UI thread only.
+  static void SetSendDntHeaderForAllProfiles(bool send);
+
   // These methods map to Add methods in visitedlink::VisitedLinkWriter.
   void AddVisitedURLs(const std::vector<GURL>& urls);
 
@@ -140,6 +154,9 @@ class AwBrowserContext : public content::BrowserContext,
   // content::BrowserContext implementation.
   base::FilePath GetPath() const override;
   bool IsOffTheRecord() override;
+  // ALOHA CU-86eqe7rd2: true for the "Incognito" profile (persistent, so
+  // IsOffTheRecord() stays false). See aw_browser_context.cc.
+  bool IsIncognito() override;
   content::DownloadManagerDelegate* GetDownloadManagerDelegate() override;
   content::BrowserPluginGuestManager* GetGuestManager() override;
   storage::SpecialStoragePolicy* GetSpecialStoragePolicy() override;
@@ -163,6 +180,20 @@ class AwBrowserContext : public content::BrowserContext,
   RetrieveInProgressDownloadManager() override;
   content::OriginTrialsControllerDelegate* GetOriginTrialsControllerDelegate()
       override;
+  // ALOHA - FedCM https://app.clickup.com/t/86ewz0pbr
+  // WebView keeps a single BrowserContext and splits public/private mode only
+  // by swapping the active cookie store. The default FedCM permission context
+  // lives on the BrowserContext, so without these overrides the IdP sign-in
+  // status / sharing permissions would be shared across modes: a private-mode
+  // request would read the public sign-in status (with no IdP cookies in the
+  // private store), fail, and reset the status to logged-out -- corrupting the
+  // public session. Partition the context by the active mode, mirroring cookies.
+  content::FederatedIdentityApiPermissionContextDelegate*
+  GetFederatedIdentityApiPermissionContext() override;
+  content::FederatedIdentityAutoReauthnPermissionContextDelegate*
+  GetFederatedIdentityAutoReauthnPermissionContext() override;
+  content::FederatedIdentityPermissionContextDelegate*
+  GetFederatedIdentityPermissionContext() override;
   std::unique_ptr<content::ZoomLevelDelegate> CreateZoomLevelDelegate(
       const base::FilePath& partition_path) override;
   std::string GetExtraHeadersForUrl(const GURL& url) override;
@@ -292,12 +323,24 @@ class AwBrowserContext : public content::BrowserContext,
   friend class AwBrowserContextTest;
   void CreateUserPrefService();
   void MigrateLocalStatePrefs();
+  void MigrateEyeoLocalStatePrefs();
 
   // Return the IO thread client for this browser context that should be used
   // by service workers. This method should never be called except by
   // AwBrowserContextIoThreadHandle#GetServiceWorkerIoThreadClient().
   std::unique_ptr<AwContentsIoThreadClient>
   GetServiceWorkerIoThreadClientThreadSafe();
+
+  // ALOHA - FedCM https://app.clickup.com/t/86ewz0pbr
+  // CU-86eqe7rd2 (U7): a single FedCM permission context per this profile,
+  // lazily created. The three Get*PermissionContext overrides funnel here;
+  // public/private isolation is provided by having a separate profile.
+  content::webid::InMemoryFederatedPermissionContext*
+  GetFederatedPermissionContext();
+
+  // ALOHA CU-86eqe7rd2 (2f29z75): global DNT preference. See
+  // SetSendDntHeaderForAllProfiles().
+  static bool send_dnt_header_;
 
   const std::string name_;
   const base::FilePath relative_path_;
@@ -325,6 +368,12 @@ class AwBrowserContext : public content::BrowserContext,
 
   AwFileSystemAccessPermissionContext fsa_permission_context_;
   SimpleFactoryKey simple_factory_key_;
+
+  // ALOHA - FedCM https://app.clickup.com/t/86ewz0pbr
+  // CU-86eqe7rd2 (U7): a single FedCM permission context per profile, lazily
+  // created in GetFederatedPermissionContext().
+  std::unique_ptr<content::webid::InMemoryFederatedPermissionContext>
+      federated_permission_context_;
 
   // Map of extra headers for specific URLs supplied through the loadUrl(String,
   // Map) API.

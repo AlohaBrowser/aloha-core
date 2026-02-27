@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_BROWSER_NETWORK_SERVICE_CLIENT_H_
 #define CONTENT_BROWSER_NETWORK_SERVICE_CLIENT_H_
 
@@ -136,6 +138,25 @@ class NetworkServiceClient
       network::mojom::IPAddressSpace response_address_space,
       network::mojom::IPAddressSpace client_address_space,
       network::mojom::IPAddressSpace target_address_space) override;
+
+  // ALOHA: https://app.clickup.com/t/86ewr2k2q 
+  void OnHlsDetected(const GURL& url,
+                     int32_t render_process_id,
+                     int32_t request_id,
+                     const std::optional<base::UnguessableToken>& top_frame_id,
+                     const std::string& request_headers) override;
+  // ALOHA https://app.clickup.com/t/z93epaa335
+  void OnHlsManifestLoaded(
+      const GURL& manifest_url,
+      const GURL& original_url,
+      int32_t render_process_id,
+      const std::optional<base::UnguessableToken>& top_frame_id,
+      const std::string& content) override;
+  // ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+  void OnSubtitleResourceDetected(
+      const std::string& kind,
+      int32_t render_process_id,
+      const std::optional<base::UnguessableToken>& top_frame_id) override;
 
   std::unique_ptr<WebRtcConnectionsObserver> webrtc_connections_observer_;
 

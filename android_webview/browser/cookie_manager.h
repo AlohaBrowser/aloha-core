@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef ANDROID_WEBVIEW_BROWSER_COOKIE_MANAGER_H_
 #define ANDROID_WEBVIEW_BROWSER_COOKIE_MANAGER_H_
 
@@ -98,8 +100,31 @@ class CookieManager {
   explicit CookieManager(AwBrowserContext* parent_context);
   ~CookieManager();
 
+  // ALOHA CU-86eqe7rd2 (U2): true if any file-backed cookie store has already
+  // been created in this process (provisional path: cookie API before the
+  // browser starts). Guard for the one-shot cookie-file migration to profiles —
+  // when true, migration is skipped until the next start, so files are not moved
+  // under a live SQLite.
+  static bool AnyCookieStoreCreatedForMigration();
+
   CookieManager(const CookieManager&) = delete;
   CookieManager& operator=(const CookieManager&) = delete;
+
+  // ALOHA https://app.clickup.com/t/2f2f49x
+  void AddCookieFromMigration(JNIEnv* env,
+                              const std::string& name,
+                              const std::string& value,
+                              const std::string& domain,
+                              const std::string& path,
+                              int64_t creation,
+                              int64_t expiration,
+                              int64_t last_access,
+                              bool secure,
+                              bool httponly,
+                              int32_t same_site,
+                              int32_t priority,
+                              int32_t source_scheme,
+                              base::RepeatingCallback<void(std::string)> error_callback);
 
   // Passes a |cookie_manager_remote|, which this will use for CookieManager
   // APIs going forward. Only called in the Network Service path, with the
@@ -168,6 +193,15 @@ class CookieManager {
  private:
   FRIEND_TEST_ALL_PREFIXES(CookieManagerTest,
                            DeferredProvisionalStoreCloseInInvokeQueue);
+
+  friend class base::NoDestructor<CookieManager>;
+
+  // ALOHA https://app.clickup.com/t/2f2f49x
+  void AddCookieFromMigrationImpl(std::unique_ptr<net::CanonicalCookie> cookie, GURL source_url,
+                                base::RepeatingCallback<void(std::string)> error_callback);
+  void OnSetCanonicalCookieForMigration(
+    base::RepeatingCallback<void(std::string)> error_callback,
+    GURL source_url, net::CookieAccessResult result);
 
   // Returns the CookieStore, creating it if necessary. This must only be called
   // on the CookieStore TaskRunner.

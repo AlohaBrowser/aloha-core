@@ -420,29 +420,22 @@ def _AnalyzeInternal(
         # Oreo and above, compilation_filter=speed-profile
         dex_multiplier = speed_profile_dex_multiplier
 
-    total_apk_size = os.path.getsize(apk_path)
-    for member in apk_contents:
-        filename = member.filename
-        # Undo asset path suffixing. https://crbug.com/357131361
-        if filename.endswith('+'):
-            suffix_idx = filename.rfind('+', 0, len(filename) - 1)
-            if suffix_idx != -1:
-                filename = filename[:suffix_idx]
-
-        if filename.endswith('/'):
-            continue
-        if filename.endswith('.so'):
-            basename = posixpath.basename(filename)
-            should_extract_lib = basename.startswith('lib')
-            native_code.AddZipInfo(
-                member, extracted_multiplier=int(should_extract_lib)
-            )
-        elif filename.startswith('classes') and filename.endswith('.dex'):
-            # Android P+, uncompressed dex does not need to be extracted.
-            compressed = member.compress_type != zipfile.ZIP_STORED
-            multiplier = dex_multiplier
-            if not compressed and sdk_version >= 28:
-                multiplier -= 1
+  total_apk_size = os.path.getsize(apk_path)
+  for member in apk_contents:
+    filename = member.filename
+    if filename.endswith('/'):
+      continue
+    if filename.endswith('.so'):
+      basename = posixpath.basename(filename)
+      should_extract_lib = basename.startswith('lib')
+      native_code.AddZipInfo(member,
+                             extracted_multiplier=int(should_extract_lib))
+    elif filename.startswith('classes') and filename.endswith('.dex'):
+      # Android P+, uncompressed dex does not need to be extracted.
+      compressed = member.compress_type != zipfile.ZIP_STORED
+      multiplier = dex_multiplier
+      if not compressed and sdk_version >= 28:
+        multiplier -= 1
 
             java_code.AddZipInfo(member, extracted_multiplier=multiplier)
         elif re.search(_RE_NON_LANGUAGE_PAK, filename):

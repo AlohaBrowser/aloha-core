@@ -1,6 +1,12 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
 
 #include "android_webview/browser/aw_browser_context.h"
 
@@ -60,6 +66,7 @@
 #include "base/task/thread_pool.h"
 #include "base/threading/thread_restrictions.h"
 #include "base/timer/elapsed_timer.h"
+#include "components/adblock/core/common/adblock_prefs.h"
 #include "components/autofill/core/common/autofill_prefs.h"
 #include "components/cdm/browser/media_drm_storage_impl.h"
 #include "components/download/public/common/in_progress_download_manager.h"
@@ -85,6 +92,8 @@
 #include "components/user_prefs/user_prefs.h"
 #include "components/visitedlink/browser/partitioned_visitedlink_writer.h"
 #include "components/visitedlink/browser/visitedlink_writer.h"
+// ALOHA - FedCM https://app.clickup.com/t/86ewz0pbr
+#include "content/browser/webid/in_memory_federated_permission_context.h"
 #include "content/public/browser/browser_task_traits.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/download_request_utils.h"
@@ -273,6 +282,7 @@ base::FilePath AwBrowserContext::GetCookieStorePath() {
 
 // static
 void AwBrowserContext::RegisterPrefs(PrefRegistrySimple* registry) {
+  adblock::common::prefs::RegisterProfilePrefs(registry);
   safe_browsing::RegisterProfilePrefs(registry);
 
   // Register to persist the latest prefetch info, ensuring `AwPrefetchManager`
@@ -326,6 +336,11 @@ void AwBrowserContext::CreateUserPrefService() {
   persistent_prefs.insert(prefs::kClientHintsCachedPerOriginMap);
   http_cache_manager_->InsertPersistentPrefs(&persistent_prefs);
 
+  // These prefs go in the JsonPrefStore, and will persist across runs.
+  for (auto& pref_name : adblock::common::prefs::GetPrefs()) {
+    persistent_prefs.insert(pref_name.data());
+  }
+
   // Register to persist the latest prefetch info, ensuring `AwPrefetchManager`
   // can initialize `PrePrefetchService` with these as optimization hints for
   // the likely initial PrePrefetch request.
@@ -367,6 +382,7 @@ void AwBrowserContext::CreateUserPrefService() {
 
   if (IsDefaultBrowserContext()) {
     MigrateLocalStatePrefs();
+    MigrateEyeoLocalStatePrefs();
   }
 
   user_prefs::UserPrefs::Set(this, user_pref_service_.get());
@@ -381,6 +397,17 @@ void AwBrowserContext::MigrateLocalStatePrefs() {
   user_pref_service_->Set(cdm::prefs::kMediaDrmStorage,
                           local_state->GetValue(cdm::prefs::kMediaDrmStorage));
   local_state->ClearPref(cdm::prefs::kMediaDrmStorage);
+}
+
+void AwBrowserContext::MigrateEyeoLocalStatePrefs() {
+  PrefService* local_state = AwBrowserProcess::GetInstance()->local_state();
+  for (auto& pref_name : adblock::common::prefs::GetPrefs()) {
+    if (local_state->HasPrefPath(pref_name.data())) {
+      user_pref_service_->Set(pref_name.data(),
+                              local_state->GetValue(pref_name.data()));
+      local_state->ClearPref(pref_name.data());
+    }
+  }
 }
 
 // static
@@ -409,6 +436,7 @@ AwQuotaManagerBridge* AwBrowserContext::GetQuotaManagerBridge() {
   return quota_manager_bridge_.get();
 }
 
+
 AwContentRestrictionManagerClient*
 AwBrowserContext::GetContentRestrictionManagerClient() {
   DCHECK(content_restriction_manager_client_);
@@ -426,6 +454,7 @@ CookieManager* AwBrowserContext::GetCookieManager() {
     // For the default context, the CookieManager isn't owned by the context,
     // and may be initialized externally.
     CHECK(!cookie_manager_);
+    base::ScopedAllowBlocking scoped_allow_blocking; // ALOHA dcheck crush fix
     return CookieManager::GetDefaultInstance();
   } else {
     // Non-default contexts own their cookie managers
@@ -445,6 +474,14 @@ base::FilePath AwBrowserContext::GetPath() const {
 bool AwBrowserContext::IsOffTheRecord() {
   // Android WebView does not support off the record profile yet.
   return false;
+}
+
+// ALOHA CU-86eqe7rd2: the Incognito profile is a persistent (non-off-the-record)
+// profile, so IsOffTheRecord() is false. Report incognito by profile identity
+// instead — this drives the on-screen keyboard's private indicator
+// (WebContentsAndroid::IsIncognito → ImeAdapterImpl).
+bool AwBrowserContext::IsIncognito() {
+  return name_ == AwBrowserContextStore::kIncognitoContextName;
 }
 
 content::DownloadManagerDelegate*
@@ -543,6 +580,34 @@ AwBrowserContext::GetOriginTrialsControllerDelegate() {
   return origin_trials_controller_delegate_.get();
 }
 
+// ALOHA - FedCM https://app.clickup.com/t/86ewz0pbr
+// CU-86eqe7rd2 (U7): one InMemoryFederatedPermissionContext per AwBrowserContext
+// (= per profile). public/private partitioning is now provided by simply having
+// a separate profile, so the per-mode array is no longer needed.
+content::webid::InMemoryFederatedPermissionContext*
+AwBrowserContext::GetFederatedPermissionContext() {
+  if (!federated_permission_context_) {
+    federated_permission_context_ =
+        std::make_unique<content::webid::InMemoryFederatedPermissionContext>();
+  }
+  return federated_permission_context_.get();
+}
+
+content::FederatedIdentityApiPermissionContextDelegate*
+AwBrowserContext::GetFederatedIdentityApiPermissionContext() {
+  return GetFederatedPermissionContext();
+}
+
+content::FederatedIdentityAutoReauthnPermissionContextDelegate*
+AwBrowserContext::GetFederatedIdentityAutoReauthnPermissionContext() {
+  return GetFederatedPermissionContext();
+}
+
+content::FederatedIdentityPermissionContextDelegate*
+AwBrowserContext::GetFederatedIdentityPermissionContext() {
+  return GetFederatedPermissionContext();
+}
+
 std::unique_ptr<content::ZoomLevelDelegate>
 AwBrowserContext::CreateZoomLevelDelegate(
     const base::FilePath& partition_path) {
@@ -585,6 +650,26 @@ void AwBrowserContext::SetExtendedReportingAllowed(bool allowed) {
 
 // TODO(amalova): Make sure NetworkContextParams is configured correctly when
 // off-the-record
+// ALOHA CU-86eqe7rd2 (2f29z75): global DNT preference, applied to every profile.
+bool AwBrowserContext::send_dnt_header_ = false;
+
+// static
+void AwBrowserContext::SetSendDntHeaderForAllProfiles(bool send) {
+  DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
+  send_dnt_header_ = send;
+  // Apply immediately to already-instantiated profiles' live network contexts.
+  // Lazily-created profiles pick it up at construction via
+  // ConfigureNetworkContextParams (send_dnt_header_ above).
+  AwBrowserContextStore::GetInstance()->ForEachInstantiatedContext(
+      [send](AwBrowserContext& context) {
+        auto* net_ctx =
+            context.GetDefaultStoragePartition()->GetNetworkContext();
+        if (net_ctx) {
+          net_ctx->SetSendDNTHeader(send);
+        }
+      });
+}
+
 void AwBrowserContext::ConfigureNetworkContextParams(
     bool in_memory,
     const base::FilePath& relative_partition_path,
@@ -592,6 +677,10 @@ void AwBrowserContext::ConfigureNetworkContextParams(
     cert_verifier::mojom::CertVerifierCreationParams*
         cert_verifier_creation_params) {
   context_params->user_agent = android_webview::GetUserAgent();
+
+  // ALOHA CU-86eqe7rd2 (2f29z75): carry the global DNT preference so a
+  // lazily-created profile honors a DNT choice made before it existed.
+  context_params->send_dnt_header = send_dnt_header_;
 
   // TODO(ntfschr): set this value to a proper value based on the user's
   // preferred locales (http://crbug.com/898555).

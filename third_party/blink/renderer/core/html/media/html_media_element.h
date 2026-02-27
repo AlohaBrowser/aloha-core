@@ -24,6 +24,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_HTML_MEDIA_HTML_MEDIA_ELEMENT_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_HTML_MEDIA_HTML_MEDIA_ELEMENT_H_
 
@@ -31,6 +33,8 @@
 #include <memory>
 #include <optional>
 #include <variant>
+// ALOHA https://app.clickup.com/t/861m81pn3
+#include <atomic>
 
 #include "base/memory/raw_ptr.h"
 #include "base/synchronization/lock.h"
@@ -66,6 +70,9 @@
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 #include "third_party/webrtc_overrides/low_precision_timer.h"
+
+// ALOHA https://app.clickup.com/t/2uat2t4
+#include "third_party/blink/public/mojom/frame/frame.mojom-forward.h"
 
 namespace gfx {
 class Size;
@@ -176,6 +183,9 @@ class CORE_EXPORT HTMLMediaElement
 
   bool SupportsSave() const;
   bool SupportsLoop() const;
+
+  // ALOHA https://app.clickup.com/t/2f2eyt8, https://app.clickup.com/t/2hxwa9w and https://app.clickup.com/t/2uat2t4
+  media::mojom::blink::MediaPlayerIdPtr GetOrCreateMediaPlayerId();
 
   cc::Layer* CcLayer() const;
 
@@ -333,11 +343,54 @@ class CORE_EXPORT HTMLMediaElement
   void ConfigureTextTrackDisplay();
   void UpdateTextTrackDisplay();
 
+  // ALOHA: subtitles. Asks the engine to draw the subtitle track the page keeps
+  // in "hidden" mode, for as long as the embedder's fake fullscreen lasts. The
+  // page renders such a track itself, into a node next to the <video>, and only
+  // the <video> goes to the top layer -- so that node ends up behind the
+  // fullscreen backdrop. Cues drawn by the engine live in the video's own UA
+  // shadow root and travel with it. No-op unless exactly this case applies.
+  void ForceSubtitlesVisible();
+  // ALOHA https://app.clickup.com/t/2558578/z93epac4kc. Fills the text-track half of |report| and sends it.
+  void SendAlohaSubtitleReport(
+      media::mojom::blink::SubtitleProbeReportPtr report);
+  // ALOHA: subtitles. Retry hook for the above. The state at fullscreen entry
+  // is a race: the page may switch subtitles on after we looked, and a track's
+  // VTT may still be loading, so a one-shot check at entry misses both and the
+  // subtitles stay gone for the whole session.
+  void MaybeForceSubtitlesVisible();
+  // ALOHA: subtitles. Forgets the borrowed track once it has left textTracks,
+  // so the retry path can take over whatever replaced it.
+  void DropForcedTrackIfGone();
+  // ALOHA: subtitles. Overrides, or gives back, the page's control over the
+  // engine's cue container. Idempotent, and a no-op until the container is
+  // created.
+  void SetCueContainerOverridden(bool overridden);
+  // ALOHA: subtitles. Whether the engine is the only one left able to draw the
+  // subtitles, and so should keep drawing them after fullscreen ends.
+  bool ShouldKeepDrawingCues() const;
+  // ALOHA: subtitles. The track the engine is drawing right now, or null.
+  TextTrack* FirstRenderedTrack() const;
+  // ALOHA: subtitles. Puts the track forced by ForceSubtitlesVisible() back to
+  // "hidden". Idempotent, and a no-op once the page has taken the track over.
+  void RestoreSubtitlesMode();
+
+  // ALOHA: subtitles. Height, in physical pixels, of the strip at the bottom of
+  // the player covered by the embedder's own controls overlay. Read during
+  // layout of the cue boxes (ComputeControlsRect in
+  // vtt_cue_layout_algorithm.cc), which keeps cues above it the same way it
+  // does for the built-in MediaControls.
+  int MediaControlsBottomInset() const { return media_controls_bottom_inset_; }
+
   double LastSeekTime() const { return last_seek_time_; }
   void TextTrackReadyStateChanged(TextTrack*);
 
   void TextTrackModeChanged(TextTrack*);
   void DisableAutomaticTextTrackSelection();
+
+  // ALOHA: subtitles. Schedules a push of the current text-track list to all
+  // MediaPlayerObserver remotes in the browser process. Bursts of track
+  // mutations are coalesced into a single snapshot.
+  void NotifyTextTracksChanged();
 
   // EventTarget function.
   // Both Node (via HTMLElement) and ExecutionContextLifecycleStateObserver
@@ -457,6 +510,9 @@ class CORE_EXPORT HTMLMediaElement
 
   // media::RemotePlaybackClientWrapper overrides:
   std::string GetActivePresentationId() override;
+
+ // ALOHA https://app.clickup.com/t/2hxwa9w
+  void SetMediaControlsIsHidden(bool hidden) { media_controls_is_hidden_ = hidden; }
 
   // Returns the execution context for player creation. This will be the
   // execution context of the opener document if available, otherwise the
@@ -660,6 +716,9 @@ class CORE_EXPORT HTMLMediaElement
   void OnFrameHidden() override;
   void OnFrameShown() override;
 
+  // ALOHA https://app.clickup.com/t/2rqdtxz
+  void OnMediaError(media::PipelineStatus pipeline_status) override;
+
   // Returns a reference to the mojo remote for the MediaPlayerHost interface,
   // requesting it first from the BrowserInterfaceBroker if needed. It is an
   // error to call this method before having access to the document's frame.
@@ -686,6 +745,19 @@ class CORE_EXPORT HTMLMediaElement
       const media::PictureInPictureEventsInfo::AutoPipInfo&
           auto_picture_in_picture_info) override;
   void RequestSaveVideoFrame() override;
+  void RequestFullScreenForElement() override {} // ALOHA https://app.clickup.com/t/86eqvfpwg
+  // ALOHA: subtitles. Sets the mode of the text track at |track_index|.
+  void SetTextTrackMode(int32_t track_index,
+                        media::mojom::blink::TextTrackMode mode) override;
+  // ALOHA: subtitles. Height of the embedder's controls overlay in physical
+  // pixels, measured from the bottom edge of the player.
+  void SetMediaControlsBottomInset(int32_t bottom_inset_px) override;
+  // ALOHA: subtitles. The text track container, or null when there is none —
+  // unlike EnsureTextTrackContainer(), never instantiates one.
+  TextTrackContainer* GetTextTrackContainerIfExists() const;
+  // ALOHA: subtitles. Body of the coalesced task posted by
+  // NotifyTextTracksChanged().
+  void SendTextTracksSnapshot();
 
   void LoadTimerFired(TimerBase*);
   void ProgressEventTimerFired();
@@ -797,6 +869,9 @@ class CORE_EXPORT HTMLMediaElement
 
   void AudioTracksTimerFired(TimerBase*);
 
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  blink::KURL GetSourceUrl() const;
+
   void ScheduleResolvePlayPromises();
   void ScheduleRejectPlayPromises(PlayPromiseError);
   void ScheduleNotifyPlaying();
@@ -832,6 +907,8 @@ class CORE_EXPORT HTMLMediaElement
   // bind to.
   mojo::PendingAssociatedReceiver<media::mojom::blink::MediaPlayerObserver>
   AddMediaPlayerObserverAndPassReceiver();
+
+  void OnMediaPlayingCallback(bool should_background_play);
 
   // Timers used to schedule one-shot tasks with no delay.
   HeapTaskRunnerTimer<HTMLMediaElement> load_timer_;
@@ -949,6 +1026,8 @@ class CORE_EXPORT HTMLMediaElement
 
   bool text_tracks_visible_ : 1 = false;
   bool should_perform_automatic_track_selection_ : 1 = true;
+  // ALOHA: subtitles. A snapshot task is already queued.
+  bool text_tracks_snapshot_pending_ : 1 = false;
 
   bool tracks_are_ready_ : 1 = true;
   bool processing_preference_change_ : 1 = false;
@@ -958,6 +1037,18 @@ class CORE_EXPORT HTMLMediaElement
   // Set if the user has used the context menu to set the visibility of the
   // controls.
   std::optional<bool> user_wants_controls_visible_;
+
+  // ALOHA: subtitles. Bottom strip of the player covered by the embedder's own
+  // controls, in physical pixels. 0 means the cue area spans the whole player.
+  int media_controls_bottom_inset_ = 0;
+
+  // ALOHA: subtitles. The track ForceSubtitlesVisible() switched to "showing",
+  // to be put back on the way out of fullscreen. Null when we forced nothing.
+  Member<TextTrack> forced_showing_track_;
+  // ALOHA: subtitles. We are inside the fullscreen that hides the page's own
+  // controls, so a track that only becomes usable later is still worth taking
+  // over. Cleared by RestoreSubtitlesMode().
+  bool subtitles_fullscreen_active_ = false;
 
   // Whether or not |web_media_player_| should apply pitch adjustments at
   // playback raters other than 1.0.
@@ -1125,6 +1216,15 @@ class CORE_EXPORT HTMLMediaElement
       media_player_receiver_set_;
 
   bool is_disposing_ = false;
+
+  // ALOHA https://app.clickup.com/t/2hxwa9w
+  bool media_controls_is_hidden_ = false;
+
+  // ALOHA https://app.clickup.com/t/2uat2t4
+  media::mojom::blink::MediaPlayerIdPtr aloha_player_id_;
+
+  // ALOHA https://app.clickup.com/t/2v1qh1q
+  bool force_unmute_autoplay_ {false};
 };
 
 template <>

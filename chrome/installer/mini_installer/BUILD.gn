@@ -242,6 +242,9 @@ action("mini_installer_archive") {
     }
     if (!use_v8_context_snapshot || include_both_v8_snapshots) {
       inputs += [ "$root_out_dir/snapshot_blob.bin" ]
+
+      # v8 156 made //v8 -> v8_snapshot private, so depend on the generator.
+      deps += [ "//v8:run_mksnapshot_default" ]
       args += [ "--include_snapshotblob=1" ]
     }
   }

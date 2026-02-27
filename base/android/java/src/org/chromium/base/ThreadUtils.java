@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
 package org.chromium.base;
 
 import android.os.Handler;
@@ -60,10 +61,7 @@ public class ThreadUtils {
         }
 
         public void resetThreadId() {
-            if (BuildConfig.ENABLE_ASSERTS) {
-                mThread = Thread.currentThread();
-                mOriginThrowable = new Throwable("vvv Originally created here vvv");
-            }
+            mThread = Thread.currentThread(); // ALOHA  Chromium fix it  https://app.clickup.com/t/86enyd7yq
         }
 
         /**

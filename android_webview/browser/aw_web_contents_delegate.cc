@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/aw_web_contents_delegate.h"
 
 #include <utility>
@@ -40,8 +42,14 @@
 #include "third_party/jni_zero/default_conversions.h"
 #include "url/gurl.h"
 
+// ALOHA https://app.clickup.com/t/861m4jwng
+#include "android_webview/browser/aw_contents_client_bridge.h"
+
 // Must come after all headers that specialize FromJniType() / ToJniType().
 #include "android_webview/browser_jni_headers/AwWebContentsDelegate_jni.h"
+
+//ALOHA https://app.clickup.com/t/86ev1nrnd
+#include "aloha/src/native/aloha_utilities.h"
 
 using base::android::AttachCurrentThread;
 using base::android::ConvertUTF16ToJavaString;
@@ -154,7 +162,9 @@ WebContents* AwWebContentsDelegate::AddNewContents(
 
   if (java_delegate.obj()) {
     create_popup = Java_AwWebContentsDelegate_addNewContents(
-        env, java_delegate, is_dialog, user_gesture);
+        env, java_delegate, is_dialog, user_gesture,
+        ConvertUTF8ToJavaString(env, target_url.spec()), // ALOHA https://app.clickup.com/t/86epgj787 provide targetUrl
+        aloha::IsGoogleAuthRequire3PCookies(source->GetURL(), target_url)); // ALOHA https://app.clickup.com/t/86ev1nrnd Old google auth flow requires 3P cookies
   }
 
   if (create_popup) {
@@ -394,6 +404,11 @@ bool AwWebContentsDelegate::isModalContextMenu() const {
   }
 
   return !Java_AwWebContentsDelegate_isPopupSupported(env, java_delegate);
+}
+
+// ALOHA https://app.clickup.com/t/861m4jwng
+aloha::BromiumClientBridge* AwWebContentsDelegate::BromiumBridge(content::WebContents* web_contents) const {
+  return android_webview::AwContentsClientBridge::FromWebContents(web_contents);
 }
 
 scoped_refptr<content::FileSelectListener>

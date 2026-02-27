@@ -31,7 +31,7 @@ EmptyNetworkManager::EmptyNetworkManager(
 EmptyNetworkManager::~EmptyNetworkManager() {
   DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
   if (network_manager_for_signaling_thread_ != nullptr &&
-      subscribe_networks_changed_called_) {
+      subscribe_networks_changed_called_) { 
     network_manager_for_signaling_thread_->UnsubscribeNetworksChanged(this);
   }
 }

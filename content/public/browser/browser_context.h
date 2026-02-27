@@ -397,6 +397,14 @@ class CONTENT_EXPORT BrowserContext : public base::SupportsUserData {
   // also off the record.
   virtual bool IsOffTheRecord() = 0;
 
+  // ALOHA CU-86eqe7rd2: whether this context should be treated as incognito for
+  // embedder/UI purposes (e.g. the on-screen keyboard's private indicator and
+  // IME_FLAG_NO_PERSONALIZED_LEARNING). Defaults to IsOffTheRecord(); embedders
+  // whose incognito is a persistent (non-off-the-record) profile — Android
+  // WebView Bromium — override this. Do NOT gate storage/persistence on this;
+  // for that keep using IsOffTheRecord().
+  virtual bool IsIncognito();
+
   // Returns the DownloadManagerDelegate for this context. This will be called
   // once per context. The embedder owns the delegate and is responsible for
   // ensuring that it outlives DownloadManager. Note in particular that it is

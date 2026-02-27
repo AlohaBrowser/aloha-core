@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/network_service_client.h"
 
 #include <optional>
@@ -341,5 +343,38 @@ void NetworkServiceClient::OnUrlLoaderConnectedToLocalNetwork(
     network::mojom::IPAddressSpace response_address_space,
     network::mojom::IPAddressSpace client_address_space,
     network::mojom::IPAddressSpace target_address_space) {}
+
+// ALOHA: https://app.clickup.com/t/86ewr2k2q
+void NetworkServiceClient::OnHlsDetected(const GURL& url,
+                                           int32_t render_process_id,
+                                           int32_t request_id,
+                                           const std::optional<base::UnguessableToken>& top_frame_id,
+                                           const std::string& request_headers) {
+  DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
+  // Move to ContentBrowserClient to avoid dependency on HLSDetector in NetworkServiceClient
+  GetContentClient()->browser()->OnHlsDetected(url, render_process_id, 
+                  request_id, top_frame_id, request_headers);
+}
+
+// ALOHA https://app.clickup.com/t/z93epaa335
+void NetworkServiceClient::OnHlsManifestLoaded(
+    const GURL& manifest_url,
+    const GURL& original_url,
+    int32_t render_process_id,
+    const std::optional<base::UnguessableToken>& top_frame_id,
+    const std::string& content) {
+  DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
+  GetContentClient()->browser()->OnHlsManifestLoaded(
+      manifest_url, original_url, render_process_id, top_frame_id, content);
+}
+
+// ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+void NetworkServiceClient::OnSubtitleResourceDetected(
+    const std::string& kind,
+    int32_t render_process_id,
+    const std::optional<base::UnguessableToken>& top_frame_id) {
+  GetContentClient()->browser()->OnSubtitleResourceDetected(
+      kind, render_process_id, top_frame_id);
+}
 
 }  // namespace content

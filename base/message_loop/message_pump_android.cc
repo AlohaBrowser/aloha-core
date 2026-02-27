@@ -24,6 +24,7 @@
 #include "base/android/yield_to_looper_checker.h"
 #include "base/check.h"
 #include "base/check_op.h"
+#include "base/feature_list.h"
 #include "base/message_loop/io_watcher.h"
 #include "base/message_loop/message_pump_wakeup_counter.h"
 #include "base/notreached.h"
@@ -47,6 +48,17 @@ using base::android::YieldToLooperChecker;
 namespace base {
 
 namespace {
+
+// ALOHA https://app.clickup.com/t/z93epaf2nz : yield the UI pump to the Java
+// Looper by time, so an IPC flood (console.* storm) cannot starve input (ANR).
+BASE_FEATURE(kYieldToLooperByTime, base::FEATURE_ENABLED_BY_DEFAULT);
+
+// One Choreographer frame at 60 Hz. ANR timeout is 5 s, so this is generous.
+const base::FeatureParam<int> kYieldToLooperIntervalMillisParam{
+    &kYieldToLooperByTime, "interval_ms", 16};
+
+// Zero disables the yield; also the state before features::Init().
+TimeDelta g_yield_to_looper_interval;
 
 // https://crbug.com/873588. The stack may not be aligned when the ALooper calls
 // into our code due to the inconsistent ABI on older Android OS versions.
@@ -490,10 +502,24 @@ void MessagePumpAndroid::OnNonDelayedLooperCallback() {
   DoNonDelayedLooperWork(do_idle_work);
 }
 
+// static
+void MessagePumpAndroid::InitializeFeatures() {
+  // ALOHA: cached here because the UI pump runs before FeatureList exists.
+  g_yield_to_looper_interval =
+      FeatureList::IsEnabled(kYieldToLooperByTime)
+          ? Milliseconds(kYieldToLooperIntervalMillisParam.Get())
+          : TimeDelta();
+}
+
 void MessagePumpAndroid::DoNonDelayedLooperWork(bool do_idle_work) {
   // Note: We can't skip DoWork() even if |do_idle_work| is true here (i.e. no
   // additional ScheduleWork() since yielding to native) as delayed tasks might
   // have come in and we need to re-sample |next_work_info|.
+
+  // ALOHA: see kYieldToLooperByTime. Null when the yield is off.
+  const TimeTicks run_start =
+      (is_type_ui_ && !g_yield_to_looper_interval.is_zero()) ? TimeTicks::Now()
+                                                             : TimeTicks();
 
   // Runs all application tasks scheduled to run.
   Delegate::NextWorkInfo next_work_info;
@@ -519,6 +545,14 @@ void MessagePumpAndroid::DoNonDelayedLooperWork(bool do_idle_work) {
       // cached to throttle polling the input channel.
       if (InputHintChecker::HasInput()) {
         InputHintChecker::GetInstance().set_is_after_input_yield(true);
+        ScheduleWork();
+        return;
+      }
+
+      // ALOHA: time-based yield, see kYieldToLooperByTime. |recent_now| is
+      // null on the immediate path, so the clock is sampled explicitly.
+      if (!run_start.is_null() &&
+          TimeTicks::Now() - run_start >= g_yield_to_looper_interval) {
         ScheduleWork();
         return;
       }

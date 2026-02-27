@@ -11,6 +11,7 @@
 #include <unordered_set>
 
 #include "base/memory/raw_ptr.h"
+#include "base/memory/weak_ptr.h"  // ALOHA https://app.clickup.com/t/86exgxd2t
 #include "content/public/browser/reload_type.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "third_party/blink/public/mojom/favicon/favicon_url.mojom-forward.h"
@@ -54,8 +55,14 @@ class IconHelper : public content::WebContentsObserver {
       const std::vector<blink::mojom::FaviconURLPtr>& candidates,
       blink::mojom::FaviconUpdateReason reason) override;
   void DidStartNavigation(content::NavigationHandle* navigation) override;
+  // ALOHA https://app.clickup.com/t/86exgxd2t
+  void DidFinishNavigation(content::NavigationHandle* navigation) override;
 
-  void DownloadFaviconCallback(
+  // ALOHA https://app.clickup.com/t/86exgxd2t : |document_scoped| dies on the
+  // next cross-document commit, |lifetime| only with the IconHelper (404s).
+  static void DownloadFaviconCallback(
+      base::WeakPtr<IconHelper> document_scoped,
+      base::WeakPtr<IconHelper> lifetime,
       int id,
       int http_status_code,
       const GURL& image_url,
@@ -63,6 +70,10 @@ class IconHelper : public content::WebContentsObserver {
       const std::vector<gfx::Size>& original_bitmap_sizes);
 
  private:
+  // ALOHA https://app.clickup.com/t/86exgxd2t
+  void OnFaviconDownloaded(const GURL& image_url,
+                           const std::vector<SkBitmap>& bitmaps,
+                           const std::vector<gfx::Size>& original_bitmap_sizes);
   void MarkUnableToDownloadFavicon(const GURL& icon_url);
   bool WasUnableToDownloadFavicon(const GURL& icon_url) const;
   void ClearUnableToDownloadFavicons();
@@ -71,6 +82,12 @@ class IconHelper : public content::WebContentsObserver {
 
   using MissingFaviconURLHash = size_t;
   std::unordered_set<MissingFaviconURLHash> missing_favicon_urls_;
+
+  // ALOHA https://app.clickup.com/t/86exgxd2t : |weak_factory_| is invalidated
+  // on every cross-document commit in the primary main frame (stale favicon
+  // downloads); |lifetime_weak_factory_| never is (404 negative cache).
+  base::WeakPtrFactory<IconHelper> weak_factory_{this};
+  base::WeakPtrFactory<IconHelper> lifetime_weak_factory_{this};
 };
 
 }  // namespace android_webview

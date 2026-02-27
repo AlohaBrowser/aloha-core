@@ -1,6 +1,10 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
 
 import("//build/config/chrome_build.gni")
 import("//chrome/browser/buildflags.gni")
@@ -438,6 +442,7 @@ group("dev_ui_resources") {
     "suggest_internals:resources",
     "usb_internals:resources",
     "//components/actor/core/internals/resources",
+    "//components/adblock/content/resources/adblock_internals:resources",
     "//components/autofill/core/browser/autofill_and_password_manager_internals:resources",
     "//components/commerce/core/internals/resources",
     "//components/data_sharing/data_sharing_internals/resources",
@@ -531,6 +536,7 @@ repack("dev_ui_paks") {
     "$root_gen_dir/chrome/suggest_internals_resources.pak",
     "$root_gen_dir/chrome/usb_internals_resources.pak",
     "$root_gen_dir/components/actor_internals_resources.pak",
+    "$root_gen_dir/components/adblock_internals_resources.pak",
     "$root_gen_dir/components/autofill_and_password_manager_internals_resources.pak",
     "$root_gen_dir/components/commerce_internals_resources.pak",
     "$root_gen_dir/components/connectors_internals_resources.pak",

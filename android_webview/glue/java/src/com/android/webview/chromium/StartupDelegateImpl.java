@@ -8,7 +8,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.os.Build;
 import android.webkit.SelectionActionMenuClient;
-import android.webkit.WebViewDelegate;
+import com.android.webview.chromium.WebViewDelegate;  // ALOHA
 
 import org.chromium.android_webview.AwBrowserProcess;
 import org.chromium.android_webview.DualTraceEvent;
@@ -157,8 +157,10 @@ class StartupDelegateImpl implements StartupController.Delegate {
 
     private boolean shouldForceNativeSandboxedServices() {
         AconfigFlaggedApiDelegate aconfigDelegate = AconfigFlaggedApiDelegate.getInstance();
-        return aconfigDelegate != null
-                && aconfigDelegate.isNativeWebViewZygoteEnabled(mWebViewDelegate);
+        /* ALOHA: base method wants framework android.webkit.WebViewDelegate; our
+           mWebViewDelegate is com.android.webview.chromium.WebViewDelegate. Delegate is
+           null in our build (no ServiceLoader impl), so the arg is never read — pass null. */
+        return aconfigDelegate != null && aconfigDelegate.isNativeWebViewZygoteEnabled(null);
     }
 
     @Override
@@ -173,14 +175,8 @@ class StartupDelegateImpl implements StartupController.Delegate {
 
     @Override
     public @Nullable SelectionActionMenuClientWrapper getSelectionActionMenuClient() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
-            SelectionActionMenuClient client =
-                    mWebViewDelegate.getSelectionActionMenuClient(
-                            ContextUtils.getApplicationContext());
-            if (client != null) {
-                return new SelectionActionMenuClientAdapter(client);
-            }
-        }
+        /* ALOHA: upstream calls framework android.webkit.WebViewDelegate#getSelectionActionMenuClient;
+           our com.android.webview.chromium.WebViewDelegate has no such method — return null. */
         return null;
     }
 

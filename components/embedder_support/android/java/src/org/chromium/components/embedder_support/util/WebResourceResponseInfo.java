@@ -88,7 +88,10 @@ public class WebResourceResponseInfo {
         // is deleted it also closes the original java input stream. This
         // side-effect can result in unexpected behavior, e.g. trying to read
         // from a closed stream.
-        assert !mStreamTransferredToNative;
+
+        if (mStreamTransferredToNative) // ALOHA https://app.clickup.com/t/86eu4d8rf
+            return null;
+
         mStreamTransferredToNative = true;
         InputStream toTransfer = mData;
         mData = null;

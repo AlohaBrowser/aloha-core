@@ -20,6 +20,9 @@ struct CanAccessCookiesTestCase {
   bool accept_cookies;
   bool accept_third_party_cookies;
   PrivacySetting expected;
+  // ALOHA https://app.clickup.com/t/86ev1nrnd
+  net::StorageAccessApiStatus storage_access_api_status =
+      net::StorageAccessApiStatus::kNone;
 };
 
 class AwCookieAccessPolicyTableTest
@@ -33,7 +36,8 @@ TEST_P(AwCookieAccessPolicyTableTest, CanAccessCookies) {
 
   EXPECT_EQ(AwCookieAccessPolicy::CanAccessCookies(
                 url, site_for_cookies, test_case.accept_cookies,
-                test_case.accept_third_party_cookies),
+                test_case.accept_third_party_cookies,
+                test_case.storage_access_api_status),
             test_case.expected);
 }
 
@@ -73,6 +77,23 @@ INSTANTIATE_TEST_SUITE_P(
         CanAccessCookiesTestCase{
             "https://other.com", "https://example.com",
             /*accept_cookies=*/true, /*accept_third_party_cookies=*/false,
-            PrivacySetting::kPartitionedStateAllowedOnly}));
+            PrivacySetting::kPartitionedStateAllowedOnly},
+
+        // ALOHA https://app.clickup.com/t/86ev1nrnd Storage Access grant
+        // (validated status) unlocks unpartitioned access despite blocked
+        // third-party cookies.
+        CanAccessCookiesTestCase{
+            "https://other.com", "https://example.com",
+            /*accept_cookies=*/true, /*accept_third_party_cookies=*/false,
+            PrivacySetting::kStateAllowed,
+            net::StorageAccessApiStatus::kAccessViaAPI},
+
+        // ALOHA https://app.clickup.com/t/86ev1nrnd Storage Access grant does
+        // not override the global cookie switch.
+        CanAccessCookiesTestCase{
+            "https://other.com", "https://example.com",
+            /*accept_cookies=*/false, /*accept_third_party_cookies=*/false,
+            PrivacySetting::kStateDisallowed,
+            net::StorageAccessApiStatus::kAccessViaAPI}));
 
 }  // namespace android_webview

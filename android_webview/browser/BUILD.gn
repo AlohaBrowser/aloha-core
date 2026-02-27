@@ -1,6 +1,11 @@
 # Copyright 2019 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
+
+# Modified by Aloha Mobile Ltd.
 
 import("//build/config/android/rules.gni")
 import("//components/spellcheck/spellcheck_build_features.gni")
@@ -47,6 +52,10 @@ source_set("render_process") {
 
 source_set("browser") {
   sources = [
+    "adblock/adblock_aw_content_browser_client.cc",
+    "adblock/adblock_aw_content_browser_client.h",
+    "adblock/adblock_aw_webcontents_observer.cc",
+    "adblock/adblock_aw_webcontents_observer.h",
     "android_protocol_handler.cc",
     "android_protocol_handler.h",
     "aw_backforward_cache_not_restored_reason.h",
@@ -275,6 +284,36 @@ source_set("browser") {
     "tracing/aw_tracing_controller.h",
     "tracing/aw_tracing_delegate.cc",
     "tracing/aw_tracing_delegate.h",
+
+    # ALOHA
+    "//aloha/src/native/aloha_consts.h",
+    "//aloha/src/native/bromium.cc",
+    "//aloha/src/native/bromium.h",
+    "//aloha/src/native/bromium_profiles.cc",
+
+    # ALOHA https://app.clickup.com/t/z93epaa335 HLS manifest cache per WebContents
+    "//aloha/src/native/bromium_hls.cc",
+    "//aloha/src/native/hls_manifest_cache.cc",
+    "//aloha/src/native/hls_manifest_cache.h",
+    "//aloha/src/native/subtitle_stats_collector.cc",  # ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+    "//aloha/src/native/subtitle_stats_collector.h",  # ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+    "//aloha/src/native/aw_bromium_client_bridge.cc",
+    "//aloha/src/native/aw_bromium_client_bridge.h",
+
+    #ALOHA https://app.clickup.com/t/86enm8q2x
+    "//crypto/hmac.h",
+    "//aloha/src/native/sign_source.cc",
+    "//aloha/src/native/sign_source.h",
+
+    # ALOHA https://app.clickup.com/t/86ev1nrnd
+    "//aloha/src/native/aloha_utilities.h",
+    "//aloha/src/native/aloha_utilities.cc",
+
+    # ALOHA https://app.clickup.com/t/86ewz0pbr FedCM support
+    "//aloha/src/native/webid/aloha_identity_dialog_controller.h",
+    "//aloha/src/native/webid/aloha_identity_dialog_controller.cc",
+    "//aloha/src/native/webid/aloha_storage_access.h",
+    "//aloha/src/native/webid/aloha_storage_access.cc",
   ]
 
   deps = [
@@ -289,6 +328,9 @@ source_set("browser") {
     "//android_webview/common:mojom",
     "//android_webview/proto:aw_variations_seed_proto",
     "//base",
+    "//components/adblock/android:java_bindings",
+    "//components/adblock/android:jni_headers",
+    "//components/adblock/content:browser",
     "//components/android_autofill/browser:android",
     "//components/autofill/content/browser",
     "//components/cdm/browser",
@@ -397,6 +439,7 @@ source_set("browser") {
     "//third_party/blink/public/mojom:mojom_core",
     "//third_party/blink/public/mojom:mojom_platform",
     "//third_party/crashpad/crashpad/client",
+    "//third_party/highway:libhwy",
     "//third_party/zlib/google:compression_utils",
     "//ui/android",
     "//ui/display/util",
@@ -404,6 +447,15 @@ source_set("browser") {
     "//ui/resources",
     "//ui/touch_selection",
     "//url",
+
+
+    # ALOHA https://app.clickup.com/t/2kwzwub
+    # for use SecurityStateModel.getSecurityLevelForWebContents in aloha-browser-android.
+    "//components/security_state/content/android:android",
+
+    # ALOHA: FedCM deps
+    "//ui/android",
+    "//ui/gfx",
   ]
 
   if (enable_printing) {

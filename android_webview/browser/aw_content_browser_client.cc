@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/aw_content_browser_client.h"
 
 #include <cstddef>
@@ -152,12 +154,25 @@
 #include "third_party/blink/public/common/associated_interfaces/associated_interface_registry.h"
 #include "third_party/blink/public/common/loader/url_loader_throttle.h"
 #include "third_party/blink/public/common/navigation/preloading_headers.h"
+#include "third_party/blink/public/common/tokens/tokens.h"
 #include "third_party/blink/public/common/web_preferences/web_preferences.h"
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/base/resource/resource_bundle_android.h"
 #include "ui/display/util/display_util.h"
 #include "ui/gfx/image/image_skia.h"
 #include "ui/resources/grit/ui_resources.h"
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+#include "aloha/src/native/aloha_consts.h"
+#include "aloha/src/native/aw_bromium_client_bridge.h"
+#include "aloha/src/native/hls_manifest_cache.h"
+#include "aloha/src/native/subtitle_stats_collector.h"  // ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+
+// ALOHA: https://app.clickup.com/t/86ewz0pbr
+#include "aloha/src/native/webid/aloha_identity_dialog_controller.h"
+#include "content/public/browser/webid/federated_identity_permission_context_delegate.h"
+#include "content/public/common/web_identity.h"
+#include "third_party/blink/public/mojom/webid/federated_request.mojom.h"
 
 using base::android::YieldToLooperChecker;
 using content::BrowserThread;
@@ -290,7 +305,8 @@ void AwContentBrowserClient::OnNetworkServiceCreated(
   // a separate process, this will likely need to be set somewhere else instead
   // of here.
   content::GetCertVerifierServiceFactory()->SetUseChromeRootStore(
-      false, base::DoNothing());
+      true, base::DoNothing());  // ALOHA https://app.clickup.com/t/86ewnm98c
+                                 // fixed SSL certificate
 
   network_service->SetUpHttpAuth(network::mojom::HttpAuthStaticParams::New());
   network_service->ConfigureHttpAuthPrefs(
@@ -559,7 +575,7 @@ void AwContentBrowserClient::AllowCertificateError(
   // We only call the callback once but we must pass ownership to a function
   // that conditionally calls it.
   auto split_callback = base::SplitOnceCallback(std::move(callback));
-  if (client) {
+  if (client && is_primary_main_frame_request /* ALOHA https://app.clickup.com/t/2e5x5r6 */ ) {
     client->AllowCertificateError(cert_error, ssl_info.cert.get(), request_url,
                                   std::move(split_callback.first),
                                   &cancel_request);
@@ -858,6 +874,31 @@ AwContentBrowserClient::CreateURLLoaderThrottles(
       result.push_back(std::make_unique<AwURLLoaderThrottle>(
           static_cast<AwBrowserContext*>(browser_context)));
     }
+  }
+
+  // ALOHA: https://app.clickup.com/t/86ewz0pbr
+  // Intercept Set-Login response header for FedCM IdP signin status tracking.
+  // Without this, IdentityProvider.close() in the login popup aborts the flow
+  // because idps_user_tried_to_signin_to_ never gets populated. /* ALOHA: FedCM */
+  if (auto throttle = content::MaybeCreateIdentityUrlLoaderThrottle(
+          base::BindRepeating(
+              [](content::BrowserContext* ctx,
+                 network::mojom::RequestDestination destination,
+                 const std::optional<url::Origin>& initiator,
+                 const url::Origin& origin,
+                 blink::mojom::IdpSigninStatus status) {
+                auto* delegate =
+                    ctx->GetFederatedIdentityPermissionContext();
+                if (delegate) {
+                  delegate->SetIdpSigninStatus(
+                      origin,
+                      status == blink::mojom::IdpSigninStatus::kSignedIn,
+                      std::nullopt);
+                }
+              },
+              browser_context),
+          content::GetSetLoginHeaderDataDecoderParser())) {
+    result.push_back(std::move(throttle));
   }
 
   return result;
@@ -1268,6 +1309,10 @@ void AwContentBrowserClient::WillCreateURLLoaderFactory(
     std::optional<WebContentsKey> web_contents_key;
     web_contents_key = GetWebContentsKey(*web_contents);
 
+    auto xrw_allowlist_matcher = scoped_refptr<
+        AwContentsOriginMatcher>();  // ALOHA
+                                     // https://app.clickup.com/t/862k4dtag
+
     content::GetIOThreadTaskRunner({})->PostTask(
         FROM_HERE,
         base::BindOnce(&AwProxyingURLLoaderFactory::CreateProxy,
@@ -1346,8 +1391,9 @@ bool AwContentBrowserClient::WillCreateRestrictedCookieManager(
 
   AwProxyingRestrictedCookieManager::CreateAndBind(
       std::move(target_rcm_remote), is_service_worker, process_id, routing_id,
-      isolation_info.site_for_cookies(), std::move(orig_receiver),
-      aw_cookie_access_policy);
+      isolation_info.site_for_cookies(),
+      isolation_info.top_frame_origin(),  // ALOHA https://app.clickup.com/t/86ev1nrnd
+      std::move(orig_receiver), aw_cookie_access_policy);
 
   return false;  // only made a proxy, still need the actual impl to be made.
 }
@@ -1490,6 +1536,109 @@ bool AwContentBrowserClient::IsClipboardPasteAllowed(
   content::WebContents* web_contents =
       content::WebContents::FromRenderFrameHost(render_frame_host);
   return web_contents && web_contents->HasRecentInteraction();
+}
+
+// ALOHA: https://app.clickup.com/t/86ewz0pbr
+std::unique_ptr<content::IdentityRequestDialogController>
+AwContentBrowserClient::CreateIdentityRequestDialogController(
+    content::WebContents* web_contents) {
+  return std::make_unique<aloha::AlohaIdentityDialogController>(web_contents);
+}
+
+namespace {
+// ALOHA: https://app.clickup.com/t/86ewr2k2q https://app.clickup.com/t/z93epaa335
+// Tab that issued the request,
+// resolved from the top frame token the network service reported.
+content::WebContents* WebContentsFromTopFrame(
+    int32_t render_process_id,
+    const std::optional<base::UnguessableToken>& top_frame_id) {
+  if (!top_frame_id) {
+    return nullptr;
+  }
+  blink::LocalFrameToken frame_token(top_frame_id.value());
+  content::GlobalRenderFrameHostToken global_token(render_process_id,
+                                                   frame_token);
+  content::RenderFrameHost* rfh =
+      content::RenderFrameHost::FromFrameToken(global_token);
+  return rfh ? content::WebContents::FromRenderFrameHost(rfh) : nullptr;
+}
+}  // namespace
+
+// ALOHA: https://app.clickup.com/t/86ewr2k2q
+void AwContentBrowserClient::OnHlsDetected(
+    const GURL& url,
+    int32_t render_process_id,
+    int32_t request_id,
+    const std::optional<base::UnguessableToken>& top_frame_id,
+    const std::string& request_headers) {
+  content::WebContents* web_contents =
+      WebContentsFromTopFrame(render_process_id, top_frame_id);
+  if (!web_contents) {
+    return;
+  }
+  auto* bridge = aloha::BromiumClientBridge::FromWebContents(web_contents);
+  if (bridge) {
+    bridge->OnHlsDetected(url.spec(), request_headers);
+  }
+}
+
+// ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+void AwContentBrowserClient::OnSubtitleResourceDetected(
+    const std::string& kind,
+    int32_t render_process_id,
+    const std::optional<base::UnguessableToken>& top_frame_id) {
+  content::WebContents* web_contents =
+      WebContentsFromTopFrame(render_process_id, top_frame_id);
+  if (!web_contents) {
+    return;
+  }
+  aloha::SubtitleStatsCollector::GetOrCreateForWebContents(web_contents)
+      ->OnNetworkKind(kind);
+}
+
+// ALOHA https://app.clickup.com/t/z93epaa335
+void AwContentBrowserClient::OnHlsManifestLoaded(
+    const GURL& manifest_url,
+    const GURL& original_url,
+    int32_t render_process_id,
+    const std::optional<base::UnguessableToken>& top_frame_id,
+    std::string content) {
+  content::WebContents* web_contents =
+      WebContentsFromTopFrame(render_process_id, top_frame_id);
+  if (!web_contents) {
+    return;
+  }
+  // ALOHA https://app.clickup.com/t/2558578/z93epac4kc. Text tracks advertised by the playlist.
+  {
+    auto count = [&](std::string_view needle) {
+      size_t n = 0;
+      for (size_t pos = content.find(needle); pos != std::string::npos;
+           pos = content.find(needle, pos + needle.size())) {
+        ++n;
+      }
+      return n;
+    };
+    const size_t subtitles = count("TYPE=SUBTITLES");
+    const size_t closed_captions = count("TYPE=CLOSED-CAPTIONS");
+    const size_t cc_attr = count("CLOSED-CAPTIONS=\"");
+    const bool multivariant = content.find("#EXT-X-STREAM-INF") != std::string::npos;
+    const bool vtt_segments = !multivariant &&
+                              (content.find(".vtt") != std::string::npos ||
+                               content.find(".webvtt") != std::string::npos);
+    const char* verdict =
+        vtt_segments ? "hls-subtitle-media-playlist"
+        : (subtitles || closed_captions || cc_attr) ? "hls-has-text-tracks"
+        : multivariant ? "hls-no-text-tracks" : "hls-media-playlist";
+    aloha::SubtitleStatsCollector::GetOrCreateForWebContents(web_contents)
+        ->OnNetworkKind(verdict);
+  }
+  auto* cache = aloha::HlsManifestCache::GetOrCreateForWebContents(web_contents);
+  cache->Put(manifest_url, std::move(content));
+  // shouldInterceptRequest sees the pre-redirect URL, the player and our
+  // OnHlsDetected the final one: make both keys hit without a second copy.
+  if (original_url.is_valid() && original_url != manifest_url) {
+    cache->AddAlias(original_url, manifest_url);
+  }
 }
 
 }  // namespace android_webview

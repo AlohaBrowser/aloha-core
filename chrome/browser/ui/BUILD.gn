@@ -1,6 +1,10 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
 
 import("//build/config/buildflags_paint_preview.gni")
 import("//build/config/chrome_build.gni")
@@ -1397,6 +1401,7 @@ source_set("tab_helpers_impl") {
     "//chrome/common:buildflags",
     "//chrome/common:chrome_features",
     "//chrome/common:non_code_constants",
+    "//components/adblock/content:browser",
     "//components/breadcrumbs/core:status",
     "//components/captive_portal/core:buildflags",
     "//components/client_hints/browser",
@@ -1445,6 +1450,8 @@ source_set("tab_helpers_impl") {
       "//chrome/browser/banners",
       "//chrome/browser/flags:flags_android",
       "//chrome/browser/plugins",
+      "//components/adblock/android:java_bindings",
+      "//components/adblock/android:jni_headers",
       "//components/sensitive_content",
       "//components/sensitive_content:features",
       "//content/public/common",

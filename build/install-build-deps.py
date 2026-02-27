@@ -3,10 +3,22 @@
 # Copyright 2023 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
 
 # Script to install everything needed to build chromium
 # including items requiring sudo privileges.
 # See https://chromium.googlesource.com/chromium/src/+/main/docs/linux/build_instructions.md
+
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
 import functools
@@ -628,7 +640,7 @@ def backwards_compatible_list(options):
         "msttcorefonts",
         "python-dev",
         "python-setuptools",
-        "snapcraft",
+        # "snapcraft",
         "ttf-dejavu-core",
         "ttf-indic-fonts",
         "ttf-kochi-gothic",

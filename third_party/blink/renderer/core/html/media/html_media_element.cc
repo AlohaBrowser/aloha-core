@@ -24,6 +24,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/core/html/media/html_media_element.h"
 
 #include <algorithm>
@@ -46,6 +48,7 @@
 #include "media/base/media_switches.h"
 #include "media/base/media_track.h"
 #include "services/media_session/public/mojom/media_session.mojom-blink.h"
+#include "third_party/abseil-cpp/absl/cleanup/cleanup.h"  // ALOHA: subtitles
 #include "third_party/blink/public/common/associated_interfaces/associated_interface_provider.h"
 #include "third_party/blink/public/common/features.h"
 #include "third_party/blink/public/mojom/frame/user_activation_notification_type.mojom-shared.h"
@@ -57,6 +60,7 @@
 #include "third_party/blink/renderer/bindings/core/v8/v8_can_play_type_result.h"
 #include "third_party/blink/renderer/core/core_initializer.h"
 #include "third_party/blink/renderer/core/core_probes_inl.h"
+#include "third_party/blink/renderer/core/css/css_property_names.h"  // ALOHA: subtitles
 #include "third_party/blink/renderer/core/css/style_change_reason.h"
 #include "third_party/blink/renderer/core/css/style_engine.h"
 #include "third_party/blink/renderer/core/dom/attribute.h"
@@ -93,7 +97,9 @@
 #include "third_party/blink/renderer/core/html/track/cue_timeline.h"
 #include "third_party/blink/renderer/core/html/track/html_track_element.h"
 #include "third_party/blink/renderer/core/html/track/loadable_text_track.h"
+#include "third_party/blink/renderer/core/html/track/text_track.h"  // ALOHA: subtitles
 #include "third_party/blink/renderer/core/html/track/text_track_container.h"
+#include "third_party/blink/renderer/core/html/track/text_track_cue_list.h"  // ALOHA: subtitles
 #include "third_party/blink/renderer/core/html/track/text_track_list.h"
 #include "third_party/blink/renderer/core/html/track/video_track.h"
 #include "third_party/blink/renderer/core/html/track/video_track_list.h"
@@ -130,6 +136,12 @@
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 #include "ui/accessibility/accessibility_features.h"
 #include "ui/display/screen_info.h"
+
+// ALOHA https://app.clickup.com/t/2qfa6r7
+#include "aloha/src/native/find_video_url.h"
+#include "base/uuid.h"
+// ALOHA https://app.clickup.com/t/2uat2t4
+#include "third_party/blink/renderer/core/html/html_frame_owner_element.h"
 
 #ifndef LOG_MEDIA_EVENTS
 // Default to not logging events because so many are generated they can
@@ -1700,6 +1712,49 @@ bool HTMLMediaElement::HandleCommandInternal(HTMLElement& invoker,
   return false;
 }
 
+// ALOHA https://app.clickup.com/t/2f2eyt8, https://app.clickup.com/t/2hxwa9w, https://app.clickup.com/t/2uat2t4, https://app.clickup.com/t/861m7r8nk
+media::mojom::blink::MediaPlayerIdPtr HTMLMediaElement::GetOrCreateMediaPlayerId() {
+  AtomicString aloha_id_str("aloha_id");
+  if (aloha_player_id_.is_null()) {
+    const auto gen_uid = [] { return base::Uuid::GenerateRandomV4().AsLowercaseString(); };
+    if (!hasAttribute(aloha_id_str)) {
+      setAttribute(aloha_id_str, AtomicString(gen_uid().c_str()));
+      DCHECK(hasAttribute(aloha_id_str));
+    }
+
+    Vector<String> ids;
+    for (Frame* frame = GetDocument().GetFrame();
+        frame != nullptr;
+        frame = frame->Tree().Parent()) {
+      Element* element = DynamicTo<HTMLFrameOwnerElement>(frame->Owner());
+      if (element != nullptr) {
+        if (!element->hasAttribute(aloha_id_str)) {
+          element->setAttribute(aloha_id_str, AtomicString(gen_uid().c_str()));
+          DCHECK(element->hasAttribute(aloha_id_str));
+        }
+        ids.push_back(element->getAttribute(aloha_id_str));
+      }
+    }
+    std::reverse(ids.begin(), ids.end());
+    aloha_player_id_ = media::mojom::blink::MediaPlayerId::New(getAttribute(aloha_id_str), std::move(ids));
+  }
+  DCHECK(hasAttribute(aloha_id_str));
+  DCHECK(getAttribute(aloha_id_str) == aloha_player_id_->html_id);
+  DCHECK(!aloha_player_id_.is_null());
+  return aloha_player_id_.Clone();
+}
+
+// ALOHA https://app.clickup.com/t/2qfa6r7
+blink::KURL HTMLMediaElement::GetSourceUrl() const {
+  auto source_media_url = aloha::GetMediaSourceURL(*this);
+  if (source_media_url.IsEmpty()) {
+    if (const auto* player = GetWebMediaPlayer()) {
+      source_media_url = KURL(player->GetLoadedUrl());
+    }
+  }
+  return source_media_url;
+}
+
 void HTMLMediaElement::StartPlayerLoad() {
   DCHECK(!web_media_player_);
 
@@ -1782,7 +1837,13 @@ void HTMLMediaElement::StartPlayerLoad() {
 
   GetMediaPlayerHostRemote().OnMediaPlayerAdded(
       std::move(media_player_remote), AddMediaPlayerObserverAndPassReceiver(),
-      web_media_player_->GetPlayerId());
+      web_media_player_->GetPlayerId(), GetOrCreateMediaPlayerId()); // ALOHA https://app.clickup.com/t/2f2eyt8
+
+  // ALOHA: subtitles. The observer set was empty until now, so any track added
+  // before the player was created (<track> markup is parsed long before, and
+  // the set is cleared and rebuilt on every re-load) produced no notification.
+  // Report the initial state.
+  NotifyTextTracksChanged();
 
   if (GetLayoutObject())
     GetLayoutObject()->SetShouldDoFullPaintInvalidation();
@@ -1956,6 +2017,11 @@ void HTMLMediaElement::TextTrackReadyStateChanged(TextTrack* track) {
       GetMediaControls()->OnTrackElementFailedToLoad();
     }
   }
+
+  // ALOHA: subtitles. Readiness decides CanBeRendered(): a track that failed to
+  // load can no longer be shown, and one that just finished loading becomes
+  // usable. Both change what the host app may offer.
+  NotifyTextTracksChanged();
 }
 
 void HTMLMediaElement::TextTrackModeChanged(TextTrack* track) {
@@ -1985,6 +2051,10 @@ void HTMLMediaElement::TextTrackModeChanged(TextTrack* track) {
 
   DCHECK(textTracks()->Contains(track));
   textTracks()->ScheduleChangeEvent();
+
+  // ALOHA: subtitles. Covers mode changes, addTextTrack() and the automatic
+  // track selection — all of them go through SetModeEnum().
+  NotifyTextTracksChanged();
 }
 
 void HTMLMediaElement::DisableAutomaticTextTrackSelection() {
@@ -3331,8 +3401,8 @@ void HTMLMediaElement::SetLoop(bool b) {
 }
 
 bool HTMLMediaElement::ShouldShowControls() const {
-  // If the document is not active, then we should not show controls.
-  if (!GetDocument().IsActive()) {
+  // ALOHA https://app.clickup.com/t/2k0734w
+  if (media_controls_is_hidden_) {
     return false;
   }
 
@@ -3404,10 +3474,12 @@ void HTMLMediaElement::setVolume(double vol, ExceptionState& exception_state) {
 
   ScheduleNamedEvent(event_type_names::kVolumechange);
 
-  // If it setting volume to audible and AutoplayPolicy doesn't want the
-  // playback to continue, pause the playback.
-  if (EffectiveMediaVolume() && !autoplay_policy_->RequestAutoplayUnmute())
-    pause();
+  if (!force_unmute_autoplay_) { // ALOHA https://app.clickup.com/t/2v1qh1q ignore autoplay_policy when we use AlohaPlayer
+    // If it setting volume to audible and AutoplayPolicy doesn't want the
+    // playback to continue, pause the playback.
+    if (EffectiveMediaVolume() && !autoplay_policy_->RequestAutoplayUnmute())
+      pause();
+  }
 
   // If playback was not paused by the autoplay policy and got audible, the
   // element is marked as being allowed to play unmuted.
@@ -3454,10 +3526,12 @@ void HTMLMediaElement::setMuted(bool muted) {
 
   ScheduleNamedEvent(event_type_names::kVolumechange);
 
-  // If it is unmute and AutoplayPolicy doesn't want the playback to continue,
-  // pause the playback.
-  if (EffectiveMediaVolume() && !autoplay_policy_->RequestAutoplayUnmute())
-    pause();
+  if (!force_unmute_autoplay_) { // ALOHA https://app.clickup.com/t/2v1qh1q ignore autoplay_policy when we use AlohaPlayer
+    // If it is unmute and AutoplayPolicy doesn't want the playback to continue,
+    // pause the playback.
+    if (EffectiveMediaVolume() && !autoplay_policy_->RequestAutoplayUnmute())
+      pause();
+  }
 
   // If playback was not paused by the autoplay policy and got unmuted, the
   // element is marked as being allowed to play unmuted.
@@ -3751,6 +3825,8 @@ void HTMLMediaElement::DidAddTrackElement(HTMLTrackElement* track_element) {
   // before all tracks in the markup have been added.
   if (IsFinishedParsingChildren())
     ScheduleAutomaticTextTrackSelection();
+
+  NotifyTextTracksChanged();  // ALOHA: subtitles
 }
 
 void HTMLMediaElement::DidRemoveTrackElement(HTMLTrackElement* track_element) {
@@ -3777,6 +3853,8 @@ void HTMLMediaElement::DidRemoveTrackElement(HTMLTrackElement* track_element) {
       text_tracks_when_resource_selection_began_.Find(text_track);
   if (index != kNotFound)
     text_tracks_when_resource_selection_began_.EraseAt(index);
+
+  NotifyTextTracksChanged();  // ALOHA: subtitles
 }
 
 void HTMLMediaElement::HonorUserPreferencesForAutomaticTextTrackSelection() {
@@ -4586,6 +4664,17 @@ TextTrackContainer& HTMLMediaElement::EnsureTextTrackContainer() {
 
   AssertShadowRootChildren(shadow_root);
 
+  // ALOHA: subtitles. The container is created lazily, usually after we already
+  // entered fullscreen, so it misses the override applied back then.
+  if (subtitles_fullscreen_active_) {
+    text_track_container->SetInlineStyleProperty(CSSPropertyID::kDisplay,
+                                                 "block", true);
+    text_track_container->SetInlineStyleProperty(CSSPropertyID::kVisibility,
+                                                 "visible", true);
+    text_track_container->SetInlineStyleProperty(CSSPropertyID::kOpacity, "1",
+                                                 true);
+  }
+
   return *text_track_container;
 }
 
@@ -4846,6 +4935,7 @@ void HTMLMediaElement::BindMediaPlayerReceiver(
 
 
 void HTMLMediaElement::Trace(Visitor* visitor) const {
+  visitor->Trace(forced_showing_track_);  // ALOHA: subtitles
   visitor->Trace(audio_source_node_);
   visitor->Trace(load_timer_);
   visitor->Trace(audio_tracks_timer_);
@@ -5190,14 +5280,38 @@ void HTMLMediaElement::PausePlayback(WebMediaPlayer::PauseReason pause_reason) {
   return PauseInternal(pause_reason);
 }
 
+// ALOHA https://app.clickup.com/t/86epnk66e
+void HTMLMediaElement::OnMediaPlayingCallback(bool should_play_background) {
+  GetDocument().UpdatePlayingMedia(true, should_play_background);
+
+  if(web_media_player_)
+    web_media_player_->SetShouldPlayBackground(should_play_background);
+}
+
 void HTMLMediaElement::DidPlayerStartPlaying() {
-  for (auto& observer : media_player_observer_remote_set_->Value())
-    observer->OnMediaPlaying();
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  const auto& observers = media_player_observer_remote_set_->Value();
+  if (!observers.empty()) {
+    auto media_url = GetSourceUrl();
+    const auto& document_url = GetDocument().Url();
+    auto duration_s = GetWebMediaPlayer()->Duration();
+    for (const auto& observer : observers)
+      observer->OnMediaPlaying(media_url, document_url, duration_s,
+      BindOnce(&HTMLMediaElement::OnMediaPlayingCallback, // ALOHA https://app.clickup.com/t/86epnk66e
+                     WrapWeakPersistent(this)));
+  }
 }
 
 void HTMLMediaElement::DidPlayerPaused(bool stream_ended) {
-  for (auto& observer : media_player_observer_remote_set_->Value())
-    observer->OnMediaPaused(stream_ended);
+  // ALOHA https://app.clickup.com/t/2qfa6r7
+  const auto& observers = media_player_observer_remote_set_->Value();
+  if (!observers.empty()) {
+    auto media_url = GetSourceUrl();
+    const auto& document_url = GetDocument().Url();
+    auto duration_s = GetWebMediaPlayer()->Duration();
+    for (const auto& observer : observers)
+      observer->OnMediaPaused(stream_ended, media_url, document_url, duration_s);
+  }
 }
 
 void HTMLMediaElement::DidPlayerMutedStatusChange(bool muted) {
@@ -5256,6 +5370,391 @@ void HTMLMediaElement::DidUseAudioServiceChange(bool uses_audio_service) {
 void HTMLMediaElement::DidPlayerSizeChange(const gfx::Size& size) {
   for (auto& observer : media_player_observer_remote_set_->Value())
     observer->OnMediaSizeChanged(size);
+}
+
+// ALOHA https://app.clickup.com/t/2558578/z93epac4kc
+void HTMLMediaElement::SendAlohaSubtitleReport(
+    media::mojom::blink::SubtitleProbeReportPtr report) {
+  if (!report)
+    return;
+  if (HasMediaSource()) {
+    report->src_kind = "blob";
+  } else if (src_object_stream_descriptor_) {
+    report->src_kind = "mediastream";
+  } else if (currentSrc().IsEmpty()) {
+    report->src_kind = "none";
+  } else {
+    report->src_kind = currentSrc().ProtocolIs("blob") ? "blob" : "url";
+  }
+
+  int count = 0, showing = 0, hidden = 0, renderable = 0;
+  bool engine_rendering = false;
+  if (text_tracks_) {
+    for (unsigned i = 0; i < text_tracks_->length(); ++i) {
+      TextTrack* track = text_tracks_->AnonymousIndexedGetter(i);
+      if (!track)
+        continue;
+      ++count;
+      switch (track->mode().AsEnum()) {
+        case TextTrackMode::kShowing:
+          ++showing;
+          break;
+        case TextTrackMode::kHidden:
+          ++hidden;
+          break;
+        case TextTrackMode::kDisabled:
+          break;
+      }
+      if (track->CanBeRendered())
+        ++renderable;
+      if (track->IsRendered())
+        engine_rendering = true;
+    }
+  }
+  report->text_tracks_count = count;
+  report->text_tracks_showing = showing;
+  report->text_tracks_hidden = hidden;
+  report->text_tracks_renderable = renderable;
+  report->engine_rendering = engine_rendering;
+  report->forced_track = !!forced_showing_track_;
+
+  if (!media_player_observer_remote_set_)
+    return;
+  for (auto& observer : media_player_observer_remote_set_->Value())
+    observer->OnSubtitleProbeReport(report->Clone());
+}
+
+// ALOHA: subtitles. Schedules a text-track snapshot for the browser.
+//
+// Track mutations come in bursts — parsing N <track> elements, then the
+// automatic track selection flipping modes — and each one would otherwise cost
+// a separate IPC carrying the whole list. Coalesce them into one message per
+// task instead.
+void HTMLMediaElement::NotifyTextTracksChanged() {
+  if (text_tracks_snapshot_pending_)
+    return;
+  ExecutionContext* context = GetExecutionContext();
+  if (!context)
+    return;
+  text_tracks_snapshot_pending_ = true;
+  context->GetTaskRunner(TaskType::kInternalMedia)
+      ->PostTask(FROM_HERE,
+                 BindOnce(&HTMLMediaElement::SendTextTracksSnapshot,
+                          WrapWeakPersistent(this)));
+}
+
+// ALOHA: subtitles. Pushes the current text-track list to the browser.
+void HTMLMediaElement::SendTextTracksSnapshot() {
+  text_tracks_snapshot_pending_ = false;
+
+  // ALOHA: subtitles. Every signal that can make a track usable -- the page
+  // switching subtitles on, a <track> finishing its load, a track being added
+  // -- funnels into this coalesced task, which makes it the one place to look
+  // again. Doing it here rather than straight from TextTrackModeChanged() also
+  // keeps us out of the middle of that mode change's own bookkeeping.
+  MaybeForceSubtitlesVisible();
+
+  if (!media_player_observer_remote_set_)
+    return;
+  const auto& observers = media_player_observer_remote_set_->Value();
+  if (observers.empty())
+    return;
+  // Don't lazily instantiate the list just to report that it is empty.
+  if (!text_tracks_)
+    return;
+
+  for (auto& observer : observers) {
+    Vector<media::mojom::blink::TextTrackInfoPtr> infos;
+    for (unsigned i = 0; i < text_tracks_->length(); ++i) {
+      TextTrack* track = text_tracks_->AnonymousIndexedGetter(i);
+      if (!track)
+        continue;
+      auto info = media::mojom::blink::TextTrackInfo::New();
+      info->index = static_cast<int32_t>(i);
+      info->id = track->id();
+      info->label = track->label();
+      info->language = track->language();
+      info->kind = track->kind().AsString();
+      // Unqualified TextTrackMode here is the V8 alias from text_track.h.
+      switch (track->mode().AsEnum()) {
+        case TextTrackMode::kShowing:
+          info->mode = media::mojom::blink::TextTrackMode::kShowing;
+          break;
+        case TextTrackMode::kHidden:
+          info->mode = media::mojom::blink::TextTrackMode::kHidden;
+          break;
+        case TextTrackMode::kDisabled:
+          info->mode = media::mojom::blink::TextTrackMode::kDisabled;
+          break;
+      }
+      info->can_be_rendered = track->CanBeRendered();
+      infos.push_back(std::move(info));
+    }
+    observer->OnTextTracksChanged(std::move(infos));
+  }
+}
+
+// ALOHA: subtitles. Browser-driven text-track mode change.
+void HTMLMediaElement::SetTextTrackMode(
+    int32_t track_index,
+    media::mojom::blink::TextTrackMode mode) {
+  // Whatever happens below, answer with a snapshot: the browser keys commands
+  // by index off a snapshot that may already be stale, and a silently dropped
+  // request would leave its UI out of sync forever.
+  //
+  // SetModeEnum() -> TextTrackModeChanged() -> NotifyTextTracksChanged(), so
+  // on the accepted path this call just joins the same coalesced task.
+  absl::Cleanup notify = [this] { NotifyTextTracksChanged(); };
+
+  if (!text_tracks_ || track_index < 0 ||
+      static_cast<unsigned>(track_index) >= text_tracks_->length()) {
+    return;
+  }
+  TextTrack* track =
+      text_tracks_->AnonymousIndexedGetter(static_cast<unsigned>(track_index));
+  if (!track)
+    return;
+
+  switch (mode) {
+    case media::mojom::blink::TextTrackMode::kShowing:
+      if (track->CanBeRendered()) {
+        // ALOHA: subtitles. The embedder picked a track of its own, so the one
+        // ForceSubtitlesVisible() took over in fullscreen has to step aside:
+        // the engine draws EVERY showing track at once, and two of them read
+        // as "the switch did nothing", the old text staying on screen beside
+        // the new one. Back to hidden, where the page's own renderer wants it.
+        // The pointer is kept so RestoreSubtitlesMode() still cleans up the
+        // style override we put on the cue container.
+        if (forced_showing_track_ && forced_showing_track_ != track &&
+            forced_showing_track_->mode().AsEnum() == TextTrackMode::kShowing) {
+          forced_showing_track_->SetModeEnum(TextTrackMode::kHidden);
+        }
+        track->SetModeEnum(TextTrackMode::kShowing);
+      }
+      break;
+    case media::mojom::blink::TextTrackMode::kHidden:
+      track->SetModeEnum(TextTrackMode::kHidden);
+      break;
+    case media::mojom::blink::TextTrackMode::kDisabled:
+      track->SetModeEnum(TextTrackMode::kDisabled);
+      break;
+  }
+}
+
+// ALOHA: subtitles. The embedder draws its own player controls on top of the
+// WebView, so the built-in overlap avoidance (ComputeControlsRect() in
+// vtt_cue_layout_algorithm.cc, which only knows about MediaControls) cannot see
+// them. Storing the covered height lets that same algorithm treat the strip as
+// controls: cues start above it and the overlap loop keeps them there, with the
+// line grid and the font size untouched.
+//
+// |bottom_inset_px| is in physical pixels, the units layout works in, so it is
+// used as-is -- no conversion from the embedder's view pixels.
+void HTMLMediaElement::SetMediaControlsBottomInset(int32_t bottom_inset_px) {
+  if (bottom_inset_px < 0)
+    bottom_inset_px = 0;
+  if (bottom_inset_px == media_controls_bottom_inset_)
+    return;
+  media_controls_bottom_inset_ = bottom_inset_px;
+
+  // The value is read during layout, so no style change marks the cue boxes
+  // dirty. Re-run the rules for updating the text track rendering with
+  // reset=true -- the path the UA takes when its own controls appear -- which
+  // drops the cue boxes and lays them out again.
+  if (TextTrackContainer* container = GetTextTrackContainerIfExists()) {
+    container->UpdateDisplay(*this,
+                             TextTrackContainer::kDidStartExposingControls);
+  }
+}
+
+// ALOHA: subtitles. See the header for why this exists.
+void HTMLMediaElement::ForceSubtitlesVisible() {
+  // Armed for the rest of this fullscreen session, whether or not a candidate
+  // turns up right now: MaybeForceSubtitlesVisible() keeps trying.
+  subtitles_fullscreen_active_ = true;
+  // Independently of any candidate: the embedder's own picker sets a track to
+  // showing through SetTextTrackMode(), and with the container switched off it
+  // would draw into a hidden box -- subtitles that cannot be turned on at all
+  // until the page happens to enable its own first.
+  SetCueContainerOverridden(true);
+  DropForcedTrackIfGone();
+  // Already forced something; entering fullscreen twice without leaving it
+  // would otherwise lose the mode we have to restore.
+  if (forced_showing_track_ || !text_tracks_)
+    return;
+
+  TextTrack* candidate = nullptr;
+  for (unsigned i = 0; i < text_tracks_->length(); ++i) {
+    TextTrack* track = text_tracks_->AnonymousIndexedGetter(i);
+    // CanBeRendered() covers both halves of what we need: a visual kind, and a
+    // resource that did not fail to load.
+    if (!track || !track->CanBeRendered())
+      continue;
+    // The engine is already drawing subtitles: nothing is lost in fullscreen
+    // and touching the page's state would only risk a second copy on screen.
+    if (track->IsRendered())
+      return;
+    if (track->mode().AsEnum() != TextTrackMode::kHidden)
+      continue;
+    // A hidden track with no cues is not the one the page renders from -- it is
+    // either still loading or kept around for something else. Forcing it would
+    // replace the page's subtitles with nothing.
+    // MaybeForceSubtitlesVisible() comes back once the cues do land.
+    TextTrackCueList* cues = track->cues();
+    if (!cues || !cues->length())
+      continue;
+    if (!candidate)
+      candidate = track;
+  }
+  if (!candidate)
+    return;
+
+  forced_showing_track_ = candidate;
+
+  // SetModeEnum() runs TextTrackModeChanged() -> ConfigureTextTrackDisplay(),
+  // which re-runs the text track rendering rules unconditionally. That is what
+  // makes the cue that is on screen right now appear immediately instead of at
+  // the next one (see the spec-bug workaround there).
+  candidate->SetModeEnum(TextTrackMode::kShowing);
+
+  // The mode change above may have created the container, so try again.
+  SetCueContainerOverridden(true);
+}
+
+// ALOHA: subtitles. A player that draws its own overlay usually also switches
+// the engine's cue container off from CSS -- allplay keeps
+// "--webkit-text-track-display: none" on it for the whole session -- so a track
+// set to showing would draw into a hidden box. An inline !important declaration
+// outranks every author rule, important ones included.
+void HTMLMediaElement::SetCueContainerOverridden(bool overridden) {
+  TextTrackContainer* container = GetTextTrackContainerIfExists();
+  if (!container)
+    return;
+  if (overridden) {
+    container->SetInlineStyleProperty(CSSPropertyID::kDisplay, "block", true);
+    container->SetInlineStyleProperty(CSSPropertyID::kVisibility, "visible",
+                                      true);
+    container->SetInlineStyleProperty(CSSPropertyID::kOpacity, "1", true);
+  } else {
+    container->RemoveInlineStyleProperty(CSSPropertyID::kDisplay);
+    container->RemoveInlineStyleProperty(CSSPropertyID::kVisibility);
+    container->RemoveInlineStyleProperty(CSSPropertyID::kOpacity);
+  }
+}
+
+// ALOHA: subtitles. The state at fullscreen entry is a race, so look again on
+// every track change until something can be taken over.
+void HTMLMediaElement::MaybeForceSubtitlesVisible() {
+  if (!subtitles_fullscreen_active_)
+    return;
+  DropForcedTrackIfGone();
+  if (forced_showing_track_)
+    return;
+  ForceSubtitlesVisible();
+}
+
+// ALOHA: subtitles. A borrowed track can leave the list without us hearing
+// about it: HLS and DASH players rebuild their track nodes mid-playback, on a
+// quality switch or a reload, and the removal clears nothing of ours. The stale
+// pointer then reads as a successful takeover, every later retry returns early,
+// and the engine-drawn subtitles stay gone for the rest of the fullscreen
+// session even though a replacement track is sitting right there. Dropping it
+// here re-arms the retry; the track itself is already the page's business
+// again, so there is nothing to hand back.
+void HTMLMediaElement::DropForcedTrackIfGone() {
+  if (!forced_showing_track_)
+    return;
+  if (text_tracks_ && text_tracks_->Contains(forced_showing_track_))
+    return;
+  forced_showing_track_ = nullptr;
+}
+
+// ALOHA: subtitles. Runs on every path out of fullscreen, so it has to be
+// idempotent and safe when nothing was ever forced.
+void HTMLMediaElement::RestoreSubtitlesMode() {
+  // Nothing of ours to undo. This runs on every path out of fullscreen,
+  // including a page's own fullscreen in a document we never touched, where
+  // deciding anything about the cue container would be meddling.
+  if (!subtitles_fullscreen_active_ && !forced_showing_track_)
+    return;
+
+  TextTrack* track = forced_showing_track_.Get();
+  subtitles_fullscreen_active_ = false;
+  forced_showing_track_ = nullptr;
+
+  // Whose choice is on screen? Another track showing means the embedder's
+  // picker replaced ours while we were in fullscreen, and that is the user's
+  // own pick. Handing our borrowed track back as hidden would give the page's
+  // renderer the previous language again and draw it over the chosen one, so
+  // leave it exactly where the picker left it -- and let the rule below see a
+  // list with something showing and nothing hidden, which keeps the engine
+  // drawing the user's pick after the exit.
+  if (TextTrack* rendered = FirstRenderedTrack()) {
+    if (track && rendered != track)
+      track = nullptr;
+  }
+
+  if (track && text_tracks_ && text_tracks_->Contains(track)) {
+    // Back to where the page had it. "disabled" is restored as well, not just
+    // our own "showing": the embedder's picker disables the tracks it does not
+    // select, and a disabled track has no cues() and gets no cue events -- the
+    // page's own subtitles would stay dead for the rest of its life. Any other
+    // mode means the page moved the track itself, so it is left alone.
+    TextTrackMode mode = track->mode().AsEnum();
+    if (mode == TextTrackMode::kShowing || mode == TextTrackMode::kDisabled)
+      track->SetModeEnum(TextTrackMode::kHidden);
+  }
+
+  // Decided after the track is back in the page's hands, because that is what
+  // the answer depends on.
+  SetCueContainerOverridden(ShouldKeepDrawingCues());
+}
+
+// ALOHA: subtitles. The override survives the exit exactly when nobody else can
+// draw the subtitles: something is showing and nothing is hidden. That is what a
+// track the embedder switched on from a cold state looks like -- the page's own
+// renderer is off, so dropping the override would simply turn the subtitles off
+// on leaving fullscreen. A hidden track means the opposite: the page draws that
+// one itself, and keeping the override would put a second copy on screen.
+bool HTMLMediaElement::ShouldKeepDrawingCues() const {
+  if (!text_tracks_)
+    return false;
+  bool showing = false;
+  for (unsigned i = 0; i < text_tracks_->length(); ++i) {
+    TextTrack* track = text_tracks_->AnonymousIndexedGetter(i);
+    if (!track || !track->CanBeRendered())
+      continue;
+    if (track->mode().AsEnum() == TextTrackMode::kHidden)
+      return false;
+    if (track->IsRendered())
+      showing = true;
+  }
+  return showing;
+}
+
+// ALOHA: subtitles.
+TextTrack* HTMLMediaElement::FirstRenderedTrack() const {
+  if (!text_tracks_)
+    return nullptr;
+  for (unsigned i = 0; i < text_tracks_->length(); ++i) {
+    TextTrack* track = text_tracks_->AnonymousIndexedGetter(i);
+    if (track && track->IsRendered())
+      return track;
+  }
+  return nullptr;
+}
+
+// ALOHA: subtitles.
+TextTrackContainer* HTMLMediaElement::GetTextTrackContainerIfExists() const {
+  ShadowRoot* shadow_root = UserAgentShadowRoot();
+  if (!shadow_root)
+    return nullptr;
+  for (Node* child = shadow_root->firstChild(); child;
+       child = child->nextSibling()) {
+    if (auto* container = DynamicTo<TextTrackContainer>(child))
+      return container;
+  }
+  return nullptr;
 }
 
 void HTMLMediaElement::OnRemotePlaybackDisabled(bool disabled) {
@@ -5321,6 +5820,22 @@ String HTMLMediaElement::GetPlayErrorMessage(DOMExceptionCode code) const {
       return "The element has no supported sources.";
     default:
       NOTREACHED();
+  }
+}
+
+// ALOHA https://app.clickup.com/t/2rqdtxz
+void HTMLMediaElement::OnMediaError(media::PipelineStatus pipeline_status) {
+  const auto& observers = media_player_observer_remote_set_->Value();
+  if (!observers.empty()) {
+    String pipeline_status_as_string(PipelineStatusToString(pipeline_status));
+    auto media_url = GetSourceUrl();
+    const auto& document_url = GetDocument().Url();
+    auto current_time_s = GetWebMediaPlayer()->CurrentTime();
+    auto duration_s = GetWebMediaPlayer()->Duration();
+    for (const auto& observer : observers) {
+      observer->OnMediaError(pipeline_status_as_string, media_url, document_url,
+          current_time_s, duration_s);
+    }
   }
 }
 

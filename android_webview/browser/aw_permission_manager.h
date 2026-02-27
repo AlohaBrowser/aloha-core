@@ -90,11 +90,15 @@ class AwPermissionManager : public content::PermissionControllerDelegate {
   virtual AwBrowserPermissionRequestDelegate* GetDelegate(int render_process_id,
                                                           int render_frame_id);
 
+  // `render_frame_host` is the requesting frame when the query is made on
+  // behalf of a document (nullptr for origin-only and worker queries); used
+  // for permissions-policy checks. ALOHA https://app.clickup.com/t/86ev1nrnd
   blink::mojom::PermissionStatus GetPermissionStatusInternal(
       const blink::mojom::PermissionDescriptorPtr& permission_descriptor,
       const GURL& requesting_origin,
       const GURL& embedding_origin,
-      content::WebContents* web_contents);
+      content::WebContents* web_contents,
+      content::RenderFrameHost* render_frame_host);
 
   blink::mojom::PermissionStatus GetGeolocationPermission(
       const GURL& requesting_origin,

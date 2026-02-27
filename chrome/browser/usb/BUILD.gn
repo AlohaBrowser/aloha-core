@@ -287,6 +287,7 @@ source_set("browser_test_support") {
     ":usb",
     "//base",
     "//chrome/browser:chrome_content_browser_client",
+    "//chrome/browser/adblock:adblock_chrome_content_browser_client",
   ]
 }
 

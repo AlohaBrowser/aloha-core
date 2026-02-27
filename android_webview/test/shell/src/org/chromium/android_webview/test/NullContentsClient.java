@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
 package org.chromium.android_webview.test;
 
 import android.graphics.Bitmap;
@@ -12,6 +13,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.view.KeyEvent;
 import android.view.View;
+
+import com.alohamobile.bromium.SubtitleTrack; // ALOHA: subtitles
 
 import org.chromium.android_webview.AwConsoleMessage;
 import org.chromium.android_webview.AwContentsClient;
@@ -255,4 +258,38 @@ public class NullContentsClient extends AwContentsClient {
 
     @Override
     public void onReceivedThemeColor(Color color) {}
+
+    @Override
+    public void onMediaPlay(
+            MediaPlayerId playerId, String mediaUrl, String documentUrl,
+            double durationSec, boolean isAudioOnly) {}
+    @Override
+    public void onMediaPause(
+            MediaPlayerId playerId, String mediaUrl, String documentUrl,
+            double durationSec, boolean isAudioOnly) {}
+    @Override
+    public void onMediaDestroy(MediaPlayerId playerId, String mediaUrl, String documentUrl) {}
+    @Override
+    public void onMediaError(
+            MediaPlayerId playerId, String pipelineStatus,
+            String mediaUrl, String documentUrl, double currentTimeSec, double durationSec) {}
+    // ALOHA: subtitles
+    @Override
+    public void onTextTracksChanged(MediaPlayerId playerId, SubtitleTrack[] tracks) {}
+    @Override
+    public boolean shouldHideControlsInFullscreen(MediaPlayerId playerId, String url, double durationSec, String playerClass) {
+        return false;
+    }
+    @Override
+    public void onEnterFullscreen(MediaPlayerId playerId, String url, boolean mediaControlsIsHidden) {}
+    @Override
+    public void onExitFullscreen(MediaPlayerId playerId, String url) {}
+    @Override
+    public void onPageLoaded(String url, boolean isError) {}
+    @Override
+    public void onDownloadToCacheFinished(
+            String url, String originalUrl, String userAgent, String contentDisposition,
+            String mimeType, String downloadedFilePath) {}
+    @Override
+    public void onRequestedDownloadUrl(String url) {}
 }

@@ -1,0 +1,6 @@
+ [Adblock Plus 2.0]
+! Version: 202212191158
+! Title: Block resource.png
+! Expires: 1 days
+
+*resource.png

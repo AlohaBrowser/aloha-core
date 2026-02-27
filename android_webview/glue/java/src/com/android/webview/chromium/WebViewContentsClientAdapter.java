@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package com.android.webview.chromium;
 
 import android.annotation.SuppressLint;
@@ -36,7 +38,10 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.webkit.WebViewDelegate;
+import com.android.webview.chromium.WebViewDelegate;
+
+import com.alohamobile.bromium.BromiumClient; // ALOHA
+import com.alohamobile.bromium.SubtitleTrack; // ALOHA
 
 import org.chromium.android_webview.AwConsoleMessage;
 import org.chromium.android_webview.AwContents;
@@ -87,7 +92,6 @@ import java.util.WeakHashMap;
  * WebView to be injected by ContentViewClientAdapter. We choose the latter, because it makes for a
  * cleaner design.
  */
-@Lifetime.WebView
 class WebViewContentsClientAdapter extends SharedWebViewContentsClientAdapter {
     // The WebChromeClient instance that was passed to WebView.setContentViewClient().
     private WebChromeClient mWebChromeClient;
@@ -320,7 +324,11 @@ class WebViewContentsClientAdapter extends SharedWebViewContentsClientAdapter {
     }
 
     @Override
-    public boolean onCreateWindow(boolean isDialog, boolean isUserGesture) {
+    public boolean onCreateWindow(
+            boolean isDialog,
+            boolean isUserGesture,
+            String targetUrl, // ALOHA https://app.clickup.com/t/86epgj787 provide targetUrl
+            boolean isGoogleAuth3PCookiesRequired) { // ALOHA https://app.clickup.com/t/86ev1nrnd
         try (TraceEvent event =
                 TraceEvent.scoped("WebView.APICallback.WebViewClient.onCreateWindow")) {
             AwHistogramRecorder.recordCallbackInvocation(
@@ -1272,4 +1280,76 @@ class WebViewContentsClientAdapter extends SharedWebViewContentsClientAdapter {
                 throw new IllegalArgumentException("Unsupported value: " + value);
         }
     }
+
+    // ----------------------------------------------------------------------------------------
+    // ALOHA: no-op implementations of the BromiumClient contract. The android.webkit glue
+    // (WebViewChromium) is compiled but not used by Bromium — the host app subclasses
+    // AwContentsClient directly — so these only keep this class instantiable for upstream code.
+    @Override
+    public void onMediaPlay(BromiumClient.MediaPlayerId playerId, String mediaUrl,
+            String documentUrl, double durationSec, boolean isAudioOnly) {}
+
+    @Override
+    public void onMediaPause(BromiumClient.MediaPlayerId playerId, String mediaUrl,
+            String documentUrl, double durationSec, boolean isAudioOnly) {}
+
+    @Override
+    public void onMediaDestroy(BromiumClient.MediaPlayerId playerId, String mediaUrl,
+            String documentUrl) {}
+
+    @Override
+    public void onMediaError(BromiumClient.MediaPlayerId playerId, String pipelineStatus,
+            String mediaUrl, String documentUrl, double currentTimeSec, double durationSec) {}
+
+    @Override
+    public void onTextTracksChanged(BromiumClient.MediaPlayerId playerId, SubtitleTrack[] tracks) {}
+
+    @Override
+    public boolean shouldHideControlsInFullscreen(BromiumClient.MediaPlayerId playerId, String url,
+            double durationSec, String playerClass) {
+        return false;
+    }
+
+    @Override
+    public void onVideoEnterFullscreen(BromiumClient.MediaPlayerId playerId, String url,
+            boolean mediaControlsIsHidden) {}
+
+    @Override
+    public void onVideoExitFullscreen(BromiumClient.MediaPlayerId playerId, String url) {}
+
+    @Override
+    public void onEnterFullscreen() {}
+
+    @Override
+    public void onExitFullscreen() {}
+
+    @Override
+    public void onPageLoaded(String url, boolean isError) {}
+
+    @Override
+    public void onInternalDownloadStarted(String httpMethod, int sizeInBytes) {}
+
+    @Override
+    public void onDownloadToCacheFinished(String url, String originalUrl, String userAgent,
+            String contentDisposition, String mimeType, String suggestedFilename,
+            String downloadedFilePath) {}
+
+    @Override
+    public void onRequestedDownloadUrl(String url) {}
+
+    @Override
+    public boolean shouldPlayBackgroundVideo() {
+        return false;
+    }
+
+    @Override
+    public void onHlsDetected(String url, String requestHeaders) {}
+
+    @Override
+    public String getUserAgent() {
+        return null;
+    }
+
+    @Override
+    public void onReinitializeMainRenderFrame(boolean isRenderFrameLive) {}
 }

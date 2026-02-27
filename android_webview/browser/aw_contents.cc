@@ -1,6 +1,12 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
 
 #include "android_webview/browser/aw_contents.h"
 
@@ -11,6 +17,7 @@
 #include <string_view>
 #include <utility>
 
+#include "android_webview/browser/adblock/adblock_aw_webcontents_observer.h"
 #include "android_webview/browser/aw_browser_context.h"
 #include "android_webview/browser/aw_browser_main_parts.h"
 #include "android_webview/browser/aw_browser_permission_request_delegate.h"
@@ -73,6 +80,8 @@
 #include "base/threading/thread_restrictions.h"
 #include "base/trace_event/trace_event.h"
 #include "base/trace_event/typed_macros.h"
+#include "components/adblock/content/browser/adblock_webcontents_observer.h"
+#include "components/adblock/content/browser/factories/embedding_utils.h"
 #include "components/android_autofill/browser/android_autofill_client.h"
 #include "components/android_autofill/browser/android_autofill_manager.h"
 #include "components/android_autofill/browser/android_autofill_provider.h"
@@ -134,6 +143,20 @@
 #include "ui/gfx/image/image.h"
 #include "url/origin.h"
 #include "url/url_constants.h"
+
+// ALOHA https://app.clickup.com/t/2u59j0h
+#include "aloha/src/native/aloha_consts.h"
+#include "aloha/src/native/bromium.h"
+#include "android_webview/browser/aw_contents_client_bridge.h"
+#include "content/public/browser/download_request_utils.h"
+#include "content/public/browser/download_manager.h"
+
+// ALOHA https://app.clickup.com/t/861mawmth
+#include "content/browser/web_contents/web_contents_impl.h"
+#include "content/browser/media/media_web_contents_observer.h"
+
+// ALOHA https://app.clickup.com/t/2558578/z93epafc7c
+#include "content/browser/renderer_host/render_frame_host_impl.h"
 
 namespace jni_zero {
 template <>
@@ -326,6 +349,15 @@ AwContents::AwContents(std::unique_ptr<WebContents> web_contents)
 
   permission_request_handler_ =
       std::make_unique<PermissionRequestHandler>(this, web_contents_.get());
+
+  // ALOHA https://app.clickup.com/t/2558578/86eyfccqg : eyeo services are per-profile;
+  // background services (telemetry) stay on Default, the observer binds to this
+  // WebContents' own profile (SharedSubscriptionServiceDecorator on non-default).
+  auto* default_browser_context =
+      android_webview::AwBrowserContext::GetDefault();
+  adblock::EnsureBackgroundServicesStarted(default_browser_context);
+  adblock::RegisterAdblockWebContentObserver<AdblockAwWebContentObserver>(
+      web_contents_.get(), web_contents_->GetBrowserContext());
 
   content::SynchronousCompositor::SetClientForWebContents(
       web_contents_.get(), &browser_view_renderer_);
@@ -926,6 +958,12 @@ bool AwContents::AllowThirdPartyCookies() {
   return aw_settings->GetAllowThirdPartyCookies();
 }
 
+bool AwContents::IsContentFilteringEnabled() const {
+  DCHECK_CURRENTLY_ON(BrowserThread::UI);
+  AwSettings* aw_settings = AwSettings::FromWebContents(web_contents_.get());
+  return aw_settings->IsContentFilteringEnabled();
+}
+
 void AwContents::OnFindResultReceived(int active_ordinal,
                                       int match_count,
                                       bool finished) {
@@ -1071,9 +1109,14 @@ void AwContents::UpdateLastHitTestData(JNIEnv* env) {
     img_src = data->img_src.spec();
   }
 
+  // ALOHA https://app.clickup.com/t/2f2ey18
+  std::optional<std::string> video_src;
+  if (data->video_src.is_valid())
+    video_src = data->video_src.spec();
+
   Java_AwContents_updateHitTestData(env, obj, static_cast<int32_t>(data->type),
                                     extra_data_for_type, href, anchor_text,
-                                    img_src);
+                                    img_src, video_src);
 }
 
 void AwContents::OnSizeChanged(JNIEnv* env, int w, int h, int ow, int oh) {
@@ -1756,6 +1799,38 @@ void AwContents::ResumeLoadingCreatedPopupWebContents(JNIEnv* env) {
   web_contents_->ResumeLoadingCreatedWebContents();
 }
 
+// ALOHA https://app.clickup.com/t/86epcdndk
+void AwContents::SetAdblockEnabled(JNIEnv* env, jboolean enable) {
+  web_contents_->SetAdblockEnabled(enable == JNI_TRUE);
+}
+
+// ALOHA https://app.clickup.com/t/2u59j0h
+void AwContents::RequestDownloadUrl(JNIEnv* env, const std::string& j_url) {
+  const GURL url(j_url);
+
+  // ALOHA https://app.clickup.com/t/2u59j0h?comment=1465391946
+  if (aloha::IsAllowedDownloadFromCache(url) &&
+      aloha::IsAllowedDownloadFromCache(web_contents_->GetVisibleURL())) {
+    // See implementation in components/download/content/internal/context_menu_download.cc.
+    content::DownloadManager* dlm =
+        web_contents_->GetBrowserContext()->GetDownloadManager();
+    std::unique_ptr<download::DownloadUrlParameters> dl_params(
+        content::DownloadRequestUtils::CreateDownloadForWebContentsMainFrame(
+            web_contents_.get(), url,
+            TRAFFIC_ANNOTATION_WITHOUT_PROTO("Download via aloha request")));
+
+    dl_params->set_prefer_cache(true);
+    dl_params->set_request_origin(aloha::kDownloadRequestOrigin);
+    dlm->DownloadUrl(std::move(dl_params));
+  } else {
+    AwContentsClientBridge* client =
+      AwContentsClientBridge::FromWebContents(web_contents_.get());
+    if (client) {
+      client->NewDownload(url, url, {}, {}, {}, {}, {}, -1);
+    }
+  }
+}
+
 namespace {
 
 // Post a task to a background thread to log a site visit.
@@ -1967,6 +2042,18 @@ AwContents::RenderProcessGoneResult AwContents::OnRenderProcessGone(
     return RenderProcessGoneResult::kException;
   }
 
+  // ALOHA: renderer-gone recovery. If the app handled the loss and this
+  // WebView is currently hidden, mark the last committed entry for a lazy
+  // reload: the next HIDDEN->VISIBLE transition (Java
+  // updateWebContentsVisibility) runs NavigationControllerImpl::SetActive() ->
+  // LoadIfNecessary(), which spawns a fresh renderer. Mirrors Chrome's
+  // TabWebContentsObserver#primaryMainFrameRenderProcessGone for hidden tabs.
+  // Visible WebViews are recovered by the application explicitly.
+  if (result && web_contents_ &&
+      web_contents_->GetVisibility() != content::Visibility::VISIBLE) {
+    web_contents_->GetController().SetNeedsReload();
+  }
+
   return result ? RenderProcessGoneResult::kHandled
                 : RenderProcessGoneResult::kUnhandled;
 }
@@ -1975,6 +2062,72 @@ void AwContents::OnSafeBrowsingAllowListSet() {
   web_contents()->GetController().GetBackForwardCache().Flush(
       NotRestoredReason::kWebViewSafeBrowsingAllowlistChanged);
 }
+
+// ALOHA media control
+mojo::AssociatedRemote<media::mojom::MediaPlayer>*
+AwContents::GetMediaPlayerRemoteInternal(int cid, int rid, int did) {
+  auto* observer = static_cast<content::WebContentsImpl*>(web_contents_.get())
+      ->media_web_contents_observer();
+  content::MediaPlayerId player_id(content::GlobalRenderFrameHostId(cid, rid), did);
+  if (!observer->IsMediaPlayerRemoteAvailable(player_id))
+    return nullptr;
+  return &observer->GetMediaPlayerRemote(player_id);
+}
+
+// ALOHA https://app.clickup.com/t/861mawmth
+void AwContents::MediaPlayerPause(JNIEnv* env, int cid, int rid, int did) {
+  auto* player_remote = GetMediaPlayerRemoteInternal(cid, rid, did);
+  if (!player_remote)
+    return;
+  (*player_remote)->RequestPause(true);
+}
+
+// ALOHA https://app.clickup.com/t/861mawmth
+void AwContents::MediaPlayerPlay(JNIEnv* env, int cid, int rid, int did) {
+  auto* player_remote = GetMediaPlayerRemoteInternal(cid, rid, did);
+  if (!player_remote)
+    return;
+  (*player_remote)->RequestPlay(true);
+}
+
+// ALOHA https://app.clickup.com/t/86eqvfpwg
+void AwContents::MediaPlayerRequestFullscreen(JNIEnv* env, int cid, int rid, int did, const std::string& j_html_id) {
+  auto* player_remote = GetMediaPlayerRemoteInternal(cid, rid, did);
+  if (!player_remote)
+    return;
+  // ALOHA https://app.clickup.com/t/2558578/z93epafc7c browser-UI request:
+  // must not depend on the WebView having Android focus.
+  if (auto* rfh = content::RenderFrameHostImpl::FromID(cid, rid)) {
+    rfh->AlohaAllowBrowserInitiatedFullscreen();
+  }
+  (*player_remote)->RequestFullScreenForElement();
+}
+
+// ALOHA: subtitles.
+void AwContents::SetTextTrackMode(JNIEnv* env, int cid, int rid, int did, int track_index, int mode) {
+  auto* player_remote = GetMediaPlayerRemoteInternal(cid, rid, did);
+  if (!player_remote)
+    return;
+  (*player_remote)->SetTextTrackMode(
+      track_index, static_cast<media::mojom::TextTrackMode>(mode));
+}
+
+// ALOHA: subtitles.
+void AwContents::SetMediaControlsBottomInset(JNIEnv* env, int cid, int rid, int did, int bottom_inset_px) {
+  auto* player_remote = GetMediaPlayerRemoteInternal(cid, rid, did);
+  if (!player_remote)
+    return;
+  (*player_remote)->SetMediaControlsBottomInset(bottom_inset_px);
+}
+
+// ALOHA https://app.clickup.com/t/86eum0pax
+void AwContents::SetWebContentsSizeWithSyncProperties(JNIEnv* env, int width, int height) {
+  if (web_contents_) {
+      web_contents_->GetNativeView()->OnControlsResizeViewChanged(true);
+  }
+}
+
+
 }  // namespace android_webview
 
 DEFINE_JNI(AwContents)

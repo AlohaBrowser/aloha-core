@@ -12,7 +12,7 @@ import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 
 import org.chromium.base.FileUtils;
-import org.chromium.components.aboutui.CreditUtilsJni;
+//import org.chromium.components.aboutui.CreditUtilsJni; ALOHA
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -44,7 +44,7 @@ public class LicenseContentProvider extends ContentProvider
     @Override
     public void writeDataToPipe(
             ParcelFileDescriptor output, Uri uri, String mimeType, Bundle opts, String filename) {
-        if (sLibraryLoaded) {
+        /*if (sLibraryLoaded) {
             CreditUtilsJni.get().writeCreditsHtml(output.detachFd());
         } else {
             // Missing native library means we're the webview stub and licenses are stored as an
@@ -55,7 +55,7 @@ public class LicenseContentProvider extends ContentProvider
             } catch (IOException ioException) {
                 throw new RuntimeException(ioException);
             }
-        }
+        }*/
     }
 
     @Override

@@ -1,0 +1,28 @@
+# If changed, go to https://sequencediagram.org/ to regenerate diagram
+title eyeo Chromium SDK request filter matching flow
+
+participant AdblockURLLoaderFactory (Browser)
+participant ResourceClassificationRunner
+participant ThreadPool
+participant SubscriptionService
+participant ElementHider (Browser - UI thread)
+participant RenderFrameHost
+
+[ -> AdblockURLLoaderFactory (Browser) : InProgressRequest::InProgressRequest(request)
+AdblockURLLoaderFactory (Browser) ->(2) ResourceClassificationRunner : CheckRequestFilterMatch(request.url, ...)
+ResourceClassificationRunner ->(2) ThreadPool : CheckRequestFilterMatchInternal()
+ThreadPool ->SubscriptionService: Matches(url, ...)
+SubscriptionService -->ThreadPool:
+opt when filter match
+ThreadPool ->SubscriptionService: IsContentAllowlisted(url, ...)
+SubscriptionService -->ThreadPool:
+end
+ThreadPool -->(2) ResourceClassificationRunner : OnCheckRequestFilterMatchComplete()
+ResourceClassificationRunner -->AdblockURLLoaderFactory (Browser): OnFilterMatchResult(request.url, ..., result)
+AdblockURLLoaderFactory (Browser) --> [ : request->Resume() / request->CancelWithError()
+opt when request blocked
+note over AdblockURLLoaderFactory (Browser), ElementHider (Browser - UI thread): collapse whitespace left after blocked resource
+AdblockURLLoaderFactory (Browser) -> ElementHider (Browser - UI thread): HideBlockedElement()
+ElementHider (Browser - UI thread) -> ElementHider (Browser - UI thread): GenerateBlockedElemhideJavaScript()
+ElementHider (Browser - UI thread) -> RenderFrameHost: ExecuteJavaScriptInIsolatedWorld()
+end
