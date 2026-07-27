@@ -1477,6 +1477,11 @@ void HTMLCanvasElement::RemoveListener(CanvasDrawListener* listener) {
 }
 
 bool HTMLCanvasElement::OriginClean() const {
+  // ALOHA https://app.clickup.com/t/86ewfwk73 disables CORS checks for media it needs for recording.
+  LocalFrame* frame = GetDocument().GetFrame();
+  if (frame && frame->IsMediaCorsCheckDisabled())
+    return true;
+
   if (GetDocument().GetSettings() &&
       GetDocument().GetSettings()->GetDisableReadingFromCanvas()) {
     return false;

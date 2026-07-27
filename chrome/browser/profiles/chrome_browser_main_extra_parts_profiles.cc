@@ -1,6 +1,10 @@
 // Copyright 2013 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "chrome/browser/profiles/chrome_browser_main_extra_parts_profiles.h"
 
@@ -278,6 +282,16 @@
 #include "chrome/browser/webid/federated_identity_permission_context_factory.h"
 #include "chrome/common/buildflags.h"
 #include "chrome/common/chrome_features.h"
+#include "components/adblock/content/browser/factories/adblock_request_throttle_factory.h"
+#include "components/adblock/content/browser/factories/adblock_telemetry_service_factory.h"
+#include "components/adblock/content/browser/factories/content_security_policy_injector_factory.h"
+#include "components/adblock/content/browser/factories/element_hider_factory.h"
+#include "components/adblock/content/browser/factories/resource_classification_runner_factory.h"
+#include "components/adblock/content/browser/factories/session_stats_factory.h"
+#include "components/adblock/content/browser/factories/sitekey_storage_factory.h"
+#include "components/adblock/content/browser/factories/snippet_service_factory.h"
+#include "components/adblock/content/browser/factories/subscription_persistent_metadata_factory.h"
+#include "components/adblock/content/browser/factories/subscription_service_factory.h"
 #include "components/autofill/content/browser/autofill_log_router_factory.h"
 #include "components/breadcrumbs/core/breadcrumbs_status.h"
 #include "components/captive_portal/core/buildflags.h"
@@ -1013,6 +1027,16 @@ void ChromeBrowserMainExtraPartsProfiles::
   // Makes manual testing possible.
   FakeSmartCardDeviceServiceFactory::GetInstance();
 #endif
+  adblock::AdblockTelemetryServiceFactory::GetInstance();
+  adblock::AdblockRequestThrottleFactory::GetInstance();
+  adblock::ContentSecurityPolicyInjectorFactory::GetInstance();
+  adblock::ElementHiderFactory::GetInstance();
+  adblock::ResourceClassificationRunnerFactory::GetInstance();
+  adblock::SessionStatsFactory::GetInstance();
+  adblock::SitekeyStorageFactory::GetInstance();
+  adblock::SnippetServiceFactory::GetInstance();
+  adblock::SubscriptionPersistentMetadataFactory::GetInstance();
+  adblock::SubscriptionServiceFactory::GetInstance();
   FaviconServiceFactory::GetInstance();
   feature_engagement::TrackerFactory::GetInstance();
   FederatedIdentityApiPermissionContextFactory::GetInstance();

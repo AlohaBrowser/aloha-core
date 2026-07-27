@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "chrome/browser/extensions/api/web_navigation/frame_navigation_state.h"
 
 #include "base/check.h"
@@ -11,6 +13,9 @@
 #include "content/public/browser/render_frame_host.h"
 #include "extensions/buildflags/buildflags.h"
 #include "extensions/common/constants.h"
+
+// ALOHA https://app.clickup.com/t/2e5wpe6
+#include "aloha/src/native/aloha_consts.h"
 
 static_assert(BUILDFLAG(ENABLE_EXTENSIONS_CORE));
 
@@ -38,6 +43,7 @@ bool FrameNavigationState::IsValidUrl(const GURL& url) {
       url::kJavaScriptScheme,
       url::kDataScheme,
       url::kFileSystemScheme,
+      aloha::kAlohaScheme, // ALOHA https://app.clickup.com/t/2e5wpe6
   });
 
   if (kValidSchemes.contains(url.scheme())) {

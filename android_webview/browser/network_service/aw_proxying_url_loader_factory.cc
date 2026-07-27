@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/network_service/aw_proxying_url_loader_factory.h"
 
 #include <algorithm>
@@ -73,6 +75,9 @@
 #include "third_party/blink/public/mojom/origin_trials/origin_trial_feature.mojom-shared.h"
 #include "url/gurl.h"
 #include "url/origin.h"
+
+// ALOHA https://app.clickup.com/t/2e5vz5u
+#include "aloha/src/native/aloha_consts.h"
 
 namespace android_webview {
 
@@ -453,6 +458,18 @@ void InterceptedRequest::InterceptWithCookieHeader(std::string cookie) {
 
 void InterceptedRequest::InterceptResponseReceived(
     AwContentsIoThreadClient::InterceptResponseData async_result) {
+  // We send the application's package name in the X-Requested-With header for
+  // compatibility with previous WebView versions. This should not be visible to
+  // shouldInterceptRequest. It should also not trigger CORS prefetch if
+  // OOR-CORS is enabled.
+  std::string header = content::GetCorsExemptRequestedWithHeaderName();
+
+  // Only overwrite if the header hasn't already been set
+  if (!request_.headers.HasHeader(header)) {
+    request_.cors_exempt_headers.SetHeader(
+        header, aloha::kAlohaBrowser);
+  }
+  
   AwProxyingURLLoaderFactory::SetRequestedWithHeader(
       request_, request_.cors_exempt_headers);
 

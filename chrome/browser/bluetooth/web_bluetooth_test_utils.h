@@ -1,6 +1,10 @@
 // Copyright 2024 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #ifndef CHROME_BROWSER_BLUETOOTH_WEB_BLUETOOTH_TEST_UTILS_H_
 #define CHROME_BROWSER_BLUETOOTH_WEB_BLUETOOTH_TEST_UTILS_H_
@@ -12,6 +16,7 @@
 #include <vector>
 
 #include "base/functional/callback.h"
+#include "chrome/browser/adblock/adblock_chrome_content_browser_client.h"
 #include "chrome/browser/bluetooth/chrome_bluetooth_delegate.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "device/bluetooth/bluetooth_adapter.h"
@@ -195,7 +200,8 @@ class TestBluetoothDelegate : public ChromeBluetoothDelegate {
   bool use_real_chooser_ = false;
 };
 
-class BluetoothTestContentBrowserClient : public ChromeContentBrowserClient {
+class BluetoothTestContentBrowserClient
+    : public AdblockChromeContentBrowserClient {
  public:
   BluetoothTestContentBrowserClient();
   ~BluetoothTestContentBrowserClient() override;

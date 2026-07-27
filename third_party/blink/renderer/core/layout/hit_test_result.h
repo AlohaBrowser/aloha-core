@@ -19,6 +19,8 @@
  *
 */
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_HIT_TEST_RESULT_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_HIT_TEST_RESULT_H_
 
@@ -170,6 +172,12 @@ class CORE_EXPORT HitTestResult {
   static KURL AbsoluteImageURL(const Node* node);
   KURL AbsoluteImageURL() const;
   KURL AbsoluteMediaURL() const;
+
+  // ALOHA https://app.clickup.com/t/2f2ey18
+  KURL AlohaFindVideoURL() const;
+  // ALOHA https://app.clickup.com/t/2v1r9c4
+  KURL AlohaFindImageURL() const;
+
   MediaStreamDescriptor* GetMediaStreamDescriptor() const;
   MediaSourceHandle* GetMediaSourceHandle() const;
   KURL AbsoluteLinkURL() const;
@@ -223,6 +231,9 @@ class CORE_EXPORT HitTestResult {
   AddNodeToListBasedTestResultInternal(Node* node,
                                        const HitTestLocation& location);
   static const ImageResourceContent* GetImageContent(const Node* node);
+
+  // ALOHA https://app.clickup.com/t/2v1r9c4
+  std::optional<gfx::Point> GetPointInViewport() const;
 
   HitTestRequest hit_test_request_;
   bool cacheable_;

@@ -1,0 +1,180 @@
+// This file is part of eyeo Chromium SDK,
+// Copyright (C) 2006-present eyeo GmbH
+//
+// eyeo Chromium SDK is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License version 3 as
+// published by the Free Software Foundation.
+//
+// eyeo Chromium SDK is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+// DEPRECATED: Prefer eyeoFilteringPrivate API.
+//
+// This is a private API exposing ability to control ad-filtering settings via adblockPrivate API.
+//
+// Devs: when modifying this file, ensure you update
+// tools/typescript/definitions/adblock_private.d.ts as well.
+// See DPD-1870 for more information.
+namespace adblockPrivate {
+
+dictionary BuiltInSubscription {
+  // Subscription url
+  DOMString url;
+  // Subscription title (may be empty)
+  DOMString title;
+  // list of languages this subscription is relevant for.
+  DOMString[] languages;
+};
+
+dictionary Subscription {
+  // Subscription url
+  DOMString url;
+  // Current state of the subscription. Allowed values are:
+  // "Installed"
+  // "Preloaded"
+  // "Installing"
+  // See components/adblock/core/subscription/subscription.h for description.
+  DOMString installation_state;
+  // Subscription title (may be empty)
+  DOMString title;
+  // Subscription version (may be empty)
+  DOMString current_version;
+  // Time of last successful installation or update, in ISO 8601 format.
+  // May be passed directly to the Date constructor.
+  // Empty for subscriptions that are not installed yet.
+  DOMString last_installation_time;
+};
+
+dictionary SessionStatsEntry {
+  // Subscription url or "adblock:custom" when custom filter was matched
+  DOMString url;
+  // Subscription hits
+  long count;
+};
+
+dictionary AdInfo {
+  // URL of the ad element which has been matched.
+  DOMString url;
+  // URLs of the parent frames.
+  DOMString[] parent_frame_urls;
+  // URL of subscription having the filter which matched for the ad.
+  DOMString subscription;
+  // Configuration name containing subscription with matched filer.
+  DOMString configuration_name;
+  // A string representation of matched ad's resource type.
+  // Possible values are:
+  // - "SCRIPT"
+  // - "IMAGE"
+  // - "STYLESHEET"
+  // - "OBJECT"
+  // - "SUBDOCUMENT"
+  // - "WEBSOCKET"
+  // - "WEBRTC"
+  // - "PING"
+  // - "XMLHTTPREQUEST"
+  // - "MEDIA"
+  // - "FONT"
+  // - "OTHER" (when none of the above matches)
+  // See: components/adblock/core/common/content_type.h
+  DOMString content_type;
+  // Tab id for which the event is fired. Defaults to -1, a numerical value of
+  // api::tabs::TAB_ID_NONE which means tab id cannot be obtained.
+  long tab_id;
+  // Window id for which the event is fired. Defaults to -1 which is a value
+  // of SessionID::InvalidValue() which means window id cannot be obtained.
+  long window_id;
+};
+
+callback BuiltInSubscriptionsCallback = void(BuiltInSubscription[] result);
+callback SubscriptionsCallback = void(Subscription[] result);
+callback StateCallback = void(boolean result);
+callback CompletionCallback = void();
+callback ListCallback = void(DOMString[] result);
+callback SessionStatsCallback = void(SessionStatsEntry[] result);
+
+[deprecated="Use eyeoFilteringPrivate methods instead."]
+interface Functions {
+  // Allows to turn Adblock on or off.
+  static void setEnabled(boolean enabled);
+  // Returns whether Adblock is on.
+  static void isEnabled(StateCallback callback);
+  // Allows to turn Acceptable Ads on or off.
+  static void setAcceptableAdsEnabled(boolean enabled);
+  // Returns whether Acceptable Ads is on.
+  static void isAcceptableAdsEnabled(StateCallback callback);
+  // Allows to turn autoinstalling geolocation recommendation on or off.
+  static void setAutoInstallEnabled(boolean enabled);
+  // Returns whether autoinstalling geolocation recommendation is on.
+  static void isAutoInstallEnabled(StateCallback callback);
+  // Gets the list of built-in subscriptions.
+  static void getBuiltInSubscriptions(BuiltInSubscriptionsCallback callback);
+  // Adds a domain ads should not be blocked on.
+  static void addAllowedDomain(DOMString domain);
+  // Removes a domain ads should not be blocked on.
+  static void removeAllowedDomain(DOMString domain);
+  // Returns a list of domains ads are not blocked on.
+  static void getAllowedDomains(ListCallback callback);
+  // Adds a custom filter.
+  static void addCustomFilter(DOMString filter);
+  // Removes a custom filter.
+  static void removeCustomFilter(DOMString filter);
+  // Returns a list of custom filters a user set.
+  static void getCustomFilters(ListCallback callback);
+  // Returns number of allowlisted requests in a current session (runtime).
+  static void getSessionAllowedAdsCount(SessionStatsCallback callback);
+  // Returns number of blocked requests in a current session (runtime).
+  static void getSessionBlockedAdsCount(SessionStatsCallback callback);
+  // Compiles a list of currently installed subscriptions. Filter lists that are
+  // still being installed and don't yet participate in ad filtering also appear
+  // on this list and can be discerned by their installation_state.
+  static void getInstalledSubscriptions(SubscriptionsCallback callback);
+  // Subscribes to a filter list. If subscription was already done and not
+  // removed later by "uninstallSubscription()" call then this is a no-op call,
+  // otherwise it initiates a download. |url| must point to a https URL.
+  static void installSubscription(DOMString url,
+                                  optional CompletionCallback feedback);
+  // Removes a subscription to a filter list downloaded from |url| and deletes
+  // corresponding files from disk. Does nothing if the filter list was never
+  // subscribed to.
+  static void uninstallSubscription(DOMString url,
+                                    optional CompletionCallback feedback);
+};
+
+interface Events {
+  // Fired when an ad is explicitly allowed by an exception rule.
+  static void onAdAllowed(AdInfo info);
+
+  // Fired when an ad is blocked.
+  static void onAdBlocked(AdInfo info);
+
+  // Fired when a whole page is allowlisted.
+  static void onPageAllowed(AdInfo info);
+
+  // Fired when a popup is blocked.
+  static void onPopupBlocked(AdInfo info);
+
+  // Fired when a popup is allowlisted.
+  static void onPopupAllowed(AdInfo info);
+
+  // Fired when a subscription has been updated.
+  static void onSubscriptionUpdated(DOMString subscription_url);
+
+  // Fired when ad-filtering enable state changed
+  static void onEnabledStateChanged();
+
+  // Fired when subscription added or removed.
+  static void onFilterListsChanged();
+
+  // Fired when allowed domain list has been updated.
+  static void onAllowedDomainsChanged();
+
+  // Fired when custom filter added or removed.
+  static void onCustomFiltersChanged();
+};
+
+};

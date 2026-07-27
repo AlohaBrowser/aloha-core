@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package com.android.webview.chromium;
 
 import android.app.compat.CompatChanges;
@@ -679,10 +681,10 @@ public class WebViewChromiumAwInit {
                     }
 
                     AconfigFlaggedApiDelegate delegate = AconfigFlaggedApiDelegate.getInstance();
+                    /* ALOHA: see WebViewChromiumFactoryProvider — base expects framework
+                       WebViewDelegate; delegate is null in our build, so pass null. */
                     boolean isNativeWebViewZygoteEnabled =
-                            delegate != null
-                                    && delegate.isNativeWebViewZygoteEnabled(
-                                            mFactory.getWebViewDelegate());
+                            delegate != null && delegate.isNativeWebViewZygoteEnabled(null);
                     AwBrowserProcess.configureChildProcessLauncher(isNativeWebViewZygoteEnabled);
 
                     // finishVariationsInitLocked() must precede native initialization so
@@ -741,8 +743,7 @@ public class WebViewChromiumAwInit {
                     AconfigFlaggedApiDelegate delegate = AconfigFlaggedApiDelegate.getInstance();
                     if (delegate != null) {
                         AwContentsStatics.setSelectionActionMenuClient(
-                                delegate.getSelectionActionMenuClient(
-                                        mFactory.getWebViewDelegate()));
+                                delegate.getSelectionActionMenuClient(null));
                     }
 
                     AwCrashyClassUtils.maybeCrashIfEnabled();
@@ -1155,8 +1156,8 @@ public class WebViewChromiumAwInit {
         } else {
             synchronized (mLazyInitLock) {
                 if (mDefaultCookieManager == null) {
-                    mDefaultCookieManager =
-                            new CookieManagerAdapter(AwCookieManager.getDefaultCookieManager());
+                    // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+                	mDefaultCookieManager = new CookieManagerAdapter(AwCookieManager.getPublicCookieManager());	
                 }
                 return mDefaultCookieManager;
             }

@@ -11,6 +11,8 @@
 // populated with "sane" default values. Read through the comments to figure out
 // what these are.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef NET_URL_REQUEST_URL_REQUEST_CONTEXT_BUILDER_H_
 #define NET_URL_REQUEST_URL_REQUEST_CONTEXT_BUILDER_H_
 
@@ -57,6 +59,9 @@
 #else
 #include "net/dns/dns_platform_attempt_factory_not_implemented.h"
 #endif  // BUILDFLAG(IS_ANDROID)
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+#include "aloha/src/native/aloha_consts.h"
 
 namespace net {
 
@@ -355,6 +360,9 @@ class NET_EXPORT URLRequestContextBuilder {
 
   // Override the default in-memory cookie store. If |cookie_store| is NULL,
   // CookieStore will be disabled for this context.
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  void SetCookieStore(int inst_num, std::unique_ptr<CookieStore> cookie_store);
+  // Only for tests!
   void SetCookieStore(std::unique_ptr<CookieStore> cookie_store);
 
   // Sets a specific HttpServerProperties for use in the
@@ -544,7 +552,8 @@ class NET_EXPORT URLRequestContextBuilder {
   std::unique_ptr<SSLConfigService> ssl_config_service_;
   std::unique_ptr<NetworkDelegate> network_delegate_;
   std::unique_ptr<ProxyDelegate> proxy_delegate_;
-  std::unique_ptr<CookieStore> cookie_store_;
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  std::array<std::unique_ptr<CookieStore>, aloha::kCookieManagersCount> cookie_stores_;
   std::unique_ptr<HttpAuthHandlerFactory> http_auth_handler_factory_;
   std::unique_ptr<CertVerifier> cert_verifier_;
   std::unique_ptr<SCTAuditingDelegate> sct_auditing_delegate_;

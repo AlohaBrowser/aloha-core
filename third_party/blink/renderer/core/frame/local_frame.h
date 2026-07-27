@@ -275,6 +275,10 @@ class CORE_EXPORT LocalFrame final
   void DidBufferLoadWhileInBackForwardCache(bool update_process_wide_count,
                                             size_t num_bytes) override;
 
+  // ALOHA https://app.clickup.com/t/86ewfwk73
+  void SetMediaCorsCheckDisabled(bool disabled);
+  bool IsMediaCorsCheckDisabled() const;
+
   void DidChangeThemeColor(bool update_theme_color_cache);
   void DidChangeBackgroundColor(SkColor4f background_color, bool color_adjust);
 
@@ -1257,6 +1261,9 @@ class CORE_EXPORT LocalFrame final
       microtasks_pauser_;
 
   WebPrintParams print_params_;
+
+  // ALOHA https://app.clickup.com/t/86ewfwk73 disables CORS checks for media it needs for recording.
+  bool cors_for_media_disabled_ = false;
 
   BrowserInterfaceBrokerProxyImpl browser_interface_broker_proxy_;
 

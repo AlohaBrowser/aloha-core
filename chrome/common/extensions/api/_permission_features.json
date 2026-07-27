@@ -1,6 +1,10 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
+
 
 // This features file defines permissions for extension APIs implemented
 // under src/chrome.
@@ -58,6 +62,13 @@
       "C50DC2AC31D826BC977032AF12DE4694CC8467DC",  // For unit testing ALP
       "AE27D69DBE571F4B1694F05C89B710C646792231",  // Published ADT.
       "5107DE9024C329EEA9C9A72D94C16723790C6422"   // Apps Developer Tool Dev.
+    ]
+  },
+  "adblockPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "platform_app"],
+    "allowlist" : [
+      "664F11343A17783FC7F6DC994BBC8AAF6823739C"  // eyeo test extension
     ]
   },
   "autofillPrivate": {
@@ -418,6 +429,20 @@
     "command_line_switch": "extension-ai-data-collection",
     // "desktop_android" is not supported.
     "platforms": ["chromeos", "linux", "mac", "win"]
+  },
+  "eyeoDevToolsPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension"],
+    "allowlist" : [
+      "664F11343A17783FC7F6DC994BBC8AAF6823739C"  // eyeo test extension
+    ]
+  },
+  "eyeoFilteringPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "platform_app"],
+    "allowlist" : [
+      "664F11343A17783FC7F6DC994BBC8AAF6823739C"  // eyeo test extension
+    ]
   },
   "glicPrivate": {
     "extension_types": ["extension"],

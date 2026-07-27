@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 #
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
+#
 # This file is used to assign starting resource ids for resources and strings
 # used by Chromium.  This is done to ensure that resource ids are unique
 # across all the grd files.  If you are adding a new grd file, please add
@@ -1388,10 +1392,10 @@
     "includes": [7470],
   },
   "<(SHARED_INTERMEDIATE_DIR)/components/sync/service/resources/resources.grd": {
-   "META": {"sizes": {"includes": [30],}},
+    "META": {"sizes": {"includes": [30],}},
     "includes": [7480],
   },
-    "<(SHARED_INTERMEDIATE_DIR)/components/webui/regional_capabilities_internals/resources/resources.grd": {
+  "<(SHARED_INTERMEDIATE_DIR)/components/webui/regional_capabilities_internals/resources/resources.grd": {
     "META": {"sizes": {"includes": [5]}},
     "includes": [7490],
   },
@@ -1402,6 +1406,14 @@
   "<(SHARED_INTERMEDIATE_DIR)/chrome/browser/resources/feature_showcase/resources.grd": {
     "META": {"sizes": {"includes": [50]}},
     "includes": [7505],
+  },
+  "components/adblock/core/resources/adblock_resources.grd": {
+    "META": {"sizes": {"includes": [10],}},
+    "includes": [10020],
+  },
+  "<(SHARED_INTERMEDIATE_DIR)/components/adblock/content/resources/adblock_internals/resources.grd": {
+    "META": {"sizes": {"includes": [10],}},
+    "includes": [10040],
   },
   # END components/ section.
 

@@ -1073,6 +1073,8 @@ bool LocalFrame::CanAccessEvent(
 }
 
 void LocalFrame::Reload(WebFrameLoadType load_type) {
+  cors_for_media_disabled_ = false; // ALOHA https://app.clickup.com/t/86ewfwk73
+
   DCHECK(IsReloadLoadType(load_type));
   if (!loader_.GetDocumentLoader()->GetHistoryItem())
     return;
@@ -3967,6 +3969,16 @@ void LocalFrame::BindTextFragmentReceiver(
     CreateTextFragmentHandler();
 
   text_fragment_handler_->BindTextFragmentReceiver(std::move(receiver));
+}
+
+// ALOHA https://app.clickup.com/t/86ewfwk73
+void LocalFrame::SetMediaCorsCheckDisabled(bool disabled) {
+  cors_for_media_disabled_ = disabled;
+}
+
+// ALOHA https://app.clickup.com/t/86ewfwk73
+bool LocalFrame::IsMediaCorsCheckDisabled() const {
+  return cors_for_media_disabled_;
 }
 
 SpellChecker& LocalFrame::GetSpellChecker() const {

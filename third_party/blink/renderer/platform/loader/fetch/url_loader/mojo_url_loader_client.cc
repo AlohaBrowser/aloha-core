@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
 #include "third_party/blink/renderer/platform/loader/fetch/url_loader/mojo_url_loader_client.h"
 
 #include <iterator>
@@ -402,6 +406,7 @@ void MojoURLLoaderClient::OnReceiveRedirect(
   bool is_manual_redirect = response_head->response_type ==
                             network::mojom::FetchResponseType::kOpaqueRedirect;
   if (!bypass_redirect_checks_ && !is_manual_redirect &&
+      !redirect_info.bypass_redirect_checks &&
       !Platform::Current()->IsRedirectSafe(GURL(last_loaded_url_),
                                            redirect_info.new_url,
                                            redirect_info.original_initiator)) {

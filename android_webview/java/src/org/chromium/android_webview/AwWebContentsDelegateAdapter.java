@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview;
 
 import android.annotation.SuppressLint;
@@ -29,6 +31,10 @@ import org.chromium.content_public.browser.RenderFrameHost;
 import org.chromium.content_public.common.ContentUrlConstants;
 import org.chromium.content_public.common.ResourceRequestBody;
 import org.chromium.url.GURL;
+
+// ALOHA https://app.clickup.com/t/2f2f3dt
+import org.chromium.android_webview.AwWebResourceError;
+import org.chromium.android_webview.AwWebResourceRequest;
 
 /**
  * Adapts the AwWebContentsDelegate interface to the AwContentsClient interface.
@@ -170,14 +176,20 @@ class AwWebContentsDelegateAdapter extends AwWebContentsDelegate {
     }
 
     @Override
-    public void openNewTab(
-            GURL url,
-            String extraHeaders,
-            ResourceRequestBody postData,
-            int disposition,
-            boolean isRendererInitiated) {
-        // Not supported.  There are very few cases where this is called other than in //chrome
-        // and we don't expect them to matter for WebView.
+    public void openNewTab(GURL url, String extraHeaders, ResourceRequestBody postData,
+            int disposition, boolean isRendererInitiated) {
+        // ALOHA: https://app.clickup.com/t/2f2f3dt
+        AwWebResourceRequest request =
+            new AwWebResourceRequest(
+                url.getPossiblyInvalidSpec(),
+                true,
+                true,
+                true,
+                "GET",
+                null
+            );
+        AwWebResourceError error = AwWebResourceError.createFromNetError(-100, "AwWebContentsDelegateAdapter.openNewTab is not implemented");
+        mContentsClient.onReceivedError(request, error);
     }
 
     @Override
@@ -275,8 +287,16 @@ class AwWebContentsDelegateAdapter extends AwWebContentsDelegate {
     }
 
     @Override
-    public boolean addNewContents(boolean isDialog, boolean isUserGesture) {
-        return mContentsClient.onCreateWindow(isDialog, isUserGesture);
+    public boolean addNewContents(
+            boolean isDialog,
+            boolean isUserGesture,
+            String targetUrl, // ALOHA https://app.clickup.com/t/86epgj787 provide targetUrl
+            boolean isGoogleAuth3PCookiesRequired) { // ALOHA https://app.clickup.com/t/86ev1nrnd
+        return mContentsClient.onCreateWindow(
+                       isDialog,
+                       isUserGesture,
+                       targetUrl, // ALOHA https://app.clickup.com/t/86epgj787 provide targetUrl
+                       isGoogleAuth3PCookiesRequired); // ALOHA https://app.clickup.com/t/86ev1nrnd
     }
 
     @Override
@@ -340,31 +360,18 @@ class AwWebContentsDelegateAdapter extends AwWebContentsDelegate {
      * is ready to be shown.
      */
     private void enterFullscreen() {
-        if (mAwContents.isFullScreen()) {
-            return;
-        }
-        View fullscreenView = mAwContents.enterFullScreen();
-        if (fullscreenView == null) {
-            return;
-        }
-        AwContentsClient.CustomViewCallback cb =
-                () -> {
-                    if (mCustomView != null) {
-                        mAwContents.requestExitFullscreen();
-                    }
-                };
-        mCustomView = new FrameLayout(mContext);
-        mCustomView.addView(fullscreenView);
-        mContentsClient.onShowCustomView(mCustomView, cb);
+        // ALOHA https://app.clickup.com/t/2hxwa9w
+        // Code here breaks fullscreen mode, so it is removed.
+
+        // ALOHA https://app.clickup.com/t/861m7mewp
+        mContentsClient.onEnterFullscreen();
     }
+
 
     /** Called to show the web contents in embedded mode. */
     private void exitFullscreen() {
-        if (mCustomView != null) {
-            mCustomView = null;
-            mAwContents.exitFullScreen();
-            mContentsClient.onHideCustomView();
-        }
+        // ALOHA https://app.clickup.com/t/861m7mewp
+        mContentsClient.onExitFullscreen();
     }
 
     @Override

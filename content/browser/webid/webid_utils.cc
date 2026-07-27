@@ -5,6 +5,7 @@
 #include "content/browser/webid/webid_utils.h"
 
 #include "base/strings/stringprintf.h"
+#include "build/build_config.h"  // ALOHA: FedCM (BUILDFLAG IS_ANDROID)
 #include "base/strings/utf_string_conversions.h"
 #include "base/trace_event/trace_event.h"
 #include "components/url_formatter/elide_url.h"
@@ -187,8 +188,23 @@ void UpdateIdpSigninStatusForAccountsEndpointResponse(
     }
   } else {
     RecordIdpSignOutNetError(fetch_status.response_code);
+#if !BUILDFLAG(IS_ANDROID)
     // Ensures that we only fetch accounts unconditionally once.
     permission_delegate->SetIdpSigninStatus(idp_origin, false, std::nullopt);
+#else
+    // ALOHA: FedCM — do NOT persist a false sign-in status on WebView.
+    //
+    // Upstream infers "logged-out" from a failed/empty accounts fetch and
+    // relies on `Set-Login: logged-in` to flip it back to true later. On
+    // WebView that header is unreliable (the very reason RequestService::
+    // OnClose has an Android fallback). A passive widget firing on page load
+    // before the user is signed into Google gets kEmptyListError (HTTP 200,
+    // empty account list) here, which would stick the status at false forever
+    // and block every subsequent attempt — even after the user logs into
+    // Google in another tab. Leaving it unknown lets each request re-probe;
+    // explicit `Set-Login: logged-out` (via the URLLoaderThrottle in
+    // aw_content_browser_client.cc) still marks logged-out authoritatively.
+#endif  // !BUILDFLAG(IS_ANDROID)
   }
 }
 

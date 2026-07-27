@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/network_service/net_helpers.h"
 
 #include "android_webview/browser/aw_browser_process.h"
@@ -14,6 +16,9 @@
 #include "net/base/load_flags.h"
 #include "net/http/http_request_headers.h"
 #include "url/gurl.h"
+
+// ALOHA https://app.clickup.com/t/2u59j0h
+#include "aloha/src/native/aloha_consts.h"
 
 namespace android_webview {
 
@@ -29,8 +34,9 @@ int UpdateCacheControlFlags(int load_flags, int cache_control_flags) {
   return load_flags;
 }
 
+// ALOHA We use a constant value for the cache size
 // Guaranteed to return a valid cache size
-int GetHttpCacheSizeInternal() {
+/*int GetHttpCacheSizeInternal() {
   constexpr int DEFAULT_CACHE_LIMIT = 20 * 1024 * 1024;  // 20MiB
 
   if (base::FeatureList::IsEnabled(
@@ -57,6 +63,7 @@ int GetHttpCacheSizeInternal() {
 
   return DEFAULT_CACHE_LIMIT;
 }
+*/
 
 // Gets the net-layer load_flags which reflect |client|'s cache mode.
 int GetCacheModeForClient(AwContentsIoThreadClient* client) {
@@ -127,18 +134,15 @@ bool ShouldBlockURL(const GURL& url, AwContentsIoThreadClient* client) {
 }
 
 int GetHttpCacheSize() {
-  // static so that `GetHttpCacheSizeInternal()` is called only once.
-  static int cache_limit = -1;
-  if (cache_limit == -1) {
-    cache_limit = GetHttpCacheSizeInternal();
-    // Using WARNING instead of INFO since usage of INFO is unallowed.
-    // This is semantically not a warning and is temporary till the
-    // HTTP Cache size experiment has landed.
-    LOG(WARNING) << "HTTP Cache size is: " << cache_limit;
-    base::UmaHistogramCounts10000("Android.WebView.HttpCacheSizeLimit",
-                                  cache_limit / (1024 * 1024));
-  };
-  return cache_limit;
+  // This currently returns a constant value, but we may consider deciding cache
+  // size dynamically, since Android provides better support on newer versions
+  // (http://crbug.com/893318).
+
+  // ALOHA https://app.clickup.com/t/2u59j0h
+  // This const equals 0 in chrome and limit set in net/disk_cache/simple/simple_backend_impl.cc:292.
+  // Max file size in cache realy equals ~40.9Mb in chrome.
+  // Cache size 150Mb here is really ~19.7Mb per file.
+  return aloha::kHttpCacheMaxSizeBytes;
 }
 
 void ConvertRequestHeadersToVectors(const net::HttpRequestHeaders& headers,

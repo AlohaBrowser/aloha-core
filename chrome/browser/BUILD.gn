@@ -1,6 +1,10 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
 
 import("//base/allocator/allocator.gni")
 import("//build/buildflag_header.gni")
@@ -605,6 +609,8 @@ if (is_chromeos) {
 source_set("core") {
   sources = [
     "about_flags.cc",
+    "adblock/adblock_chrome_content_browser_client.cc",
+    "adblock/adblock_chrome_content_browser_client.h",
     "after_startup_task_utils.cc",
     "browser_about_handler.cc",
     "browser_process_impl.cc",
@@ -2119,6 +2125,7 @@ static_library("browser") {
     "//chrome/installer/util:with_no_strings",
     "//chrome/services/speech/buildflags",
     "//components/account_settings",
+    "//components/adblock/content:browser",
     "//components/application_locale_storage",
     "//components/assist_ranker",
     "//components/autofill/content/browser",
@@ -2680,8 +2687,14 @@ static_library("browser") {
       "shell_integration_android.cc",
     ]
 
+    deps += [ "//chrome/browser/android" ]
+
+    public_deps += [ "//chrome/browser/accessibility/accessibility_prefs" ]
+
+    sources += [ "android/adblock/tab_id_translator_jni.cc" ]
+
     deps += [
-      "//chrome/browser/android",
+      "//cc/slim",
 
       # JNI headers and other Android-specific deps consumed by the remaining
       # Android sources still in :browser (top-level *_android.cc and the few
@@ -5242,6 +5255,8 @@ group("browser_public_dependencies") {
     "//chrome/services/file_util/public/mojom",
     "//components/accessibility_annotator/core",
     "//components/account_id",
+    "//components/adblock/content:browser",
+    "//components/adblock/content/renderer",
     "//components/autofill/content/browser",
     "//components/autofill/core/browser",
     "//components/compose/core/browser:mojo_bindings",

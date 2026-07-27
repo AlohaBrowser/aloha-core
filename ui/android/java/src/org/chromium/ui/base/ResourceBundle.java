@@ -2,18 +2,25 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.ui.base;
+
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 
 import org.jni_zero.CalledByNative;
 import org.jni_zero.JNINamespace;
 
 import org.chromium.base.ApkAssets;
+import org.chromium.base.ContextUtils;
 import org.chromium.base.LocaleUtils;
 import org.chromium.base.Log;
 import org.chromium.base.ResettersForTesting;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -49,6 +56,9 @@ public final class ResourceBundle {
     public static void setAvailablePakLocales(String[] locales) {
         assert sAvailableLocales == null;
         sAvailableLocales = locales;
+        // ALOHA https://app.clickup.com/t/2rbv8qq
+        // Sort need for binarySearch in getLocalePakResourcePath().
+        Arrays.sort(sAvailableLocales);
     }
 
     public static void clearAvailablePakLocalesForTesting() {

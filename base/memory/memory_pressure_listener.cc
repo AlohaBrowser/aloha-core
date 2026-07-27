@@ -167,6 +167,14 @@ class AsyncMemoryPressureListenerRegistration::MainThread
  public:
   MainThread() { DETACH_FROM_THREAD(thread_checker_); }
 
+  // ALOHA: https://app.clickup.com/t/2558578/86exrk31t
+  // Called from ~AsyncMemoryPressureListenerRegistration(), potentially from a
+  // different sequence. Prevents OnMemoryPressure() from copying parent_ after
+  // weak_ptr_factory_ is destroyed.
+  void StartDetach() {
+    detaching_.store(true, std::memory_order_release);
+  }
+
   void Init(WeakPtr<AsyncMemoryPressureListenerRegistration> parent,
             scoped_refptr<SequencedTaskRunner> listener_task_runner,
             MemoryPressureListenerTag tag,
@@ -184,12 +192,28 @@ class AsyncMemoryPressureListenerRegistration::MainThread
  private:
   void OnMemoryPressure(MemoryPressureLevel memory_pressure_level) override {
     DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
+    
+    // ALOHA: https://app.clickup.com/t/2558578/86exrk31t
+    // M146 added SendMemoryPressureNotification() on page resume via
+    // MemoryPressureSuppressionToken (commit 5c71b78c). This creates a new
+    // code path where OnMemoryPressure() can be called after the parent's
+    // AsyncMemoryPressureListenerRegistration is destroyed but before
+    // DeleteSoon() runs. Copying parent_ (WeakPtr) in that window triggers
+    // SIGBUS BUS_ADRALN on ARM64 (unaligned atomic in __aarch64_ldadd4_relax).
+    if (detaching_.load(std::memory_order_acquire)) {
+      return;
+    }
     listener_task_runner_->PostTask(
         FROM_HERE,
         BindOnce(
             &AsyncMemoryPressureListenerRegistration::UpdateMemoryPressureLevel,
             parent_, memory_pressure_level));
   }
+
+  // ALOHA: https://app.clickup.com/t/2558578/86exrk31t
+  // Set atomically by StartDetach() before DeleteSoon(). Safe to read/write
+  // from different threads.
+  std::atomic<bool> detaching_{false};
 
   // The task runner on which the listener lives.
   scoped_refptr<SequencedTaskRunner> listener_task_runner_
@@ -235,6 +259,13 @@ AsyncMemoryPressureListenerRegistration::
     ~AsyncMemoryPressureListenerRegistration() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (main_thread_) {
+
+    // ALOHA: https://app.clickup.com/t/2558578/86exrk31t
+    // Signal MainThread to stop handling notifications. This must happen before
+    // weak_ptr_factory_ is destroyed (member dtor runs after this body), so
+    // that OnMemoryPressure() on the main thread cannot copy parent_ after the
+    // factory is gone.
+    main_thread_->StartDetach();
     // In tests, tasks on the main thread are not executed upon destruction of
     // the TaskEnvironment. The main thread object thus gets tagged as leaking,
     // which is fine in this case.

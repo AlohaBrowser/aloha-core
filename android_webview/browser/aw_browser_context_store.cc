@@ -4,6 +4,7 @@
 
 #include "android_webview/browser/aw_browser_context_store.h"
 
+#include <atomic>
 #include <map>
 #include <memory>
 #include <string>
@@ -44,7 +45,8 @@ namespace {
 constexpr char kProfileNameKey[] = "name";
 constexpr char kProfilePathKey[] = "path";
 
-bool g_initialized = false;
+// ALOHA: read from non-UI threads via IsInitialized(), so make it atomic.
+std::atomic<bool> g_initialized = false;
 
 const base::FeatureParam<bool> kCreateSpareRendererForDefaultIfMultiProfile{
     &features::kCreateSpareRendererOnBrowserContextCreation,
@@ -339,8 +341,17 @@ AwBrowserContextStore* AwBrowserContextStore::GetOrCreateInstance() {
   DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
   static base::NoDestructor<AwBrowserContextStore> instance(
       AwBrowserProcess::GetInstance()->local_state());
-  g_initialized = true;
+  // Relaxed: this is a one-way latch used only as a boolean "are we up" flag.
+  // No reader depends on other memory published alongside it, so we need
+  // atomicity (race-freedom) but not ordering. Compiles to a plain load/store.
+  g_initialized.store(true, std::memory_order_relaxed);
   return instance.get();
+}
+
+// static
+// ALOHA: thread-safe, no UI-thread assertion. See header.
+bool AwBrowserContextStore::IsInitialized() {
+  return g_initialized.load(std::memory_order_relaxed);
 }
 
 AwBrowserContextStore::Entry::Entry() = default;

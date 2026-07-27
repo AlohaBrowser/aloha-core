@@ -909,8 +909,7 @@ def _CreateContainerSpecs(apk_file_manager,
   if apk_spec:
     apk_infolist = apk_file_manager.InfoList(apk_path)
     apk_pak_paths = [
-        f.filename for f in apk_infolist
-        if archive_util.RemoveAssetSuffix(f.filename).endswith('.pak')
+        f.filename for f in apk_infolist if f.filename.endswith('.pak')
     ]
 
   if analyze_pak and (apk_pak_paths or sub_args.pak_files):

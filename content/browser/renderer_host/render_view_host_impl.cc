@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/renderer_host/render_view_host_impl.h"
 
 #include <algorithm>
@@ -602,6 +604,9 @@ bool RenderViewHostImpl::CreateRenderView(
   params->history_index =
       frame_tree()->controller().GetLastCommittedEntryIndex();
   params->history_length = frame_tree()->controller().GetEntryCount();
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  params->private_mode = frame_tree_->IsPrivateMode();
 
   // The renderer process's `blink::WebView` is owned by this lifecycle of
   // the `page_broadcast_` channel.

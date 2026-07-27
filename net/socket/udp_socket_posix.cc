@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "net/socket/udp_socket_posix.h"
 
 #include "base/notimplemented.h"
@@ -368,7 +370,7 @@ void UDPSocketPosix::Close() {
     }
   }
 #else
-  PCHECK(IGNORE_EINTR(close(socket_)) == 0);
+  close(socket_); // ALOHA https://app.clickup.com/t/862k09kfu
 #endif  // BUILDFLAG(IS_APPLE) && !BUILDFLAG(CRONET_BUILD)
 
   socket_ = kInvalidSocket;

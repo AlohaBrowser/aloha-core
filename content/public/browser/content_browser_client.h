@@ -2577,6 +2577,15 @@ class CONTENT_EXPORT ContentBrowserClient {
       base::ByteSize recv_bytes,
       base::ByteSize sent_bytes);
 
+  // ALOHA: https://app.clickup.com/t/86ewr2k2q  Called when an HLS stream is detected in a network request.
+  // |url| is the URL of the HLS manifest.
+  // |render_process_id| and |request_id| can be used to identify the request.
+  virtual void OnHlsDetected(const GURL& url,
+                             int32_t render_process_id,
+                             int32_t request_id,
+                             const std::optional<base::UnguessableToken>& top_frame_id,
+                             const std::string& request_headers) {}
+
   // Returns the absolute path to a directory in which sandboxed out-of-process
   // Storage Service instances should be confined. By default this is empty, and
   // the browser cannot create sandboxed Storage Service instances.

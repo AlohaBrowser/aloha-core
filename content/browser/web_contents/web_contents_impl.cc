@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/web_contents/web_contents_impl.h"
 
 #include <stddef.h>
@@ -12576,6 +12578,32 @@ gfx::PointF WebContentsImpl::GetCurrentTouchSequenceOffset() {
   return view_android->event_forwarder()->GetCurrentTouchSequenceOffset();
 }
 #endif
+
+// ALOHA https://app.clickup.com/t/2dmrud4
+void WebContentsImpl::SetPrivateMode(bool enabled) {
+  primary_frame_tree_.SetPrivateMode(enabled);
+}
+
+// ALOHA https://app.clickup.com/t/86epcdndk
+void WebContentsImpl::SetAdblockEnabled(bool enabled) {
+  is_adblock_enabled_ = enabled;
+}
+// ALOHA https://app.clickup.com/t/86epcdndk
+bool WebContentsImpl::IsAdblockEnabled() {
+  return is_adblock_enabled_;
+}
+
+// ALOHA https://app.clickup.com/t/86exu1zh0
+bool WebContentsImpl::IsPrivateMode() const {
+  return primary_frame_tree_.IsPrivateMode();
+}
+
+// ALOHA https://app.clickup.com/t/86ewfwk73
+void WebContentsImpl::SetMediaCorsCheckDisabled(bool disabled) {
+  auto* primary_main_frame = GetPrimaryMainFrame();
+  if (primary_main_frame)
+    primary_main_frame->GetAssociatedLocalFrame()->SetMediaCorsCheckDisabled(disabled);
+}
 
 std::unique_ptr<PrefetchHandle> WebContentsImpl::StartPrefetch(
     const GURL& prefetch_url,

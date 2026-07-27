@@ -381,6 +381,11 @@ IN_PROC_BROWSER_TEST_P(ReadAnythingOmniboxControllerBrowserTest,
   EXPECT_EQ(ReadAnythingEntryPointController::CheckCountForTesting(), 0);
 }
 
+// NOTE(eyeo): This test times out with eyeo adblock enabled.
+// ScopedMockTimeMessageLoopTaskRunner replaces the main thread task runner,
+// but eyeo's element hiding uses ThreadPool::PostTaskAndReplyWithResult()
+// during navigation. The ThreadPool replies don't work properly with the
+// mocked runner, causing the test to hang. Pass --disable-adblock to fix.
 IN_PROC_BROWSER_TEST_P(ReadAnythingOmniboxControllerBrowserTest,
                        PageChangeWithLoadingIsDebounced) {
   base::ScopedMockTimeMessageLoopTaskRunner mocked_task_runner;

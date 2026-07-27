@@ -1,6 +1,10 @@
 // Copyright 2025 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #ifndef CRYPTO_OBSOLETE_MD5_H_
 #define CRYPTO_OBSOLETE_MD5_H_
@@ -153,6 +157,10 @@ crypto::obsolete::Md5 MakeMd5HasherForWebAppShortcutIcon();
 std::wstring Md5AsHexForUninstall(const std::wstring& data);
 }
 
+namespace adblock {
+std::string Md5AsHexForSnippetLibrary(const std::string& data);
+}
+
 namespace crypto::obsolete {
 
 // This class is used for computing MD5 hashes, either one-shot via Md5::Hash(),
@@ -272,6 +280,10 @@ class CRYPTO_EXPORT Md5 {
   friend Md5 web_app::internals::MakeMd5HasherForWebAppShortcutIcon();
   friend std::wstring web_app::internals::Md5AsHexForUninstall(
       const std::wstring& key);
+
+  // eyeo Chromium SDK: needed for snippet library version checking.
+  friend std::string adblock::Md5AsHexForSnippetLibrary(
+      const std::string& data);
 
   Md5();
   static std::array<uint8_t, kSize> Hash(std::string_view data);

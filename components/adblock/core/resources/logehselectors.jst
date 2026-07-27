@@ -1,0 +1,76 @@
+/*
+ * This file is part of eyeo Chromium SDK,
+ * Copyright (C) 2006-present eyeo GmbH
+ *
+ * eyeo Chromium SDK is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * eyeo Chromium SDK is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+"use strict";
+
+const INVOCATION_INTERVAL = 2000;
+
+class ElemHideLogger {
+
+  constructor() {
+    this._reportedElements = new Set();
+  }
+
+  checkAndLogSelectors() {
+    let elementsToReport = new Set();
+    document?.querySelectorAll('*')?.forEach(el => {
+        if (!(window?.getComputedStyle instanceof Function)) {
+          return;
+        }
+        const isContentEyeo = getComputedStyle(el)?.content === '"eyeo"';
+        if (isContentEyeo) {
+          // Note: Without any more markup added during style sheet creation and
+          // injection we don't know anything about the selector, whether it was
+          // a class name or an id or sth else. Adding such an info would greatly
+          // increase style sheet size. So instead let's collect some information
+          // about the element and use it in place of the actual selector.
+          let ehSelectorToReport = "type:" + el.localName;
+          if (el.id) {
+            ehSelectorToReport += ";id:" + el.id;
+          }
+          if (el.className) {
+            ehSelectorToReport += ";className:" + el.className;
+          }
+          ehSelectorToReport = ehSelectorToReport.trim();
+          if (!this._reportedElements.has(ehSelectorToReport)) {
+            elementsToReport.add(ehSelectorToReport);
+            this._reportedElements.add(ehSelectorToReport);
+          }
+        }
+    });
+    if (elementsToReport.size > 0) {
+      adblockEhApi.logSelectors(1, Array.from(elementsToReport));
+    }
+    setTimeout(() => this.checkAndLogSelectors(), INVOCATION_INTERVAL);
+  }
+};
+
+let elemHideLogger = new ElemHideLogger();
+
+if (typeof adblockEhApi != "undefined" && Object.hasOwn(adblockEhApi, "logSelectors")) {
+  if (document?.readyState === "loading") {
+    document?.addEventListener(
+        "DOMContentLoaded",
+        () => elemHideLogger.checkAndLogSelectors(),
+        {once: true}
+    );
+  } else {
+    elemHideLogger.checkAndLogSelectors() ;
+  }
+} else {
+  console.warn("[eyeo] Missing adblockEhApi object!");
+}

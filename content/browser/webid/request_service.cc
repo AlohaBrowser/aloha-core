@@ -1,6 +1,9 @@
 // Copyright 2020 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/webid/request_service.h"
 
 #include <algorithm>
@@ -798,6 +801,9 @@ void RequestService::FetchEndpointsForIdps(
   fetch_data_ = FetchData();
   fetch_data_.pending_idps = std::move(pending_idps);
 
+  // Bump generation so any in-flight callback from the old fetcher is ignored.
+  int current_generation = ++fetch_generation_; /* ALOHA: FedCM stale-callback guard */
+
   std::vector<ConfigFetcher::FetchRequest> idps;
   for (const auto& idp : idp_config_urls) {
     auto idp_get = token_request_get_infos_.find(idp);
@@ -812,7 +818,7 @@ void RequestService::FetchEndpointsForIdps(
       AccountsFetcher::FedCmFetchingParams(
           rp_mode_, icon_ideal_size, icon_minimum_size, mediation_requirement_),
       base::BindOnce(&RequestService::OnAccountsResultsReceived,
-                     weak_ptr_factory_.GetWeakPtr()));
+                     weak_ptr_factory_.GetWeakPtr(), current_generation)); // ALOHA: https://app.clickup.com/t/86ewz0pbr
   fedcm_accounts_fetcher_->FetchEndpointsForIdps(
       idps, token_request_get_infos_, fedcm_metrics_.get(),
       GetEmbeddingOrigin(),
@@ -849,8 +855,12 @@ void RequestService::FilterAccounts(
 }
 
 void RequestService::OnAccountsResultsReceived(
+    int generation, /* ALOHA: FedCM stale-callback guard */
     base::TimeTicks well_known_and_config_fetched_time,
     std::vector<AccountsFetcher::Result> results) {
+  if (generation != fetch_generation_) { /* ALOHA: FedCM stale-callback guard */
+    return;
+  }
   SetWellKnownAndConfigFetchedTime(well_known_and_config_fetched_time);
 
   for (auto& result : results) {
@@ -867,6 +877,9 @@ void RequestService::OnAccountsResultsReceived(
     }
 
     if (result.show_active_mode_modal_dialog) {
+      // ALOHA: https://app.clickup.com/t/86ewz0pbr
+      // Remove from pending so it doesn't block OnClose checks. /* ALOHA: FedCM */
+      fetch_data_.pending_idps.erase(result.idp_config_url);
       MaybeShowActiveModeModalDialog(result.idp_config_url,
                                      result.idp_info->metadata.idp_login_url);
       continue;
@@ -2420,6 +2433,29 @@ void RequestService::OnClose() {
        (fetch_data_.pending_idps.empty() &&
         !fetch_data_.did_succeed_for_at_least_one_idp)) &&
       dialog_type_ == DialogType::kLoginToIdpPopup) {
+#if BUILDFLAG(IS_ANDROID)
+    // On Android (WebView) the IdP may not send Set-Login: logged-in, so the
+    // observer never fires and idps_user_tried_to_signin_to_ stays empty.
+    // IdentityProvider.close() reaching here means the user did sign in.
+    //
+    // The popup was opened for exactly one IdP — ShowModalDialog(
+    // DialogType::kLoginToIdpPopup, idp_config_url, ...) set config_url_ to
+    // that IdP. Mark only THAT IdP as signed-in; iterating all entries in
+    // token_request_get_infos_ would corrupt the persistent permission
+    // context for other IdPs in a multi-IdP request. /* ALOHA: FedCM */
+    if (idps_user_tried_to_signin_to_.empty() &&
+        token_request_get_infos_.find(config_url_) !=
+            token_request_get_infos_.end()) {
+      idps_user_tried_to_signin_to_.insert(config_url_);
+      // Mark IdP as signed-in so the accounts fetch is not blocked by the
+      // local signin status check. /* ALOHA: FedCM */
+      permission_delegate_->SetIdpSigninStatus(
+          url::Origin::Create(config_url_), /*idp_signin_status=*/true,
+          /*options=*/std::nullopt);
+      FetchEndpointsForIdps({config_url_});
+      return;
+    }
+#endif  // BUILDFLAG(IS_ANDROID)
     CompleteRequestWithError(FederatedAuthRequestResult::kError,
                              TokenStatus::kLoginPopupClosedWithoutSignin,
                              /*should_delay_callback=*/false);

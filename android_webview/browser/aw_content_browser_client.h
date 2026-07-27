@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef ANDROID_WEBVIEW_BROWSER_AW_CONTENT_BROWSER_CLIENT_H_
 #define ANDROID_WEBVIEW_BROWSER_AW_CONTENT_BROWSER_CLIENT_H_
 
@@ -321,6 +323,18 @@ class AwContentBrowserClient : public content::ContentBrowserClient {
       const url::Origin& accessing_origin,
       std::string* out_debug_message,
       bool* out_block_is_site_setting_specific) override;
+
+  // ALOHA: https://app.clickup.com/t/86ewz0pbr FedCM support via AlohaIdentityDialogController.
+  std::unique_ptr<content::IdentityRequestDialogController>
+  CreateIdentityRequestDialogController(
+      content::WebContents* web_contents) override;
+
+  // ALOHA: https://app.clickup.com/t/86ewr2k2q
+  void OnHlsDetected(const GURL& url,
+                     int32_t render_process_id,
+                     int32_t request_id,
+                     const std::optional<base::UnguessableToken>& top_frame_id,
+                     const std::string& request_headers) override;
 
   bool ShouldAnimateBackForwardTransitions() override;
   bool OriginSupportsConcreteCrossOriginIsolation(

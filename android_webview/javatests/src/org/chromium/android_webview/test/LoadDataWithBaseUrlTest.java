@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.android_webview.test;
 
 import android.graphics.Bitmap;
@@ -60,7 +62,7 @@ public class LoadDataWithBaseUrlTest extends AwParameterizedTest {
     @Before
     public void setUp() {
         mContentsClient = new TestAwContentsClient();
-        mCookieManager = new AwCookieManager();
+        mCookieManager = AwCookieManager.getPublicCookieManager();
         final AwTestContainerView testContainerView =
                 mActivityTestRule.createAwTestContainerViewOnMainSync(mContentsClient);
         mAwContents = testContainerView.getAwContents();

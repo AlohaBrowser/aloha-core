@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/aw_content_browser_client.h"
 
 #include <cstddef>
@@ -142,12 +144,23 @@
 #include "third_party/blink/public/common/associated_interfaces/associated_interface_registry.h"
 #include "third_party/blink/public/common/loader/url_loader_throttle.h"
 #include "third_party/blink/public/common/navigation/preloading_headers.h"
+#include "third_party/blink/public/common/tokens/tokens.h"
 #include "third_party/blink/public/common/web_preferences/web_preferences.h"
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/base/resource/resource_bundle_android.h"
 #include "ui/display/util/display_util.h"
 #include "ui/gfx/image/image_skia.h"
 #include "ui/resources/grit/ui_resources.h"
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+#include "aloha/src/native/aloha_consts.h"
+#include "aloha/src/native/aw_bromium_client_bridge.h"
+
+// ALOHA: https://app.clickup.com/t/86ewz0pbr
+#include "aloha/src/native/webid/aloha_identity_dialog_controller.h"
+#include "content/public/browser/webid/federated_identity_permission_context_delegate.h"
+#include "content/public/common/web_identity.h"
+#include "third_party/blink/public/mojom/webid/federated_auth_request.mojom.h"
 
 using base::android::YieldToLooperChecker;
 using content::BrowserThread;
@@ -284,7 +297,8 @@ void AwContentBrowserClient::OnNetworkServiceCreated(
   // a separate process, this will likely need to be set somewhere else instead
   // of here.
   content::GetCertVerifierServiceFactory()->SetUseChromeRootStore(
-      false, base::DoNothing());
+      true, base::DoNothing());  // ALOHA https://app.clickup.com/t/86ewnm98c
+                                 // fixed SSL certificate
 
   network_service->SetUpHttpAuth(network::mojom::HttpAuthStaticParams::New());
   network_service->ConfigureHttpAuthPrefs(
@@ -325,9 +339,16 @@ void AwContentBrowserClient::ConfigureNetworkContextParams(
                                             network_context_params,
                                             cert_verifier_creation_params);
 
-  mojo::PendingRemote<network::mojom::CookieManager> cookie_manager_remote;
-  network_context_params->cookie_manager =
-      cookie_manager_remote.InitWithNewPipeAndPassReceiver();
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  std::array<mojo::PendingRemote<network::mojom::CookieManager>,
+             aloha::kCookieManagersCount>
+      cookie_manager_remote;
+  network_context_params->cookie_manager_0 =
+      cookie_manager_remote[aloha::kPublicCookieManager]
+          .InitWithNewPipeAndPassReceiver();
+  network_context_params->cookie_manager_1 =
+      cookie_manager_remote[aloha::kPrivateCookieManager]
+          .InitWithNewPipeAndPassReceiver();
 
 #if DCHECK_IS_ON()
   g_created_network_context_params = true;
@@ -340,16 +361,25 @@ void AwContentBrowserClient::ConfigureNetworkContextParams(
           features::kWebViewNonBlockingCookieStoreHandoff)) {
     // New non-blocking path with proper close before handoff.
     mojo::PendingRemote<network::mojom::CookieStoreReadyCallback>
-        ready_callback;
-    network_context_params->cookie_store_ready_callback =
-        ready_callback.InitWithNewPipeAndPassReceiver();
+        ready_callback_0;
+    network_context_params->cookie_store_ready_callback_0 =
+        ready_callback_0.InitWithNewPipeAndPassReceiver();
 
-    aw_context->GetCookieManager()->SetMojoCookieManagerNonBlocking(
-        std::move(cookie_manager_remote), std::move(ready_callback));
+    aw_context->GetCookieManager(0)->SetMojoCookieManagerNonBlocking(
+        std::move(cookie_manager_remote[aloha::kPublicCookieManager]), std::move(ready_callback_0));
+
+    mojo::PendingRemote<network::mojom::CookieStoreReadyCallback>
+        ready_callback_1;
+    network_context_params->cookie_store_ready_callback_1 =
+        ready_callback_1.InitWithNewPipeAndPassReceiver();  
+    aw_context->GetCookieManager(1)->SetMojoCookieManagerNonBlocking(
+        std::move(cookie_manager_remote[aloha::kPrivateCookieManager]), std::move(ready_callback_1));
   } else {
-    // Original blocking path (for A/B comparison).
-    aw_context->GetCookieManager()->SetMojoCookieManager(
-        std::move(cookie_manager_remote));
+    // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+    for (size_t i = 0; i < std::size(cookie_manager_remote); i++) {
+      aw_context->GetCookieManager(i)->SetMojoCookieManager(
+        std::move(cookie_manager_remote.at(i)));
+    }
   }
 }
 
@@ -557,7 +587,7 @@ void AwContentBrowserClient::AllowCertificateError(
   // We only call the callback once but we must pass ownership to a function
   // that conditionally calls it.
   auto split_callback = base::SplitOnceCallback(std::move(callback));
-  if (client) {
+  if (client && is_primary_main_frame_request /* ALOHA https://app.clickup.com/t/2e5x5r6 */ ) {
     client->AllowCertificateError(cert_error, ssl_info.cert.get(), request_url,
                                   std::move(split_callback.first),
                                   &cancel_request);
@@ -823,6 +853,29 @@ AwContentBrowserClient::CreateURLLoaderThrottles(
       result.push_back(std::make_unique<AwURLLoaderThrottle>(
           static_cast<AwBrowserContext*>(browser_context)));
     }
+  }
+
+  // ALOHA: https://app.clickup.com/t/86ewz0pbr
+  // Intercept Set-Login response header for FedCM IdP signin status tracking.
+  // Without this, IdentityProvider.close() in the login popup aborts the flow
+  // because idps_user_tried_to_signin_to_ never gets populated. /* ALOHA: FedCM */
+  if (auto throttle = content::MaybeCreateIdentityUrlLoaderThrottle(
+          base::BindRepeating(
+              [](content::BrowserContext* ctx,
+                 const std::optional<url::Origin>& initiator,
+                 const url::Origin& origin,
+                 blink::mojom::IdpSigninStatus status) {
+                auto* delegate =
+                    ctx->GetFederatedIdentityPermissionContext();
+                if (delegate) {
+                  delegate->SetIdpSigninStatus(
+                      origin,
+                      status == blink::mojom::IdpSigninStatus::kSignedIn,
+                      std::nullopt);
+                }
+              },
+              browser_context))) {
+    result.push_back(std::move(throttle));
   }
 
   return result;
@@ -1217,6 +1270,10 @@ void AwContentBrowserClient::WillCreateURLLoaderFactory(
     std::optional<WebContentsKey> web_contents_key;
     web_contents_key = GetWebContentsKey(*web_contents);
 
+    auto xrw_allowlist_matcher = scoped_refptr<
+        AwContentsOriginMatcher>();  // ALOHA
+                                     // https://app.clickup.com/t/862k4dtag
+
     content::GetIOThreadTaskRunner({})->PostTask(
         FROM_HERE,
         base::BindOnce(&AwProxyingURLLoaderFactory::CreateProxy,
@@ -1568,6 +1625,41 @@ bool AwContentBrowserClient::OriginSupportsConcreteCrossOriginIsolation(
 
 bool AwContentBrowserClient::IsAndroidAdvancedProtectionEnabled() {
   return AwAdvancedProtectionStatusManagerBridge::IsUnderAdvancedProtection();
+}
+
+// ALOHA: https://app.clickup.com/t/86ewz0pbr
+std::unique_ptr<content::IdentityRequestDialogController>
+AwContentBrowserClient::CreateIdentityRequestDialogController(
+    content::WebContents* web_contents) {
+  return std::make_unique<aloha::AlohaIdentityDialogController>(web_contents);
+}
+
+// ALOHA: https://app.clickup.com/t/86ewr2k2q
+void AwContentBrowserClient::OnHlsDetected(
+    const GURL& url,
+    int32_t render_process_id,
+    int32_t request_id,
+    const std::optional<base::UnguessableToken>& top_frame_id,
+    const std::string& request_headers) {
+  if (top_frame_id) {
+    blink::LocalFrameToken frame_token(top_frame_id.value());
+    content::GlobalRenderFrameHostToken global_token(render_process_id,
+                                                     frame_token);
+    content::RenderFrameHost* rfh =
+        content::RenderFrameHost::FromFrameToken(global_token);
+
+    if (rfh) {
+      content::WebContents* web_contents =
+          content::WebContents::FromRenderFrameHost(rfh);
+      if (web_contents) {
+        auto* bridge =
+            aloha::BromiumClientBridge::FromWebContents(web_contents);
+        if (bridge) {
+          bridge->OnHlsDetected(url.spec(), request_headers);
+        }
+      }
+    }
+  }
 }
 
 }  // namespace android_webview

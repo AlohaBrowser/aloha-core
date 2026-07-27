@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
 #include "chrome/test/base/in_process_browser_test.h"
 
 #include <map>
@@ -161,6 +165,9 @@
 #if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
 #include "chrome/browser/ui/ui_features.h"
 #endif  // BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
+#include "components/adblock/content/browser/factories/subscription_service_factory.h"
+#include "components/adblock/core/common/adblock_constants.h"
+#include "components/adblock/core/subscription/subscription_service.h"
 
 namespace {
 
@@ -622,6 +629,21 @@ void InProcessBrowserTest::CreatedBrowserMainParts(
 
 void InProcessBrowserTest::SetBrowser(BrowserWindowInterface* browser) {
   browser_ = browser ? browser->GetBrowserForMigrationOnly() : nullptr;
+  if (browser_) {
+    // Adding an allowing filter that overrides and disables all blocking
+    // filters in order to avoid unwanted interactions with simulated network
+    // loads. This custom filter is removed for tests that specifically verify
+    // ad-filtering.
+    auto* adblock_configuration =
+        adblock::SubscriptionServiceFactory::GetForBrowserContext(
+            browser_->profile()->GetOriginalProfile())
+            ->GetFilteringConfiguration(
+                adblock::kAdblockFilteringConfigurationName);
+    if (adblock_configuration) {
+      adblock_configuration->AddCustomFilter(
+          adblock::kAllowlistEverythingFilter);
+    }
+  }
 }
 
 void InProcessBrowserTest::RecordPropertyFromMap(

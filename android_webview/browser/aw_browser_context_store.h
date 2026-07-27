@@ -65,6 +65,10 @@ class AwBrowserContextStore final {
   static AwBrowserContextStore* GetOrCreateInstance();
   // CHECK the store is initialized and then get a pointer to it.
   static AwBrowserContextStore* GetInstance();
+  // ALOHA: thread-safe check whether the store has been initialized, without
+  // the DCHECK_CURRENTLY_ON(UI) assertion of GetInstance(). Used as a
+  // "running inside the browser" guard from non-UI threads.
+  static bool IsInitialized();
 
   // Get the default context. This will never return null. Must be called on the
   // UI thread.

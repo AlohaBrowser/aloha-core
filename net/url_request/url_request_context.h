@@ -5,6 +5,8 @@
 // This class represents contextual information (cookies, cache, etc.)
 // that's necessary when processing resource requests.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef NET_URL_REQUEST_URL_REQUEST_CONTEXT_H_
 #define NET_URL_REQUEST_URL_REQUEST_CONTEXT_H_
 
@@ -27,6 +29,9 @@
 #include "net/net_buildflags.h"
 #include "net/traffic_annotation/network_traffic_annotation.h"
 #include "net/url_request/url_request.h"
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+#include "aloha/src/native/aloha_consts.h"
 
 namespace unexportable_keys {
 class UnexportableKeyService;
@@ -166,7 +171,10 @@ class NET_EXPORT URLRequestContext final {
 
   // Gets the cookie store for this context (may be null, in which case
   // cookies are not stored).
-  CookieStore* cookie_store() const { return cookie_store_.get(); }
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  CookieStore* cookie_store(int inst_num = -1) const;
+  void set_cookie_store(int inst_num, std::unique_ptr<CookieStore> cookie_store);
+  void set_active_cookie_store(int inst_num);
 
   TransportSecurityState* transport_security_state() const {
     return transport_security_state_.get();
@@ -267,6 +275,11 @@ class NET_EXPORT URLRequestContext final {
   // DEPRECATED: Do not use this even in tests. This is for a legacy use.
   void SetJobFactoryForTesting(const URLRequestJobFactory* job_factory) {
     job_factory_ = job_factory;
+  }
+
+  // ALOHA https://app.clickup.com/t/2f29z75
+  void set_send_dnt_header(bool send) {
+    send_dnt_header_ = send;    
   }
 
  private:
@@ -373,6 +386,11 @@ class NET_EXPORT URLRequestContext final {
   std::unique_ptr<const URLRequestJobFactory> job_factory_storage_;
   raw_ptr<const URLRequestJobFactory> job_factory_ = nullptr;
 
+
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  std::array<std::unique_ptr<CookieStore>, aloha::kCookieManagersCount> cookie_stores_;
+  int active_cookie_store_ = 0;
+
 #if BUILDFLAG(ENABLE_REPORTING)
   // Must precede |reporting_service_| and |network_error_logging_service_|
   std::unique_ptr<PersistentReportingAndNelStore>
@@ -418,6 +436,9 @@ class NET_EXPORT URLRequestContext final {
   bool require_network_anonymization_key_ = false;
 
   handles::NetworkHandle bound_network_;
+
+  // ALOHA https://app.clickup.com/t/2f29z75
+  bool send_dnt_header_ = false;
 
   THREAD_CHECKER(thread_checker_);
 };

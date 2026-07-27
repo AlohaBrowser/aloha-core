@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 package org.chromium.content.browser.webcontents;
 
 import static org.chromium.build.NullUtil.assumeNonNull;
@@ -207,6 +209,9 @@ public class WebContentsImpl
     private @Nullable Throwable mNativeDestroyThrowable;
 
     private @Nullable ObserverList<Runnable> mTearDownDialogOverlaysHandlers;
+
+    // ALOHA https://app.clickup.com/t/86epwk67q
+    private @Nullable OverscrollRefreshHandler mOverscrollRefreshHandler;
 
     private static class WebContentsInternalsImpl implements WebContentsInternals {
         public final UserDataHost userDataHost = new UserDataHost();
@@ -748,6 +753,14 @@ public class WebContentsImpl
         WebContentsImplJni.get().evaluateJavaScript(mNativeWebContentsAndroid, script, callback);
     }
 
+    // ALOHA https://app.clickup.com/t/861m7r8nk
+    @Override
+    public void evaluateJavaScriptUnchecked(String script, @Nullable JavaScriptCallback callback) {
+        ThreadUtils.assertOnUiThread();
+        if (isDestroyed() || script == null) return;
+        WebContentsImplJni.get().evaluateJavaScriptUnchecked(mNativeWebContentsAndroid, script, callback);
+    }
+
     @Override
     public void evaluateJavaScriptForTests(String script, @Nullable JavaScriptCallback callback) {
         ThreadUtils.assertOnUiThread();
@@ -956,7 +969,14 @@ public class WebContentsImpl
     @Override
     public void setOverscrollRefreshHandler(@Nullable OverscrollRefreshHandler handler) {
         checkNotDestroyed();
+        mOverscrollRefreshHandler = handler;
         WebContentsImplJni.get().setOverscrollRefreshHandler(mNativeWebContentsAndroid, handler);
+    }
+
+    @Override
+    public @Nullable OverscrollRefreshHandler getOverscrollRefreshHandler() {
+        checkNotDestroyed();
+        return mOverscrollRefreshHandler;
     }
 
     @Override
@@ -1442,6 +1462,12 @@ public class WebContentsImpl
         void resumeLoadingCreatedWebContents(long nativeWebContentsAndroid);
 
         void evaluateJavaScript(
+                long nativeWebContentsAndroid,
+                String script,
+                @Nullable JavaScriptCallback callback);
+
+        // ALOHA https://app.clickup.com/t/861m7r8nk
+        void evaluateJavaScriptUnchecked(
                 long nativeWebContentsAndroid,
                 String script,
                 @Nullable JavaScriptCallback callback);

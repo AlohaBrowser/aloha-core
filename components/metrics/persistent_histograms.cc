@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "components/metrics/persistent_histograms.h"
 
 #include <string_view>
@@ -275,14 +277,18 @@ void PersistentHistogramsCleanup(const base::FilePath& metrics_dir) {
   base::FilePath spare_file = GetSpareFilePath(metrics_dir);
 
   // Schedule the creation of a "spare" file for use on the next run.
-  base::ThreadPool::PostDelayedTask(
-      FROM_HERE,
-      {base::MayBlock(), base::TaskPriority::LOWEST,
-       base::TaskShutdownBehavior::SKIP_ON_SHUTDOWN},
-      base::BindOnce(
-          base::IgnoreResult(&base::GlobalHistogramAllocator::CreateSpareFile),
-          std::move(spare_file), kAllocSize),
-      base::Seconds(kSpareFileCreateDelaySeconds));
+
+  // ALOHA https://app.clickup.com/t/86781qh7c
+  if(base::FeatureList::IsEnabled(kPersistentHistogramsFeature)) {
+    base::ThreadPool::PostDelayedTask(
+        FROM_HERE,
+        {base::MayBlock(), base::TaskPriority::LOWEST,
+        base::TaskShutdownBehavior::SKIP_ON_SHUTDOWN},
+        base::BindOnce(
+            base::IgnoreResult(&base::GlobalHistogramAllocator::CreateSpareFile),
+            std::move(spare_file), kAllocSize),
+        base::Seconds(kSpareFileCreateDelaySeconds));
+  }
 
 #if BUILDFLAG(IS_WIN)
   // Post a best effort task that will delete files. Unlike SKIP_ON_SHUTDOWN,

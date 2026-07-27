@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_BROWSER_WEBID_REQUEST_SERVICE_H_
 #define CONTENT_BROWSER_WEBID_REQUEST_SERVICE_H_
 
@@ -272,6 +274,7 @@ class CONTENT_EXPORT RequestService
   // for a given IDP - `idp_info`, but we do not need to show failure UI for the
   // IDP.
   void OnAccountsResultsReceived(
+      int generation, // ALOHA: https://app.clickup.com/t/86ewz0pbr FedCM stale-callback guard
       base::TimeTicks well_known_and_config_fetched_time,
       std::vector<AccountsFetcher::Result> results);
 
@@ -338,6 +341,11 @@ class CONTENT_EXPORT RequestService
     // Whether accounts endpoint fetch succeeded for at least one IdP.
     bool did_succeed_for_at_least_one_idp{false};
   };
+
+  // Incremented every time FetchEndpointsForIdps is called. Passed into the
+  // callback so stale responses from cancelled fetchers can be discarded.
+  // ALOHA: https://app.clickup.com/t/86ewz0pbr
+  int fetch_generation_{0};
 
   bool HasPendingRequest() const;
 

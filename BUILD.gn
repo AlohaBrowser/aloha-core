@@ -1,6 +1,10 @@
 # Copyright 2013 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
 
 # This is the root build file for GN. GN will start processing by loading this
 # file, and recursively load all dependencies until all dependencies are either
@@ -422,6 +426,8 @@ group("gn_all") {
         if (defined(android_app_secondary_abi)) {
           deps += [ "//android_webview/tools/pinlist:generate_pinlist" ]
         }
+
+        deps += [ "//android_webview/tools/adblock_shell" ]
       }
 
       if (enable_chrome_android_internal) {

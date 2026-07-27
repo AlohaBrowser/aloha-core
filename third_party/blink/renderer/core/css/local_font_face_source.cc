@@ -169,8 +169,10 @@ void LocalFontFaceSource::NotifyFontUniqueNameLookupReady() {
   ClearTable();
 
   if (face_->FontLoaded(this)) {
-    font_selector_->FontFaceInvalidated(
-        FontInvalidationReason::kGeneralInvalidation);
+    if (font_selector_) { // ALOHA https://app.clickup.com/t/86ewxadrv
+      font_selector_->FontFaceInvalidated(
+          FontInvalidationReason::kGeneralInvalidation);
+    }
   }
 }
 
@@ -182,7 +184,11 @@ bool LocalFontFaceSource::IsLoading() const {
   return !IsLocalNonBlocking();
 }
 
-bool LocalFontFaceSource::IsValid() const {
+bool LocalFontFaceSource::IsValid() const {  
+  // ALOHA https://app.clickup.com/t/86ewxadrv
+  if (!font_selector_) {
+    return false;
+  }
   return IsLoading() || IsLocalFontAvailable(FontDescription());
 }
 

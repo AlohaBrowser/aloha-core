@@ -1,6 +1,10 @@
 // Copyright 2024 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include <memory>
 #include <string>
@@ -12,6 +16,7 @@
 #include "base/run_loop.h"
 #include "base/test/scoped_feature_list.h"
 #include "chrome/app/chrome_main_delegate.h"
+#include "chrome/browser/adblock/adblock_chrome_content_browser_client.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "chrome/browser/digital_credentials/digital_identity_provider_desktop.h"
 #include "chrome/browser/ui/browser.h"
@@ -84,7 +89,7 @@ class TestDigitalIdentityProvider final
 
 // ChromeContentBrowserClient which returns custom
 // content::DigitalIdentityProvider.
-class TestBrowserClient : public ChromeContentBrowserClient {
+class TestBrowserClient : public AdblockChromeContentBrowserClient {
  public:
   explicit TestBrowserClient(base::OnceClosure credential_request_observer)
       : credential_request_observer_(std::move(credential_request_observer)) {}

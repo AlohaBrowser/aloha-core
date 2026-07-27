@@ -1,6 +1,10 @@
 // Copyright 2021 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 module extensions.mojom;
 
@@ -293,6 +297,9 @@ enum APIPermissionID {
   kGlicPrivateInvoke = 266,
   kIndigoPrivate = 267,
   kContextualTasksPrivate = 268,
+  kEyeoDevToolsPrivate = 998,
+  kAdblockPrivate = 999,
+  kEyeoFilteringPrivate = 1000,
 
   // Add new entries at the end of the enum and be sure to update the
   // "ExtensionPermission3" enum in

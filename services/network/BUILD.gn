@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# Modified by Aloha Mobile Ltd.
+
 import("//build/config/features.gni")
 import("//components/vrp_flags/features.gni")
 import("//mojo/public/tools/bindings/mojom.gni")
@@ -252,6 +254,8 @@ component("network_service") {
     "upload_progress_tracker.h",
     "url_loader.cc",
     "url_loader.h",
+    "hls_detector.h", # ALOHA: https://app.clickup.com/t/86ewr2k2q 
+    "hls_detector.cc", # ALOHA: https://app.clickup.com/t/86ewr2k2q 
     "url_loader_context.h",
     "url_loader_factory.cc",
     "url_loader_factory.h",

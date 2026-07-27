@@ -1,8 +1,13 @@
 // Copyright 2018 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "base/test/scoped_feature_list.h"
+#include "chrome/browser/adblock/adblock_chrome_content_browser_client.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
 #include "chrome/browser/profiles/profile.h"
@@ -38,7 +43,7 @@ static constexpr char const kFramedTestPagePath[] =
 static constexpr char const kTestPagePath[] = "/media/unified_autoplay.html";
 
 class ChromeContentBrowserClientOverrideWebAppScope
-    : public ChromeContentBrowserClient {
+    : public AdblockChromeContentBrowserClient {
  public:
   ChromeContentBrowserClientOverrideWebAppScope() = default;
   ~ChromeContentBrowserClientOverrideWebAppScope() override = default;

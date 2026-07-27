@@ -1,6 +1,10 @@
 # Copyright 2019 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
 
 import("//content/public/common/features.gni")
 
@@ -68,6 +72,7 @@ chrome_java_sources = [
   "java/src/org/chromium/chrome/browser/actor/ActorForegroundServiceControllerImpl.java",
   "java/src/org/chromium/chrome/browser/actor/ActorForegroundServiceImpl.java",
   "java/src/org/chromium/chrome/browser/actor/ActorForegroundServiceUmaHelper.java",
+  "java/src/org/chromium/chrome/browser/adblock/TabIdTranslator.java",
   "java/src/org/chromium/chrome/browser/announcement/AnnouncementNotificationManager.java",
   "java/src/org/chromium/chrome/browser/app/ChromeActivity.java",
   "java/src/org/chromium/chrome/browser/app/MainLayoutSwitcher.java",

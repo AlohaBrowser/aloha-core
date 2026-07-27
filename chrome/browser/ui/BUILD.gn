@@ -1,6 +1,10 @@
 # Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# This source code is a part of eyeo Chromium SDK.
+# Use of this source code is governed by the GPLv3 that can be found in the
+# components/adblock/LICENSE file.
 
 import("//build/config/buildflags_paint_preview.gni")
 import("//build/config/compiler/compiler.gni")
@@ -424,6 +428,7 @@ static_library("ui") {
     "//chrome/installer/util:with_no_strings",
     "//components/access_code_cast/common:metrics",
     "//components/account_id",
+    "//components/adblock/content:browser",
     "//components/affiliations/core/browser:affiliations",
     "//components/autofill/content/browser",
     "//components/autofill/content/browser:risk_proto",
@@ -1068,10 +1073,57 @@ static_library("ui") {
     # system
     deps += [ "//chrome/browser/ui/color:color_headers" ]
 
+    # TODO(b/335257259): Resolve circular deps. Any circular includes must
+    # depend on the target "//chrome/browser:browser_public_dependencies".
+    allow_circular_includes_from += [ "//chrome/browser/facilitated_payments" ]
+
+    # This can be removed when browser_navigator.h is modularized (see below
+    # TODOs).
+    allow_circular_includes_from +=
+        [ "//chrome/browser/ui/browser_window/internal" ]
+
+    # TODO(crbug.com/504985497): Remove this circular dependency.
+    allow_circular_includes_from +=
+        [ "//chrome/browser/keyboard_accessory/android:impl" ]
+
     deps += [
       "//chrome/browser/ui/android",
       "//chrome/browser/ui/android:context_menu_helper",
+      "//components/adblock/android:java_bindings",
+      "//components/adblock/android:jni_headers",
     ]
+
+    if (enable_extensions_core) {
+      sources += [
+        "android/extensions/extension_action_context_menu_bridge.cc",
+        "android/extensions/extension_action_context_menu_bridge.h",
+        "android/extensions/extension_action_delegate_android.cc",
+        "android/extensions/extension_action_delegate_android.h",
+        "android/extensions/extension_action_popup_contents.cc",
+        "android/extensions/extension_action_popup_contents.h",
+        "android/extensions/extension_actions_bridge.cc",
+        "android/extensions/extension_actions_bridge.h",
+        "android/extensions/extension_developer_private_bridge.cc",
+        "android/extensions/extension_developer_private_bridge.h",
+        "android/extensions/extension_install_dialog_view_android.cc",
+        "android/extensions/extension_install_dialog_view_android.h",
+        "android/extensions/extension_keybinding_registry_android.cc",
+        "android/extensions/extension_keybinding_registry_android.h",
+        "android/extensions/extension_util_bridge.cc",
+        "android/extensions/extension_util_bridge.h",
+        "android/extensions/extensions_menu_delegate_android.cc",
+        "android/extensions/extensions_menu_delegate_android.h",
+        "android/extensions/extensions_toolbar_android.cc",
+        "android/extensions/extensions_toolbar_android.h",
+      ]
+
+      deps += [
+        "//chrome/browser/extensions/api/omnibox",
+        "//chrome/browser/extensions/api/web_navigation",
+        "//chrome/browser/ui/android/extensions:jni_headers",
+        "//extensions/browser:extension_action_enums",
+      ]
+    }
   } else {
     # !is_android
     sources += [

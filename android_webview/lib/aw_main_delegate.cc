@@ -1,6 +1,10 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "android_webview/lib/aw_main_delegate.h"
 
@@ -8,6 +12,7 @@
 #include <optional>
 #include <variant>
 
+#include "android_webview/browser/adblock/adblock_aw_content_browser_client.h"
 #include "android_webview/browser/aw_browser_process.h"
 #include "android_webview/browser/aw_content_browser_client.h"
 #include "android_webview/browser/gfx/aw_draw_fn_impl.h"
@@ -44,6 +49,7 @@
 #include "base/time/default_clock.h"
 #include "build/build_config.h"
 #include "cc/base/switches.h"
+#include "components/adblock/content/renderer/adblock_content_renderer_client.h"
 #include "components/autofill/core/common/autofill_features.h"
 #include "components/crash/core/common/crash_key.h"
 #include "components/embedder_support/switches.h"
@@ -112,7 +118,7 @@ std::optional<int> AwMainDelegate::BasicStartupComplete() {
   cl->AppendSwitch(switches::kDisableOverscrollEdgeEffect);
 
   // Pull-to-refresh should never be a default WebView action.
-  cl->AppendSwitch(switches::kDisablePullToRefreshEffect);
+  //cl->AppendSwitch(switches::kDisablePullToRefreshEffect); // ALOHA https://app.clickup.com/t/86epwk67q we implemented pull to refresh
 
   // Not yet supported in single-process mode.
   cl->AppendSwitch(switches::kDisableSharedWorkers);
@@ -357,8 +363,8 @@ content::ContentClient* AwMainDelegate::CreateContentClient() {
 content::ContentBrowserClient* AwMainDelegate::CreateContentBrowserClient() {
   DCHECK(!aw_feature_list_creator_);
   aw_feature_list_creator_ = std::make_unique<AwFeatureListCreator>();
-  content_browser_client_ =
-      std::make_unique<AwContentBrowserClient>(aw_feature_list_creator_.get());
+  content_browser_client_ = std::make_unique<AdblockAwContentBrowserClient>(
+      aw_feature_list_creator_.get());
   return content_browser_client_.get();
 }
 
@@ -395,7 +401,8 @@ content::ContentGpuClient* AwMainDelegate::CreateContentGpuClient() {
 }
 
 content::ContentRendererClient* AwMainDelegate::CreateContentRendererClient() {
-  content_renderer_client_ = std::make_unique<AwContentRendererClient>();
+  content_renderer_client_ = std::make_unique<
+      adblock::AdblockContentRendererClient<AwContentRendererClient>>();
   return content_renderer_client_.get();
 }
 

@@ -2,14 +2,20 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef ANDROID_WEBVIEW_BROWSER_AW_BROWSER_CONTEXT_H_
 #define ANDROID_WEBVIEW_BROWSER_AW_BROWSER_CONTEXT_H_
 
+#include <array>
 #include <map>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
+
+// ALOHA - FedCM https://app.clickup.com/t/86ewz0pbr
+#include "aloha/src/native/aloha_consts.h"
 
 #include "android_webview/browser/aw_contents_io_thread_client.h"
 #include "android_webview/browser/aw_contents_origin_matcher.h"
@@ -45,6 +51,8 @@ namespace content {
 class ClientHintsControllerDelegate;
 class SSLHostStateDelegate;
 class WebContents;
+// ALOHA - FedCM https://app.clickup.com/t/86ewz0pbr
+class InMemoryFederatedPermissionContext;
 }
 
 namespace download {
@@ -109,6 +117,9 @@ class AwBrowserContext : public content::BrowserContext,
   AwQuotaManagerBridge* GetQuotaManagerBridge();
   int64_t GetQuotaManagerBridge(JNIEnv* env);
 
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  CookieManager* GetCookieManager(int inst_num);
+
   AwContentRestrictionManagerClient* GetContentRestrictionManagerClient();
   AwContentRestrictionBlockedNavigationTracker*
   GetContentRestrictionBlockedNavigationTracker();
@@ -157,6 +168,20 @@ class AwBrowserContext : public content::BrowserContext,
   RetrieveInProgressDownloadManager() override;
   content::OriginTrialsControllerDelegate* GetOriginTrialsControllerDelegate()
       override;
+  // ALOHA - FedCM https://app.clickup.com/t/86ewz0pbr
+  // WebView keeps a single BrowserContext and splits public/private mode only
+  // by swapping the active cookie store. The default FedCM permission context
+  // lives on the BrowserContext, so without these overrides the IdP sign-in
+  // status / sharing permissions would be shared across modes: a private-mode
+  // request would read the public sign-in status (with no IdP cookies in the
+  // private store), fail, and reset the status to logged-out -- corrupting the
+  // public session. Partition the context by the active mode, mirroring cookies.
+  content::FederatedIdentityApiPermissionContextDelegate*
+  GetFederatedIdentityApiPermissionContext() override;
+  content::FederatedIdentityAutoReauthnPermissionContextDelegate*
+  GetFederatedIdentityAutoReauthnPermissionContext() override;
+  content::FederatedIdentityPermissionContextDelegate*
+  GetFederatedIdentityPermissionContext() override;
   std::unique_ptr<content::ZoomLevelDelegate> CreateZoomLevelDelegate(
       const base::FilePath& partition_path) override;
   std::string GetExtraHeadersForUrl(const GURL& url) override;
@@ -261,12 +286,20 @@ class AwBrowserContext : public content::BrowserContext,
   friend class AwBrowserContextIoThreadHandle;
   void CreateUserPrefService();
   void MigrateLocalStatePrefs();
+  void MigrateEyeoLocalStatePrefs();
 
   // Return the IO thread client for this browser context that should be used
   // by service workers. This method should never be called except by
   // AwBrowserContextIoThreadHandle#GetServiceWorkerIoThreadClient().
   std::unique_ptr<AwContentsIoThreadClient>
   GetServiceWorkerIoThreadClientThreadSafe();
+
+  // ALOHA - FedCM https://app.clickup.com/t/86ewz0pbr
+  // Returns the FedCM permission context for the currently active mode
+  // (public/private), lazily creating it. The three Get*PermissionContext
+  // overrides above all funnel through here so per-mode state stays isolated.
+  content::InMemoryFederatedPermissionContext*
+  GetActiveFederatedPermissionContext();
 
   const std::string name_;
   const base::FilePath relative_path_;
@@ -290,6 +323,14 @@ class AwBrowserContext : public content::BrowserContext,
 
   AwFileSystemAccessPermissionContext fsa_permission_context_;
   SimpleFactoryKey simple_factory_key_;
+
+  // ALOHA - FedCM https://app.clickup.com/t/86ewz0pbr
+  // One FedCM permission context per cookie mode (public/private), indexed the
+  // same way as cookie managers. Lazily created in
+  // GetActiveFederatedPermissionContext().
+  std::array<std::unique_ptr<content::InMemoryFederatedPermissionContext>,
+             aloha::kCookieManagersCount>
+      fedcm_permission_contexts_;
 
   // Map of extra headers for specific URLs supplied through the loadUrl(String,
   // Map) API.

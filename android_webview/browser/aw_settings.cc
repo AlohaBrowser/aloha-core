@@ -1,6 +1,12 @@
 // Copyright 2013 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
 
 #include "android_webview/browser/aw_settings.h"
 
@@ -149,6 +155,10 @@ bool AwSettings::IsPrerender2Allowed() {
 
 bool AwSettings::IsBackForwardCacheEnabled() {
   return bfcache_enabled_in_java_settings_;
+}
+
+bool AwSettings::IsContentFilteringEnabled() {
+  return content_filtering_enabled_;
 }
 
 void AwSettings::Destroy(JNIEnv* env, const JavaRef<jobject>& obj) {
@@ -568,6 +578,17 @@ void AwSettings::UpdateGeolocationEnabledLocked(JNIEnv* env,
   geolocation_enabled_ = Java_AwSettings_getGeolocationEnabled(env, obj);
 }
 
+void AwSettings::UpdateContentFilteringEnabledLocked(
+    JNIEnv* env,
+    const JavaRef<jobject>& obj) {
+  if (!web_contents()) {
+    return;
+  }
+
+  content_filtering_enabled_ =
+      Java_AwSettings_getContentFilteringEnabled(env, obj);
+}
+
 void AwSettings::RenderViewHostChanged(content::RenderViewHost* old_host,
                                        content::RenderViewHost* new_host) {
   DCHECK_EQ(new_host, web_contents()->GetRenderViewHost());
@@ -599,6 +620,12 @@ void AwSettings::PopulateWebPreferencesLocked(JNIEnv* env,
 
   WebPreferences* web_prefs = reinterpret_cast<WebPreferences*>(web_prefs_ptr);
   PopulateFixedWebPreferences(web_prefs);
+
+  // ALOHA https://app.clickup.com/t/2f2ezk8
+  web_prefs->viewport_meta_enabled =
+      Java_AwSettings_isMobileUserAgentLocked(env, obj);
+
+  web_prefs->cookie_enabled = Java_AwSettings_isNavigatorCookieEnabledLocked(env, obj); // ALOHA https://app.clickup.com/t/86eq7zxkr
 
   const float font_scale_factor =
       Java_AwSettings_getTextSizePercentLocked(env, obj) / 100.0f;

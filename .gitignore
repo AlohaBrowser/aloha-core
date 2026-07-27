@@ -1,4 +1,5 @@
 /client-py/
+.mcp.json
 *.bak
 *.code-workspace
 *.gstmp
@@ -227,7 +228,6 @@ vs-chromium-project.txt
 /data
 /delegate_execute
 /device/serial/device_serial_mojo.xml
-/GEMINI.md
 /google_apis/gcm/gcm.xml
 /googleurl
 /gpu/gles2_conform_test
@@ -297,6 +297,8 @@ vs-chromium-project.txt
 /tools/metrics/histograms/metadata/*/*.before.pretty-print.xml
 /tools/metrics/histograms/enums.before.pretty-print.xml
 /tools/bluetooth
+/tools/perf/abp_data
+/tools/perf/eyeo_data
 /tools/reclient
 /tools/skia_goldctl/
 /tools/tryserver
@@ -348,3 +350,6 @@ third_party/rust/target/
 
 # Trace files created when using --trace-startup.
 **/chrometrace.log
+
+# Aloha: folders in 'third_party/android_support_test_runner/*'
+.gradle/

@@ -1,0 +1,9 @@
+<settings>
+  <servers>
+    <server>
+      <id>alohaMaven</id>
+      <username>gradle</username>
+      <password>ALOHA_PUBLIC:password</password>
+    </server>
+  </servers>
+</settings>

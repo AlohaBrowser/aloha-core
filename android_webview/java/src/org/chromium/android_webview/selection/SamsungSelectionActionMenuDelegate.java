@@ -308,7 +308,7 @@ public class SamsungSelectionActionMenuDelegate extends AutofillSelectionActionM
             return true;
         }
 
-        // This may be an autofill menu item.
+       // This may be an autofill menu item.
         return super.handleMenuItemClick(item, webContents, containerView);
     }
 
@@ -346,6 +346,7 @@ public class SamsungSelectionActionMenuDelegate extends AutofillSelectionActionM
         if (selectionPopupController.isFocusedNodeEditable()) {
             return;
         }
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // ALOHA FIXED https://app.clickup.com/t/86etfrntu
         startActivity(intent);
     }
 
@@ -427,6 +428,7 @@ public class SamsungSelectionActionMenuDelegate extends AutofillSelectionActionM
      */
     private static void startActivity(Intent intent) {
         try {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // ALOHA http://app.clickup.com/t/86ex7hz44
             ContextUtils.getApplicationContext().startActivity(intent);
         } catch (ActivityNotFoundException ignored) {
         }

@@ -1,0 +1,229 @@
+// This file is part of eyeo Chromium SDK,
+// Copyright (C) 2006-present eyeo GmbH
+//
+// eyeo Chromium SDK is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License version 3 as
+// published by the Free Software Foundation.
+//
+// eyeo Chromium SDK is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+// This is a private API exposing control over resource filtering via eyeoFilteringPrivate API.
+//
+// Devs: when modifying this file, ensure you update
+// tools/typescript/definitions/eyeo_filtering_private.d.ts as well.
+// See DPD-1870 for more information.
+namespace eyeoFilteringPrivate {
+
+  dictionary Subscription {
+    // Subscription url
+    DOMString url;
+    // Current state of the subscription. Allowed values are:
+    // "Installed"
+    // "Preloaded"
+    // "Installing"
+    // See components/adblock/core/subscription/subscription.h for description.
+    DOMString installation_state;
+    // Subscription title (may be empty)
+    DOMString title;
+    // Subscription version (may be empty)
+    DOMString current_version;
+    // Time of last successful installation or update, in ISO 8601 format.
+    // May be passed directly to the Date constructor.
+    DOMString last_installation_time;
+  };
+
+  dictionary SessionStatsEntry {
+    // Subscription url or "adblock:custom" when custom filter was matched
+    DOMString url;
+    // Subscription hits
+    long count;
+  };
+
+  dictionary RequestInfo {
+    // URL of the request element which has been matched.
+    DOMString url;
+    // URLs of the parent frames.
+    DOMString[] parent_frame_urls;
+    // URL of subscription having the filter which matched for the request.
+    DOMString subscription;
+    // Configuration name containing subscription with matched filer.
+    DOMString configuration_name;
+    // A string representation of matched request's resource type.
+    // Possible values are:
+    // - "SCRIPT"
+    // - "IMAGE"
+    // - "STYLESHEET"
+    // - "OBJECT"
+    // - "SUBDOCUMENT"
+    // - "WEBSOCKET"
+    // - "WEBRTC"
+    // - "PING"
+    // - "XMLHTTPREQUEST"
+    // - "MEDIA"
+    // - "FONT"
+    // - "OTHER" (when none of the above matches)
+    // See: components/adblock/core/common/content_type.h
+    DOMString content_type;
+    // Tab id for which the event is fired. Defaults to -1, a numerical value of
+    // api::tabs::TAB_ID_NONE which means tab id cannot be obtained.
+    long tab_id;
+    // Window id for which the event is fired. Defaults to -1 which is a value
+    // of SessionID::InvalidValue() which means window id cannot be obtained.
+    long window_id;
+  };
+
+  enum ElementHideAction {
+    HIDE,
+    REMOVE,
+    INLINE_CSS
+  };
+
+  dictionary PageElementInfo {
+    // Selector for the page element which has been targeted.
+    DOMString selector;
+    // The action executed upon the selector.
+    ElementHideAction action;
+    // Tab id for which the event is fired. Defaults to -1, a numerical value of
+    // api::tabs::TAB_ID_NONE which means tab id cannot be obtained.
+    long tab_id;
+    // Window id for which the event is fired. Defaults to -1 which is a value
+    // of SessionID::InvalidValue() which means window id cannot be obtained.
+    long window_id;
+  };
+
+  callback CompletionCallback = void();
+  callback ListCallback = void(DOMString[] result);
+  callback SessionStatsCallback = void(SessionStatsEntry[] result);
+  callback StateCallback = void(boolean result);
+  callback SubscriptionsCallback = void(Subscription[] result);
+  callback UrlCallback = void(DOMString result);
+
+  // In order to use any configuration it needs to be created first
+  // in the backend, for example by using $(ref:createConfiguration) call.
+  // Names of all existing configurations can be fetched via
+  // (ref:getConfigurations) call.
+  interface Functions {
+    // Creates new filtering configuration. It is a no-op call if configuration
+    // already exists.
+    static void createConfiguration(DOMString config_name);
+    // Removes existing configuration, no-op when configuration does not exist.
+    // Use it only when |configuration| is no longer needed, otherwise prefer
+    // to disable |configuration| using (ref:setEnabled).
+    static void removeConfiguration(DOMString config_name);
+    // Returns a list of existing configurations.
+    static void getConfigurations(ListCallback callback);
+    // Returns whether autoinstalling geolocation recommendation is on.
+    static void isAutoInstallEnabled(
+        StateCallback callback);
+    // Allows to turn autoinstalling geolocation recommendation on or off.
+    static void setAutoInstallEnabled(
+        boolean enabled,
+        optional CompletionCallback status);
+    // Allows to turn filtering configuration on or off.
+    static void setEnabled(
+        DOMString configuration,
+        boolean enabled,
+        optional CompletionCallback status);
+    // Returns whether filtering configuration is on.
+    static void isEnabled(
+        DOMString configuration,
+        StateCallback callback);
+    // Adds a domain requests should not be blocked on.
+    static void addAllowedDomain(
+        DOMString configuration,
+        DOMString domain,
+        optional CompletionCallback status);
+    // Removes a domain requests should not be blocked on.
+    static void removeAllowedDomain(
+        DOMString configuration,
+        DOMString domain,
+        optional CompletionCallback status);
+    // Returns a list of domains requests are not blocked on.
+    static void getAllowedDomains(
+        DOMString configuration,
+        ListCallback callback);
+    // Adds a custom filter.
+    static void addCustomFilter(
+        DOMString configuration,
+        DOMString filter,
+        optional CompletionCallback status);
+    // Removes a custom filter.
+    static void removeCustomFilter(
+        DOMString configuration,
+        DOMString filter,
+        optional CompletionCallback status);
+    // Returns a list of custom filters a user set.
+    static void getCustomFilters(
+        DOMString configuration,
+        ListCallback callback);
+    // Subscribes to a filter list. If subscription was already done and not
+    // removed later by "removeFilterList()" call then this is a no-op
+    // call, otherwise it initiates a download. |url| must point to a https URL.
+    static void addFilterList(
+        DOMString configuration,
+        DOMString url,
+        optional CompletionCallback status);
+    // Removes a subscription to a filter list downloaded from |url| and deletes
+    // corresponding files from disk. Does nothing if the filter list was never
+    // subscribed to.
+    static void removeFilterList(
+        DOMString configuration,
+        DOMString url,
+        optional CompletionCallback status);
+    // Compiles a list of currently installed subscriptions. Filter lists that
+    // are still being installed and don't yet participate in filtering also
+    // appear on this list and can be discerned by their installation_state.
+    static void getFilterLists(
+        DOMString configuration,
+        SubscriptionsCallback callback);
+    static void getSessionAllowedRequestsCount(
+        SessionStatsCallback callback);
+    // Returns number of blocked requests in a current session (runtime).
+    static void getSessionBlockedRequestsCount(
+        SessionStatsCallback callback);
+    // Returns Acceptable Ads url which can be passed to
+    // (ref:addFilterList) or (ref:removeFilterList).
+    static void getAcceptableAdsUrl(UrlCallback callback);
+  };
+
+  interface Events {
+    // Fired when an request is explicitly allowed by an exception rule.
+    static void onRequestAllowed(RequestInfo info);
+
+    // Fired when an request is blocked.
+    static void onRequestBlocked(RequestInfo info);
+
+    // Fired when a whole page is allowlisted in every filtering configuration.
+    static void onPageAllowed(RequestInfo info);
+
+    // Fired when a popup is blocked.
+    static void onPopupBlocked(RequestInfo info);
+
+    // Fired when a popup is allowlisted.
+    static void onPopupAllowed(RequestInfo info);
+
+    // Fired for a page element which was targeted by EH or EHE filter.
+    static void onPageElementMatched(PageElementInfo info);
+
+    // Fired when a subscription has been updated.
+    static void onSubscriptionUpdated(DOMString subscription_url);
+
+    // Fired when configuration enable state changed
+    static void onEnabledStateChanged(DOMString config_name);
+
+    // Fired when subscription added or removed.
+    static void onFilterListsChanged(DOMString config_name);
+
+    // Fired when allowed domain list has been updated.
+    static void onAllowedDomainsChanged(DOMString config_name);
+
+    // Fired when custom filter added or removed.
+    static void onCustomFiltersChanged(DOMString config_name);
+  };
+};

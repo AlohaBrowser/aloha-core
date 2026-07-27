@@ -1,6 +1,10 @@
 // Copyright 2015 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #ifndef EXTENSIONS_BROWSER_EXTENSION_EVENT_HISTOGRAM_VALUE_H_
 #define EXTENSIONS_BROWSER_EXTENSION_EVENT_HISTOGRAM_VALUE_H_
@@ -42,7 +46,8 @@ enum HistogramValue {
   APP_WINDOW_ON_MAXIMIZED = 19,
   APP_WINDOW_ON_MINIMIZED = 20,
   APP_WINDOW_ON_RESTORED = 21,
-  DELETED_AUDIO_MODEM_ON_RECEIVED = 22,
+  EYEO_EVENT = 22,  // Reusing a DELETED_AUDIO_MODEM_ON_RECEIVED to avoid merge
+                    // conflicts.
   DELETED_AUDIO_MODEM_ON_TRANSMIT_FAIL = 23,
   DELETED_AUDIO_ON_DEVICE_CHANGED = 24,
   AUDIO_ON_DEVICES_CHANGED = 25,

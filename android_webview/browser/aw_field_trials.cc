@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/aw_field_trials.h"
 
 #include "android_webview/browser/metrics/aw_metrics_service_client.h"
@@ -202,8 +204,12 @@ void AwFieldTrials::RegisterFeatureOverrides(base::FeatureList* feature_list) {
   aw_feature_overrides.DisableFeature(
       net::features::kStaticKeyPinningEnforcement);
 
-  // FedCM is not yet supported on WebView.
-  aw_feature_overrides.DisableFeature(::features::kFedCm);
+  // ALOHA: https://app.clickup.com/t/86ewz0pbr FedCM is supported in Bromium via AlohaIdentityDialogController.
+  // Enable SameSite=Lax cookie sending for FedCM accounts endpoint requests.
+  // Without this, Google's SameSite=Lax session cookies are not sent with the
+  // accounts endpoint request, causing HTTP 403 responses. /* ALOHA: FedCM */
+  aw_feature_overrides.EnableFeature(
+      network::features::kSendSameSiteLaxForFedCM);
 
   // Email Verification Protocol is not yet supported on WebView.
   aw_feature_overrides.DisableFeature(::features::kEmailVerificationProtocol);

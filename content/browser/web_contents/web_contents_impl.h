@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef CONTENT_BROWSER_WEB_CONTENTS_WEB_CONTENTS_IMPL_H_
 #define CONTENT_BROWSER_WEB_CONTENTS_WEB_CONTENTS_IMPL_H_
 
@@ -677,6 +679,16 @@ class CONTENT_EXPORT WebContentsImpl
                              bool destination_is_loaded,
                              bool had_saved_frame_at_start) override;
   WindowOpenDisposition GetOriginalWindowOpenDisposition() const override;
+
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  void SetPrivateMode(bool enabled) override;
+
+  // ALOHA https://app.clickup.com/t/86epcdndk
+  void SetAdblockEnabled(bool enabled) override;
+  bool IsAdblockEnabled() override;
+
+  // ALOHA https://app.clickup.com/t/86ewfwk73
+  void SetMediaCorsCheckDisabled(bool disabled) override;
 
   // Implementation of PageNavigator.
   WebContents* OpenURL(const OpenURLParams& params,
@@ -1655,6 +1667,9 @@ class CONTENT_EXPORT WebContentsImpl
   // Called when the number of active capturers for this WebContents has
   // changed.
   void OnCapturerCountChanged();
+
+  // ALOHA https://app.clickup.com/t/86exu1zh0
+  bool IsPrivateMode() const;
 
  private:
   using FrameTreeIterationCallback = base::FunctionRef<void(FrameTree&)>;
@@ -2809,6 +2824,9 @@ class CONTENT_EXPORT WebContentsImpl
 #if BUILDFLAG(IS_ANDROID)
   bool supports_forward_transition_animation_ = true;
 #endif  // !BUILDFLAG(IS_ANDROID)
+
+  // ALOHA
+  bool is_adblock_enabled_ = true;
 
   void SetDragSource(const DragId& drag_id,
                      const GlobalRenderFrameHostToken& source_rfh_token);

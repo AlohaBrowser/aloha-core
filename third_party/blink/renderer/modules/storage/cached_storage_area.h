@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_STORAGE_CACHED_STORAGE_AREA_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_STORAGE_CACHED_STORAGE_AREA_H_
 
@@ -67,6 +69,7 @@ class MODULES_EXPORT CachedStorageArea
 
   CachedStorageArea(
       AreaType type,
+      bool private_mode, // ALOHA https://app.clickup.com/t/2dmrud4
       const BlinkStorageKey& storage_key,
       LocalDOMWindow* local_dom_window,
       StorageNamespace* storage_namespace,
@@ -83,6 +86,12 @@ class MODULES_EXPORT CachedStorageArea
   bool SetItem(const String& key, const String& value, Source* source);
   void RemoveItem(const String& key, Source* source);
   void Clear(Source* source);
+
+  // ALOHA https://app.clickup.com/t/2hcppgv
+  void ClearAll();
+
+  // ALOHA https://app.clickup.com/t/86etj7905
+  void ClearStoragesForSite(const String& site);
 
   // Allow this object to keep track of the Source instances corresponding to
   // it, which is needed for mutation event notifications.
@@ -251,6 +260,9 @@ class MODULES_EXPORT CachedStorageArea
   mojo::Receiver<mojom::blink::StorageAreaObserver> receiver_{this};
 
   Persistent<GCedHeapHashMap<WeakMember<Source>, base::Token>> areas_;
+  
+  // ALOHA https://app.clickup.com/t/2dmrud4
+  const bool private_mode_;
 };
 
 }  // namespace blink

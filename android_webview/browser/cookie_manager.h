@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef ANDROID_WEBVIEW_BROWSER_COOKIE_MANAGER_H_
 #define ANDROID_WEBVIEW_BROWSER_COOKIE_MANAGER_H_
 
@@ -21,6 +23,9 @@
 #include "mojo/public/cpp/bindings/remote.h"
 #include "services/network/public/mojom/cookie_manager.mojom.h"
 #include "services/network/public/mojom/network_context.mojom.h"
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+#include "aloha/src/native/aloha_consts.h"
 
 class GURL;
 
@@ -98,8 +103,35 @@ class CookieManager {
   explicit CookieManager(AwBrowserContext* parent_context);
   ~CookieManager();
 
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  static CookieManager* GetInstance(int inst_num);
+  void MakeActive(JNIEnv* env);
+
+  // ALOHA - FedCM https://app.clickup.com/t/86ewz0pbr
+  // Returns the currently active cookie mode (public/private), mirroring the
+  // global private-mode state. Returns kDefaultCookieManager if no mode has
+  // been activated yet. Used to partition per-mode browser state (e.g. the
+  // FedCM permission context) the same way cookies are partitioned.
+  static aloha::CookieType GetActiveCookieType();
+
   CookieManager(const CookieManager&) = delete;
   CookieManager& operator=(const CookieManager&) = delete;
+
+  // ALOHA https://app.clickup.com/t/2f2f49x
+  void AddCookieFromMigration(JNIEnv* env,
+                              const base::android::JavaRef<jstring>& name,
+                              const base::android::JavaRef<jstring>& value,
+                              const base::android::JavaRef<jstring>& domain,
+                              const base::android::JavaRef<jstring>& path,
+                              jlong creation,
+                              jlong expiration,
+                              jlong last_access,
+                              jboolean secure,
+                              jboolean httponly,
+                              jint same_site,
+                              jint priority,
+                              jint source_scheme,
+                              const base::android::JavaRef<jobject>& java_error_callback);
 
   // Passes a |cookie_manager_remote|, which this will use for CookieManager
   // APIs going forward. Only called in the Network Service path, with the
@@ -174,6 +206,19 @@ class CookieManager {
  private:
   FRIEND_TEST_ALL_PREFIXES(CookieManagerTest,
                            DeferredProvisionalStoreCloseInInvokeQueue);
+
+  friend class base::NoDestructor<CookieManager>;
+
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  CookieManager(AwBrowserContext* const parent_context, int inst_num);
+
+
+  // ALOHA https://app.clickup.com/t/2f2f49x
+  void AddCookieFromMigrationImpl(std::unique_ptr<net::CanonicalCookie> cookie, GURL source_url,
+                                base::RepeatingCallback<void(const std::string&)> error_callback);
+  void OnSetCanonicalCookieForMigration(
+    base::RepeatingCallback<void(const std::string&)> error_callback,
+    GURL source_url, net::CookieAccessResult result);
 
   // Returns the CookieStore, creating it if necessary. This must only be called
   // on the CookieStore TaskRunner.
@@ -345,6 +390,9 @@ class CookieManager {
       deferred_cookie_manager_remote_;
   mojo::PendingRemote<network::mojom::CookieStoreReadyCallback>
       deferred_ready_callback_;
+
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  const int inst_num_;
 };
 
 }  // namespace android_webview

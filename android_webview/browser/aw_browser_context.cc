@@ -1,6 +1,12 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
+
+// Modified by Aloha Mobile Ltd.
 
 #include "android_webview/browser/aw_browser_context.h"
 
@@ -56,6 +62,7 @@
 #include "base/task/single_thread_task_runner.h"
 #include "base/task/thread_pool.h"
 #include "base/threading/thread_restrictions.h"
+#include "components/adblock/core/common/adblock_prefs.h"
 #include "components/autofill/core/common/autofill_prefs.h"
 #include "components/cdm/browser/media_drm_storage_impl.h"
 #include "components/download/public/common/in_progress_download_manager.h"
@@ -79,6 +86,8 @@
 #include "components/url_formatter/url_fixer.h"
 #include "components/user_prefs/user_prefs.h"
 #include "components/visitedlink/browser/visitedlink_writer.h"
+// ALOHA - FedCM https://app.clickup.com/t/86ewz0pbr
+#include "content/browser/in_memory_federated_permission_context.h"
 #include "content/public/browser/browser_task_traits.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/download_request_utils.h"
@@ -100,6 +109,9 @@
 #include "third_party/blink/public/common/origin_trials/trial_token_validator.h"
 #include "url/android/gurl_android.h"
 #include "url/gurl.h"
+
+// ALOHA - Cookies https://app.clickup.com/t/2dmr616
+#include "aloha/src/native/aloha_consts.h"
 
 // Must come after all headers that specialize FromJniType() / ToJniType().
 #include "android_webview/browser_jni_headers/AwBrowserContext_jni.h"
@@ -208,11 +220,13 @@ base::FilePath AwBrowserContext::GetPrefStorePath() {
 }
 
 base::FilePath AwBrowserContext::GetCookieStorePath() {
-  return GetCookieManager()->GetCookieStorePath();
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  return GetCookieManager(aloha::kDefaultCookieManager)->GetCookieStorePath();
 }
 
 // static
 void AwBrowserContext::RegisterPrefs(PrefRegistrySimple* registry) {
+  adblock::common::prefs::RegisterProfilePrefs(registry);
   safe_browsing::RegisterProfilePrefs(registry);
 
   // Register to persist the latest prefetch info, ensuring `AwPrefetchManager`
@@ -263,6 +277,11 @@ void AwBrowserContext::CreateUserPrefService() {
   // Persisted to ensure client hints can be sent on next page load.
   persistent_prefs.insert(prefs::kClientHintsCachedPerOriginMap);
 
+  // These prefs go in the JsonPrefStore, and will persist across runs.
+  for (auto& pref_name : adblock::common::prefs::GetPrefs()) {
+    persistent_prefs.insert(pref_name.data());
+  }
+
   // Register to persist the latest prefetch info, ensuring `AwPrefetchManager`
   // can initialize `PrePrefetchService` with these as optimization hints for
   // the likely initial PrePrefetch request.
@@ -302,6 +321,7 @@ void AwBrowserContext::CreateUserPrefService() {
 
   if (IsDefaultBrowserContext()) {
     MigrateLocalStatePrefs();
+    MigrateEyeoLocalStatePrefs();
   }
 
   user_prefs::UserPrefs::Set(this, user_pref_service_.get());
@@ -316,6 +336,17 @@ void AwBrowserContext::MigrateLocalStatePrefs() {
   user_pref_service_->Set(cdm::prefs::kMediaDrmStorage,
                           local_state->GetValue(cdm::prefs::kMediaDrmStorage));
   local_state->ClearPref(cdm::prefs::kMediaDrmStorage);
+}
+
+void AwBrowserContext::MigrateEyeoLocalStatePrefs() {
+  PrefService* local_state = AwBrowserProcess::GetInstance()->local_state();
+  for (auto& pref_name : adblock::common::prefs::GetPrefs()) {
+    if (local_state->HasPrefPath(pref_name.data())) {
+      user_pref_service_->Set(pref_name.data(),
+                              local_state->GetValue(pref_name.data()));
+      local_state->ClearPref(pref_name.data());
+    }
+  }
 }
 
 // static
@@ -339,6 +370,12 @@ AwQuotaManagerBridge* AwBrowserContext::GetQuotaManagerBridge() {
   return quota_manager_bridge_.get();
 }
 
+
+CookieManager* AwBrowserContext::GetCookieManager(int inst_num) {
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  return CookieManager::GetInstance(inst_num);
+}
+
 AwContentRestrictionManagerClient*
 AwBrowserContext::GetContentRestrictionManagerClient() {
   DCHECK(content_restriction_manager_client_);
@@ -356,6 +393,7 @@ CookieManager* AwBrowserContext::GetCookieManager() {
     // For the default context, the CookieManager isn't owned by the context,
     // and may be initialized externally.
     CHECK(!cookie_manager_);
+    base::ScopedAllowBlocking scoped_allow_blocking; // ALOHA dcheck crush fix
     return CookieManager::GetDefaultInstance();
   } else {
     // Non-default contexts own their cookie managers
@@ -473,6 +511,33 @@ AwBrowserContext::GetOriginTrialsControllerDelegate() {
   return origin_trials_controller_delegate_.get();
 }
 
+// ALOHA - FedCM https://app.clickup.com/t/86ewz0pbr
+content::InMemoryFederatedPermissionContext*
+AwBrowserContext::GetActiveFederatedPermissionContext() {
+  aloha::CookieType type = CookieManager::GetActiveCookieType();
+  DCHECK_LT(static_cast<size_t>(type), fedcm_permission_contexts_.size());
+  if (!fedcm_permission_contexts_[type]) {
+    fedcm_permission_contexts_[type] =
+        std::make_unique<content::InMemoryFederatedPermissionContext>();
+  }
+  return fedcm_permission_contexts_[type].get();
+}
+
+content::FederatedIdentityApiPermissionContextDelegate*
+AwBrowserContext::GetFederatedIdentityApiPermissionContext() {
+  return GetActiveFederatedPermissionContext();
+}
+
+content::FederatedIdentityAutoReauthnPermissionContextDelegate*
+AwBrowserContext::GetFederatedIdentityAutoReauthnPermissionContext() {
+  return GetActiveFederatedPermissionContext();
+}
+
+content::FederatedIdentityPermissionContextDelegate*
+AwBrowserContext::GetFederatedIdentityPermissionContext() {
+  return GetActiveFederatedPermissionContext();
+}
+
 std::unique_ptr<content::ZoomLevelDelegate>
 AwBrowserContext::CreateZoomLevelDelegate(
     const base::FilePath& partition_path) {
@@ -547,8 +612,9 @@ void AwBrowserContext::ConfigureNetworkContextParams(
   context_params->persist_session_cookies = true;
   context_params->cookie_manager_params =
       network::mojom::CookieManagerParams::New();
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
   context_params->cookie_manager_params->allow_file_scheme_cookies =
-      GetCookieManager()->GetAllowFileSchemeCookies();
+      GetCookieManager(aloha::kDefaultCookieManager)->GetAllowFileSchemeCookies();
   context_params->cookie_manager_params->cookie_access_delegate_type =
       base::CommandLine::ForCurrentProcess()->HasSwitch(
           switches::kWebViewEnableModernCookieSameSite)

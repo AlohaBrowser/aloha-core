@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef REMOTING_BASE_URL_LOADER_NETWORK_SERVICE_OBSERVER_H_
 #define REMOTING_BASE_URL_LOADER_NETWORK_SERVICE_OBSERVER_H_
 
@@ -95,6 +97,13 @@ class UrlLoaderNetworkServiceObserver
       network::mojom::IPAddressSpace response_address_space,
       network::mojom::IPAddressSpace client_address_space,
       network::mojom::IPAddressSpace target_address_space) override;
+
+  // ALOHA: https://app.clickup.com/t/86ewr2k2q 
+  void OnHlsDetected(const GURL& url,
+                     int32_t render_process_id,
+                     int32_t request_id,
+                     const std::optional<base::UnguessableToken>& top_frame_id,
+                     const std::string& request_headers) override;
 
   void OnCertificatesSelected(
       mojo::PendingRemote<network::mojom::ClientCertificateResponder>

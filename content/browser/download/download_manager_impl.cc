@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/download/download_manager_impl.h"
 
 #include <iterator>
@@ -750,7 +752,7 @@ void DownloadManagerImpl::Shutdown() {
 }
 
 bool DownloadManagerImpl::InterceptDownload(
-    const download::DownloadCreateInfo& info) {
+    download::DownloadCreateInfo& info) { // ALOHA https://app.clickup.com/t/mz8wrn
   WebContents* web_contents = WebContentsImpl::FromRenderFrameHostID(
       info.render_process_id, info.render_frame_id);
   if (info.is_new_download &&
@@ -801,11 +803,17 @@ bool DownloadManagerImpl::InterceptDownload(
     }
   }
 
-  if (delegate_ &&
-      delegate_->InterceptDownloadIfApplicable(
-          info.url(), user_agent, info.content_disposition, info.mime_type,
-          info.request_origin, info.total_bytes, info.transient,
-          info.is_content_initiated, web_contents)) {
+  bool is_disposable_url{false};  // ALOHA https://app.clickup.com/t/861md9r6t
+  if(info.response_headers && info.response_headers->HasHeader("Cf-Cache-Status"))
+    is_disposable_url = true;
+
+  if (delegate_ && delegate_->InterceptDownloadIfApplicable(
+                       info.url(), user_agent,
+                       info.method, // ALOHA https://app.clickup.com/t/mz8wrn
+                       is_disposable_url, // ALOHA https://app.clickup.com/t/861md9r6t
+                       info.content_disposition,
+                       info.mime_type, info.request_origin, info.total_bytes,
+                       info.transient, info.is_content_initiated, web_contents)) {
     DropDownload();
     return true;
   }

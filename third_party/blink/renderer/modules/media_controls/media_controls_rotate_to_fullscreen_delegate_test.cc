@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/modules/media_controls/media_controls_rotate_to_fullscreen_delegate.h"
 
 #include <tuple>
@@ -66,9 +68,11 @@ class MockChromeClient : public EmptyChromeClient {
   }
   void EnterFullscreen(LocalFrame& frame,
                        const FullscreenOptions*,
-                       FullscreenRequestType) override {
+                       FullscreenRequestType,
+                       std::optional<aloha::FullscreenVideoElement>) override { // ALOHA https://app.clickup.com/t/861m4jwng
     Fullscreen::DidResolveEnterFullscreenRequest(*frame.GetDocument(),
-                                                 true /* granted */);
+                                                 true /* granted */,
+                                                 nullptr /* override_fullscreen_element */); // ALOHA https://app.clickup.com/t/861m4jwng
   }
   void ExitFullscreen(LocalFrame& frame) override {
     Fullscreen::DidExitFullscreen(*frame.GetDocument());

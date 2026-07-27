@@ -70,6 +70,34 @@
                 ]
             },
             {
+                "domain": "Eyeo",
+                "include": [
+                  "enable",
+                  "disable",
+                  "getDownloadStats",
+                  "getConfigurations",
+                  "getSessionStats",
+                  "getFilterLists",
+                  "addFilterList",
+                  "removeFilterList",
+                  "getCustomFilters",
+                  "addCustomFilter",
+                  "removeCustomFilter",
+                  "getAllowedDomains",
+                  "addAllowedDomain",
+                  "removeAllowedDomain",
+                  "getTelemetryDebugInfo"
+                ],
+                "include_events": [
+                  "filterListsChanged",
+                  "customFiltersChanged",
+                  "pageAllowed",
+                  "pageElementMatched",
+                  "requestAllowed",
+                  "requestBlocked"
+                ]
+            },
+            {
                 "domain": "FedCm"
             },
             {

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "remoting/base/url_loader_network_service_observer.h"
 
 #include "base/functional/bind.h"
@@ -206,6 +208,15 @@ void UrlLoaderNetworkServiceObserver::OnCertificatesSelected(
       base::BindOnce(&UrlLoaderNetworkServiceObserver::ContinueWithCertificate,
                      weak_factory_.GetWeakPtr(),
                      std::move(client_cert_responder), std::move(cert)));
+}
+
+// ALOHA: https://app.clickup.com/t/86ewr2k2q 
+void UrlLoaderNetworkServiceObserver::OnHlsDetected(
+    const GURL& url,
+    int32_t render_process_id,
+    int32_t request_id,
+    const std::optional<base::UnguessableToken>& top_frame_id,
+    const std::string& request_headers) {  
 }
 
 void UrlLoaderNetworkServiceObserver::ContinueWithCertificate(

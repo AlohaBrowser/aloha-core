@@ -1,6 +1,10 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "chrome/browser/sessions/session_restore.h"
 
@@ -4769,9 +4773,10 @@ class SessionRestoreStaleSessionCookieDeletionTest : public SessionRestoreTest {
  private:
   net::EmbeddedTestServer https_server_;
 };
-
+// Disabled as it's flaky, see: https://issues.chromium.org/issues/348923077
+// See also: https://eyeo.atlassian.net/browse/DPD-2773
 IN_PROC_BROWSER_TEST_F(SessionRestoreStaleSessionCookieDeletionTest,
-                       CookieStorage) {
+                       DISABLED_CookieStorage) {
   GURL open_page = https_server()->GetURL("a.test", "/empty.html");
   GURL other_page = https_server()->GetURL("b.test", "/empty.html");
   ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), open_page));

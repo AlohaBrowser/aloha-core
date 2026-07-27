@@ -11,11 +11,11 @@ package com.android.webview.chromium;
  * the base class, with appropriate SDK_INT checks if needed.
  */
 public class WebViewChromiumFactoryProviderForQ extends WebViewChromiumFactoryProvider {
-    public static WebViewChromiumFactoryProvider create(android.webkit.WebViewDelegate delegate) {
+    public static WebViewChromiumFactoryProvider create(com.android.webview.chromium.WebViewDelegate delegate) {
         return new WebViewChromiumFactoryProviderForQ(delegate);
     }
 
-    protected WebViewChromiumFactoryProviderForQ(android.webkit.WebViewDelegate delegate) {
+    protected WebViewChromiumFactoryProviderForQ(com.android.webview.chromium.WebViewDelegate delegate) {
         super(delegate);
     }
 }

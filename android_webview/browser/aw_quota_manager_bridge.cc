@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "android_webview/browser/aw_quota_manager_bridge.h"
 
 #include <memory>
@@ -276,6 +278,53 @@ std::string AwQuotaManagerBridge::DeleteBrowsingDataForSite(
       kDataRemovalOriginProtectionTypes, std::move(filter_builder), observer);
 
   return site;
+}
+
+// ALOHA https://app.clickup.com/t/86etj7905
+std::string AwQuotaManagerBridge::DeleteForSiteImpl(
+    std::string domain,
+    const base::android::JavaRef<jobject>& jcallback,
+    content::BrowsingDataRemover::DataType remove_mask) {
+  DCHECK_CURRENTLY_ON(BrowserThread::UI);
+
+  std::unique_ptr<content::BrowsingDataFilterBuilder> filter_builder =
+      content::BrowsingDataFilterBuilder::Create(
+          content::BrowsingDataFilterBuilder::Mode::kDelete,
+          content::BrowsingDataFilterBuilder::OriginMatchingMode::
+              kOriginAndThirdParty);
+  std::string site = GetRegisterableDomain(domain);
+  filter_builder->AddRegisterableDomain(site);
+
+  content::BrowsingDataRemover* data_remover =
+      browser_context_->GetBrowsingDataRemover();
+  // DeleteDataObserver manages its own lifetime.
+  DeleteDataObserver* observer =
+      new DeleteDataObserver(data_remover, jcallback);
+  data_remover->RemoveWithFilterAndReply(
+      base::Time(), base::Time::Max(),
+      remove_mask, kDataRemovalOriginProtectionTypes,
+      std::move(filter_builder), observer);
+
+  return site;
+}
+
+// ALOHA https://app.clickup.com/t/86etj7905
+std::string AwQuotaManagerBridge::DeleteBrowsingCacheForSite(
+    JNIEnv* env,
+    std::string domain,
+    const base::android::JavaRef<jobject>& jcallback) {
+  return DeleteForSiteImpl(domain, jcallback,
+         content::BrowsingDataRemover::DATA_TYPE_CACHE);
+
+}
+
+// ALOHA https://app.clickup.com/t/86etj7905
+std::string AwQuotaManagerBridge::DeleteBrowsingCookiesForSite(
+    JNIEnv* env,
+    std::string domain,
+    const base::android::JavaRef<jobject>& jcallback) {
+  return DeleteForSiteImpl(domain, jcallback,
+         content::BrowsingDataRemover::DATA_TYPE_COOKIES | content::BrowsingDataRemover::DATA_TYPE_DOM_STORAGE);
 }
 
 void AwQuotaManagerBridge::DeleteAllDataFramework(JNIEnv* env) {

@@ -725,11 +725,23 @@ void NetworkService::CreateNetworkContext(
     mojo::PendingReceiver<mojom::NetworkContext> receiver,
     mojom::NetworkContextParamsPtr params) {
 #if BUILDFLAG(IS_ANDROID)
-  if (params->cookie_store_ready_callback) {
+  if (params->cookie_store_ready_callback_0) {
     auto pending = std::make_unique<PendingNetworkContext>(
         this, std::move(receiver), std::move(params));
     pending->ready_receiver.Bind(
-        std::move(pending->params->cookie_store_ready_callback));
+        std::move(pending->params->cookie_store_ready_callback_0));
+    auto* raw = pending.get();
+    pending->ready_receiver.set_disconnect_handler(
+        base::BindOnce(&NetworkService::OnPendingNetworkContextDisconnected,
+                       base::Unretained(this), raw));
+    pending_network_contexts_.emplace(std::move(pending));
+    return;
+  }
+  if (params->cookie_store_ready_callback_1) {
+    auto pending = std::make_unique<PendingNetworkContext>(
+        this, std::move(receiver), std::move(params));
+    pending->ready_receiver.Bind(
+        std::move(pending->params->cookie_store_ready_callback_1));
     auto* raw = pending.get();
     pending->ready_receiver.set_disconnect_handler(
         base::BindOnce(&NetworkService::OnPendingNetworkContextDisconnected,

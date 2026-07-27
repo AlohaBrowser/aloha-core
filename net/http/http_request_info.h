@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #ifndef NET_HTTP_HTTP_REQUEST_INFO_H__
 #define NET_HTTP_HTTP_REQUEST_INFO_H__
 
@@ -149,6 +151,9 @@ struct NET_EXPORT HttpRequestInfo {
   // changing it to an optional and CHECK that it is set prior to use (see
   // https://chromium-review.git.corp.google.com/c/chromium/src/+/7612167/comment/05941166_0f11478f/).
   handles::NetworkHandle target_network = handles::kInvalidNetworkHandle;
+
+  // ALOHA https://app.clickup.com/t/2f29z75
+  bool send_dnt_header;
 };
 
 }  // namespace net

@@ -28,6 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Modified by Aloha Mobile Ltd.
+
 #include "third_party/blink/renderer/bindings/core/v8/binding_security.h"
 
 #include "third_party/blink/public/common/features.h"
@@ -92,9 +94,12 @@ bool CanAccessWindow(const LocalDOMWindow* accessing_window,
   const SecurityOrigin* accessing_origin =
       accessing_window->GetSecurityOrigin();
 
-  SecurityOrigin::AccessResultDomainDetail detail;
-  bool can_access = accessing_origin->CanAccess(
-      local_target_window->GetSecurityOrigin(), detail);
+  // ALOHA https://app.clickup.com/t/861m7r8nk
+  SecurityOrigin::AccessResultDomainDetail detail =
+      SecurityOrigin::AccessResultDomainDetail::kDomainNotRelevant;
+  bool can_access = accessing_window->IsUncheckedJSAllowed() ||
+      accessing_origin->CanAccess(
+        local_target_window->GetSecurityOrigin(), detail);
   if (detail ==
           SecurityOrigin::AccessResultDomainDetail::kDomainSetByOnlyOneOrigin ||
       detail ==
@@ -114,7 +119,10 @@ bool CanAccessWindow(const LocalDOMWindow* accessing_window,
       // WindowAgentFactories must also be different unless they differ in
       // being explicitly origin keyed or they have different cross-origin
       // isolation keys.
-      SECURITY_CHECK(
+
+      // ALOHA https://app.clickup.com/t/861mb5k29
+      // Uncomment after multiprocess is enabled
+      /*SECURITY_CHECK(
           !IsSameWindowAgentFactory(accessing_window, local_target_window) ||
           (accessing_window->GetAgent()->GetAgentClusterKey().IsOriginKeyed() !=
            local_target_window->GetAgent()
@@ -127,7 +135,7 @@ bool CanAccessWindow(const LocalDOMWindow* accessing_window,
                ->GetAgentClusterKey()
                .GetCrossOriginIsolationKey()) ||
           (WebTestSupport::IsRunningWebTest() &&
-           local_target_window->GetFrame()->PagePopupOwner()));
+           local_target_window->GetFrame()->PagePopupOwner()));*/
     }
     return false;
   }

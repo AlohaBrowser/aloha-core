@@ -1,0 +1,35 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+static_library("renderer") {
+  sources = [
+    "adblock_content_renderer_client.h",
+    "adblock_render_frame_observer.cc",
+    "adblock_render_frame_observer.h",
+    "element_hide_api.cc",
+    "element_hide_api.h",
+  ]
+
+  deps = [
+    "//components/adblock/content/common:mojom",
+    "//content/public/common",
+    "//content/public/renderer",
+    "//gin",
+    "//mojo/public/cpp/bindings",
+    "//third_party/blink/public:blink_headers",
+    "//v8",
+  ]
+}

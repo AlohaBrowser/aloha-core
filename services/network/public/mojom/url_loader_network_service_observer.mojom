@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 module network.mojom;
 
 import "mojo/public/mojom/base/byte_size.mojom";
@@ -257,4 +259,11 @@ interface URLLoaderNetworkServiceObserver {
                                      IPAddressSpace response_address_space,
                                      IPAddressSpace client_address_space,
                                      IPAddressSpace target_address_space);
+                        
+  // ALOHA: https://app.clickup.com/t/86ewr2k2q Called when HLS stream is detected
+  OnHlsDetected(url.mojom.Url hls_url,
+                int32 render_process_id,
+                int32 request_id,
+                mojo_base.mojom.UnguessableToken? top_frame_id,
+                string request_headers);
 };

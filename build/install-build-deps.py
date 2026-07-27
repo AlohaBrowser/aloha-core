@@ -8,6 +8,14 @@
 # including items requiring sudo privileges.
 # See https://chromium.googlesource.com/chromium/src/+/main/docs/linux/build_instructions.md
 
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
 import argparse
 import functools
 import logging
@@ -595,7 +603,7 @@ def backwards_compatible_list(options):
       "msttcorefonts",
       "python-dev",
       "python-setuptools",
-      "snapcraft",
+      #"snapcraft",
       "ttf-dejavu-core",
       "ttf-indic-fonts",
       "ttf-kochi-gothic",

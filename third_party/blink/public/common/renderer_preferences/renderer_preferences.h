@@ -57,7 +57,7 @@ struct BLINK_COMMON_EXPORT RendererPreferences {
   bool use_overlay_scrollbar{false};
 #endif
   blink::mojom::WebRtcIpHandlingPolicy webrtc_ip_handling_policy =
-      blink::mojom::WebRtcIpHandlingPolicy::kDefault;
+      blink::mojom::WebRtcIpHandlingPolicy::kDisableNonProxiedUdp; // ALOHA https://app.clickup.com/t/86ep381z0 FOR DISABLE WebRTC IP LEAKING MUST RETURN JUST kDisableNonProxiedUdp
   std::vector<WebRtcIpHandlingUrlEntry> webrtc_ip_handling_urls;
   std::optional<bool> webrtc_post_quantum_key_agreement;
   uint16_t webrtc_udp_min_port{0};

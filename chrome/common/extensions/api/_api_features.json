@@ -1,6 +1,10 @@
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the components/adblock/LICENSE file.
+
 
 // This features file defines extension APIs implemented under src/chrome.
 // See chrome/common/extensions/api/_features.md to understand this file, as
@@ -109,6 +113,16 @@
     "contexts": ["privileged_extension"],
     "dependencies": ["permission:experimentalAiData"]
   },
+  "adblockPrivate": [{
+    "dependencies": ["permission:adblockPrivate"],
+    "contexts": ["privileged_extension"]
+  }, {
+    "contexts": ["webui"],
+    "dependencies": [],
+    "matches": [
+      "chrome://settings/*"
+    ]
+  }],
   "glicPrivate": {
     "contexts": ["privileged_extension"],
     "dependencies": ["permission:glicPrivate"],
@@ -594,6 +608,22 @@
     "channel": "stable",
     "contexts": []
   },
+  "eyeoDevToolsPrivate": [{
+    "dependencies": ["permission:eyeoDevToolsPrivate"],
+    "contexts": ["privileged_extension"]
+  }, {
+    "contexts": ["webui"],
+    "dependencies": [],
+    "matches": ["chrome://settings/*"]
+  }],
+  "eyeoFilteringPrivate": [{
+    "dependencies": ["permission:eyeoFilteringPrivate"],
+    "contexts": ["privileged_extension"]
+  }, {
+    "contexts": ["webui"],
+    "dependencies": [],
+    "matches": ["chrome://settings/*"]
+  }],
   "fileBrowserHandler": {
     "dependencies": ["permission:fileBrowserHandler"],
     "contexts": ["privileged_extension"],

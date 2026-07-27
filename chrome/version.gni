@@ -463,5 +463,7 @@ if (is_android) {
 
     true_false_false_false = "1"
     false_false_false_false = "1"
+    # ALOHA DCHECK build fix
+    true_false_true_false = "1"
   }
 }

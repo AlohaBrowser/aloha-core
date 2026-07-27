@@ -1,6 +1,10 @@
 // Copyright 2018 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include <algorithm>
 
@@ -44,6 +48,15 @@ IN_PROC_BROWSER_TEST_F(ExtensionFunctionRegistrationTest,
   std::set<std::string> seen_names;
   std::map<functions::HistogramValue, std::string> seen_histograms;
 
+  // The following are methods that are undocumented and may or may not ship
+  // with a final API. We allow them to use the UNKNOWN histogram entry in the
+  // meantime.
+  // Each entry should have a bug number associated with it.
+  static const constexpr char* kAllowedUnknownHistogramEntries[] = {
+      // https://crbug.com/40849649.
+      "offscreen.hasDocument",
+  };
+
   for (const auto& key_value : factories) {
     const ExtensionFunctionRegistry::FactoryEntry& entry = key_value.second;
     SCOPED_TRACE(entry.function_name_);
@@ -56,8 +69,26 @@ IN_PROC_BROWSER_TEST_F(ExtensionFunctionRegistrationTest,
     // The chrome.test API uses an "unknown" histogram value, but should be the
     // only API that does.
     if (entry.histogram_value_ == functions::UNKNOWN) {
-      EXPECT_TRUE(base::StartsWith(entry.function_name_, "test.",
-                                   base::CompareCase::SENSITIVE));
+      // The chrome.test API uses UNKNOWN; it's only used in tests.
+      if (base::StartsWith(entry.function_name_, "test.",
+                           base::CompareCase::SENSITIVE)) {
+        continue;
+      }
+      // Eyeo extension API uses UNKNOWN; it's not used in histograms.
+      if (base::StartsWith(entry.function_name_, "adblockPrivate.") ||
+          base::StartsWith(entry.function_name_, "eyeoDevToolsPrivate.") ||
+          base::StartsWith(entry.function_name_, "eyeoFilteringPrivate.")) {
+        continue;
+      }
+
+      // Some undocumented, unlaunched APIs may also use UNKNOWN if it's unclear
+      // (or unlikely) if they will ever launch.
+      if (std::ranges::contains(kAllowedUnknownHistogramEntries,
+                                std::string(entry.function_name_))) {
+        continue;
+      }
+      ADD_FAILURE() << "Un-allowlisted API found using UNKNOWN histogram entry."
+                    << entry.function_name_;
     } else {
       bool is_success =
           seen_histograms.emplace(entry.histogram_value_, entry.function_name_)

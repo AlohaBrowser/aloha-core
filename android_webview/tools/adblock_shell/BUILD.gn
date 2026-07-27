@@ -1,0 +1,99 @@
+#
+# This file is part of eyeo Chromium SDK,
+# Copyright (C) 2006-present eyeo GmbH
+#
+# eyeo Chromium SDK is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# eyeo Chromium SDK is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with eyeo Chromium SDK.  If not, see <http://www.gnu.org/licenses/>.
+
+import("//build/config/android/rules.gni")
+import("//testing/test.gni")
+import("//third_party/jni_zero/jni_zero.gni")
+
+# Mark all targets as test only.
+testonly = true
+
+group("adblock_shell") {
+  deps = [ ":adblock_shell_apk" ]
+}
+
+android_apk("adblock_shell_apk") {
+  apk_name = "AdblockShell"
+  target_sdk_version = 24
+  android_manifest = "AndroidManifest.xml"
+  deps = [
+    ":adblock_shell_java",
+    "//android_webview:android_webview_product_config_java",
+    "//android_webview:locale_pak_assets",
+    "//android_webview:pak_file_assets",
+    "//base:base_java",
+    "//gin:v8_snapshot_assets",
+    "//third_party/icu:icu_assets",
+    "//ui/android:ui_java",
+  ]
+  sources = [
+    "src/org/chromium/adblock/shell/AdblockShellActivity.java",
+    "src/org/chromium/adblock/shell/AdblockShellApplication.java",
+  ]
+  product_config_java_packages = [ "org.chromium.android_webview" ]
+  shared_libraries = [ ":libadblockwebviewchromium" ]
+  srcjar_deps = [ ":libadblockwebviewchromium__jni_registration" ]
+  command_line_flags_file = "adblock-webview-command-line"
+}
+
+android_library("adblock_shell_java") {
+  sources = [
+    "//android_webview/test/shell/src/org/chromium/android_webview/shell/AwShellActivity.java",
+    "//android_webview/test/shell/src/org/chromium/android_webview/shell/AwShellResourceProvider.java",
+    "//android_webview/test/shell/src/org/chromium/android_webview/shell/AwShellSwitches.java",
+    "//android_webview/test/shell/src/org/chromium/android_webview/test/AwTestContainerView.java",
+    "//android_webview/test/shell/src/org/chromium/android_webview/test/NullContentsClient.java",
+  ]
+  deps = [
+    "//android_webview:android_webview_java",
+    "//android_webview/test:draw_fn_impl_java",
+    "//android_webview/test:webview_instrumentation_apk_resources",
+    "//base:base_java",
+    "//base:base_java_test_support",
+    "//components/embedder_support/android:util_java",
+    "//content/public/android:content_java",
+    "//third_party/jni_zero:jni_zero_java",
+    "//url:gurl_java",
+  ]
+  resources_package = "org.chromium.android_webview.shell"
+}
+
+shared_library_with_jni("libadblockwebviewchromium") {
+  sources = [
+    "//android_webview/test/shell/src/draw_fn/allocator.cc",
+    "//android_webview/test/shell/src/draw_fn/allocator.h",
+    "//android_webview/test/shell/src/draw_fn/context_manager.cc",
+    "//android_webview/test/shell/src/draw_fn/context_manager.h",
+    "//android_webview/test/shell/src/draw_fn/overlays_manager.cc",
+    "//android_webview/test/shell/src/draw_fn/overlays_manager.h",
+  ]
+  deps = [
+    "//android_webview",
+    "//android_webview/browser/gfx",
+    "//android_webview/lib:webview_entry_point",
+    "//android_webview/public",
+    "//android_webview/test:draw_fn_impl_jni_headers",
+    "//android_webview/test:test_support",
+    "//base",
+    "//gpu/vulkan",
+    "//gpu/vulkan/init",
+    "//ui/gl",
+  ]
+  libs = [ "android" ]
+  configs -= [ "//build/config/android:hide_all_but_jni_onload" ]
+  configs += [ "//build/config/android:hide_all_but_jni" ]
+  java_targets = [ ":adblock_shell_apk" ]
+}

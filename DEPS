@@ -191,6 +191,10 @@ vars = {
   # flag is set True.
   'checkout_wpr_archives': False,
 
+  # Eyeo WPR archives are kept separately from Chromium WPRs due to
+  # access restrictions (authenticated Google Cloud Storage).
+  'checkout_eyeo_wpr_archives': False,
+
   # By default, do not check out WebKit for iOS, as it is not needed unless
   # running against ToT WebKit rather than system WebKit. This can be overridden
   # e.g. with custom_vars.
@@ -310,6 +314,7 @@ vars = {
   'download_libvpx_testdata': False,
 
   'android_git': 'https://android.googlesource.com',
+  'eyeo_gitlab': 'https://gitlab.com/eyeo',
   'aomedia_git': 'https://aomedia.googlesource.com',
   'boringssl_git': 'https://boringssl.googlesource.com',
   'chrome_git': 'https://chrome-internal.googlesource.com',
@@ -548,6 +553,11 @@ vars = {
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
   'agents_public_revision': 'e75efa515896f6bf1dea92eaffbcf8ee711a65d8',
+
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling feed
+  # and whatever else without interference from each other.
+  'eyeo_snippets_revision': 'v2.12.0',
 
   # If you change this, also update the libc++ revision in
   # //buildtools/deps_revisions.gni.
@@ -1675,6 +1685,10 @@ deps = {
     'condition': 'checkout_android and checkout_src_internal',
   },
 
+  'src/components/adblock/core/resources/snippets': {
+    'url': Var('eyeo_gitlab') + '/anti-cv/snippets.git' + '@' + Var('eyeo_snippets_revision'),
+  },
+
   'src/docs/website': {
     'url': Var('chromium_git') + '/website.git' + '@' + '3da515a67f412be05ea1ea6b39832a69aef8f54e',
   },
@@ -1743,6 +1757,13 @@ deps = {
       ],
       'condition': 'non_git_source',
       'dep_type': 'cipd',
+  },
+
+  'src/tools/perf/eyeo_data': {
+    'condition':
+      'checkout_eyeo_wpr_archives',
+    'url':
+      Var('eyeo_gitlab') + '/distpartners/web-page-recordings.git@69fd10f2076334d10b2dd938ae84f8cc7c0c9018',
   },
 
   'src/third_party/android_build_tools/protoc/cipd': {

@@ -1,6 +1,10 @@
 // Copyright 2017 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// This source code is a part of eyeo Chromium SDK.
+// Use of this source code is governed by the GPLv3 that can be found in the
+// components/adblock/LICENSE file.
 
 #include "components/page_load_metrics/browser/observers/ad_metrics/ads_page_load_metrics_observer.h"
 
@@ -27,6 +31,7 @@
 #include "chrome/test/base/in_process_browser_test.h"
 #include "chrome/test/base/interactive_test_utils.h"
 #include "chrome/test/base/ui_test_utils.h"
+#include "components/adblock/core/features.h"
 #include "components/heavy_ad_intervention/heavy_ad_features.h"
 #include "components/page_load_metrics/browser/ads_page_load_metrics_test_waiter.h"
 #include "components/page_load_metrics/browser/features.h"
@@ -1882,7 +1887,8 @@ class AdsPageLoadMetricsObserverResourceBrowserTest
   }
 
   virtual std::vector<base::test::FeatureRef> GetDisabledFeatures() const {
-    return {};
+    std::vector<base::test::FeatureRef> disabled{adblock::kAdblockPlusFeature};
+    return disabled;
   }
 
   // This function loads a |large_resource| and if |will_block| is set, then

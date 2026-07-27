@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 #include "content/browser/webid/network_request_manager.h"
 
 #include <optional>
@@ -20,6 +22,10 @@
 #include "services/network/public/cpp/simple_url_loader.h"
 #include "services/network/public/mojom/url_response_head.mojom.h"
 #include "third_party/blink/public/common/mime_util/mime_util.h"
+
+// ALOHA: https://app.clickup.com/t/86ewz0pbr FedCM support
+#include "aloha/src/native/bromium_client_bridge.h"
+#include "content/public/browser/web_contents.h"
 
 namespace content::webid {
 
@@ -324,6 +330,26 @@ NetworkRequestManager::CreateCredentialedResourceRequest(
   resource_request->destination = destination_;
   resource_request->url = target_url;
   resource_request->site_for_cookies = site_for_cookies;
+
+  // ALOHA: https://app.clickup.com/t/86ewz0pbr FedCM support.
+  // Override the WebIdentity request UA with the host app's UA — Google's
+  // accounts endpoint returns 403 WEB_VIEW_NOT_SUPPORTED for the default
+  // android_webview UA. Also force Sec-Fetch-Dest: webidentity, which the
+  // browser-process URLLoaderFactory does not always apply automatically.
+  if (destination_ == network::mojom::RequestDestination::kWebIdentity) {
+    aloha::BromiumClientBridge* bridge =
+        aloha::BromiumClientBridge::FromWebContents(
+            content::WebContents::FromFrameTreeNodeId(frame_tree_node_id_));
+    if (bridge) {
+      auto user_agent = bridge->getUserAgent();
+      if (!user_agent.empty()) {
+        resource_request->headers.SetHeader(net::HttpRequestHeaders::kUserAgent,
+                                            user_agent);
+      }
+      resource_request->headers.SetHeader("Sec-Fetch-Dest", "webidentity");
+    }
+  }
+
   // TODO(crbug.com/40284123): Figure out why when using CORS we still need to
   // explicitly pass the Origin header.
   if (type != CredentialedResourceRequestType::kNoOrigin) {

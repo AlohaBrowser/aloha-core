@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// Modified by Aloha Mobile Ltd.
+
 module network.mojom;
 
 import "components/content_settings/core/common/content_settings.mojom";
@@ -500,15 +502,22 @@ struct NetworkContextParams {
 
   // Binds to the cookie manager associated with this network context, which
   // should only be handed out to trusted processes.
+  // TODO(aloha): consider array here
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
   [EnableIf=is_android]
-  pending_receiver<CookieManager>? cookie_manager;
+  pending_receiver<CookieManager>? cookie_manager_0;
+  [EnableIf=is_android]
+  pending_receiver<CookieManager>? cookie_manager_1;
+
 
   // Callback interface for signaling that the provisional cookie store has
   // been closed and it's safe to open the cookie database. Used by Android
   // WebView to synchronize cookie store handoff from the provisional store
   // to the Network Service's store.
   [EnableIf=is_android]
-  pending_receiver<CookieStoreReadyCallback>? cookie_store_ready_callback;
+  pending_receiver<CookieStoreReadyCallback>? cookie_store_ready_callback_0;
+  [EnableIf=is_android]
+  pending_receiver<CookieStoreReadyCallback>? cookie_store_ready_callback_1;
 
   // Whether to enable Domain Reliability.
   bool enable_domain_reliability = false;
@@ -990,6 +999,12 @@ struct IdAndAllowlistedPatterns {
 // network restrictions is in the comment for `RestrictNetworkForIds()` below.
 [RequireContext=sandbox.mojom.Context.kPrivilegedUtility]
 interface NetworkContext {
+  // ALOHA https://app.clickup.com/t/2f29z75
+  SetSendDNTHeader(bool send);
+
+  // ALOHA - Cookies https://app.clickup.com/t/2dmr616
+  SetActiveCookieManager(int32 inst_num);
+
   // Sets a client for this network context.
   SetClient(pending_remote<NetworkContextClient> client);
 
@@ -1012,6 +1027,14 @@ interface NetworkContext {
   // possible, a RestrictedCookieManager should be handed out instead.
   [AllowedContext=sandbox.mojom.Context.kBrowser]
   GetCookieManager(pending_receiver<CookieManager> cookie_manager);
+
+  // ALOHA https://app.clickup.com/t/86etj7905
+  [AllowedContext=sandbox.mojom.Context.kBrowser]
+  GetPublicCookieManager(pending_receiver<CookieManager> cookie_manager);
+
+  // ALOHA https://app.clickup.com/t/86etj7905
+  [AllowedContext=sandbox.mojom.Context.kBrowser]
+  GetPrivateCookieManager(pending_receiver<CookieManager> cookie_manager);
 
   // Gets a RestrictedCookieManager scoped to a given origin, and applying
   // settings configured on the CookieManager associated with this domain.

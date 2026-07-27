@@ -3326,12 +3326,9 @@ void RenderWidgetHostViewAndroid::CreateOverscrollControllerIfPossible() {
   if (!window_android)
     return;
 
-  ui::WindowAndroidCompositor* compositor = window_android->GetCompositor();
-  if (!compositor)
-    return;
-
+   
   overscroll_controller_ = std::make_unique<OverscrollControllerAndroid>(
-      overscroll_refresh_handler, compositor, view_.GetDipScale(), host());
+      overscroll_refresh_handler, view_.GetDipScale(), host());
 
   const auto& web_prefs =
       host()->owner_delegate()->GetWebkitPreferencesForWidget();
@@ -3342,8 +3339,7 @@ void RenderWidgetHostViewAndroid::CreateOverscrollControllerIfPossible() {
 void RenderWidgetHostViewAndroid::SetOverscrollControllerForTesting(
     ui::OverscrollRefreshHandler* overscroll_refresh_handler) {
   overscroll_controller_ = std::make_unique<OverscrollControllerAndroid>(
-      overscroll_refresh_handler, view_.GetWindowAndroid()->GetCompositor(),
-      view_.GetDipScale(), host());
+      overscroll_refresh_handler, view_.GetDipScale(), host());
 }
 
 void RenderWidgetHostViewAndroid::TakeFallbackContentFrom(
