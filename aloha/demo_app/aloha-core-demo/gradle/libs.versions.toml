@@ -1,0 +1,25 @@
+[versions]
+# Plugins
+androidGradlePlugin = "8.13.2"
+kotlin = "2.3.0"
+# Libraries
+androidxActivity = "1.12.3"
+androidxAppcompat = "1.7.1"
+androidxCore = "1.17.0"
+guava = "33.5.0-android"
+materialDesign = "1.12.0"
+multidex = "2.0.1"
+
+[libraries]
+# AndroidX
+androidx-activity-ktx = { module = "androidx.activity:activity", version.ref = "androidxActivity" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
+androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
+material-design = { module = "com.google.android.material:material", version.ref = "materialDesign" }
+multidex = { module = "androidx.multidex:multidex", version.ref = "multidex" }
+# Networking, Data
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

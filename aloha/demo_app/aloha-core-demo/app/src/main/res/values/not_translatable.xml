@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        TODO: Provide the key-system → DRM-UUID mapping that AlohaCore should
+        use during MediaDRM initialization, then remove this TODO.
+
+        Each <item> is a single comma-separated string of the form:
+            "<key-system-name>,<DRM-UUID>"
+
+        Example (Widevine's well-known UUID, mapping a custom key-system name
+        to it so MediaDRM availability checks pass):
+            <item>"com.example.my-keysystem,EDEF8BA9-79D6-4ACE-A3C8-27DCD51D21ED"</item>
+
+        The exact key-system names you need depend on your AlohaCore build /
+        license. If you are unsure, leave the array empty to start — the demo
+        will still launch and load HTTP(S) pages; only encrypted media playback
+        that relies on this mapping will be affected.
+    -->
+    <string-array name="config_key_system_uuid_mapping" translatable="false">
+    </string-array>
+</resources>
+
